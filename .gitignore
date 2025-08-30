@@ -1,0 +1,60 @@
+# General C/C++ build artifacts
+*.o
+*.obj
+*.so
+*.a
+*.lib
+*.dll
+*.dylib
+*.exe
+*.out
+
+# Build directories
+/build/
+/bin/
+/lib/
+/dist/
+/Debug/
+/Release/
+/CMakeFiles/
+
+# Install directories
+/local/
+
+# CMake specific files
+CMakeCache.txt
+CMakeFiles/
+CMakeScripts/
+CTestTestfile.cmake
+cmake_install.cmake
+Makefile
+*.cmake
+*.ninja
+build.ninja
+rules.ninja
+
+# IDE specific files
+*.ide
+*.iml
+.idea/
+.vscode/
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+compile_commands.json
+
+# Logs and additional files
+*.log
+*.tmp
+*.swp
+*.DS_Store
+*.directory
+
+# Generated files by editors or OS
+Thumbs.db
+.DS_Store
+._*
+
+# Ignored project files
+cmake-build-*
