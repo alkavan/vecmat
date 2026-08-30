@@ -23,6 +23,21 @@ struct benchmark_node* benchmark_head = NULL;
 
 int main(int argc, char *argv[])
 {
+    (void)argc;
+    (void)argv;
+
+    vm_cpu_init();
+    printf("vecmat benches  selected=%s  compiled=%s  runtime=%s  precision=%s\n",
+           vm_cpu_name(vm_cpu_selected_features()),
+           vm_cpu_name(vm_cpu_compiled_features()),
+           vm_cpu_name(vm_cpu_runtime_features()),
+#ifdef VECMAT_USE_F64
+           "f64"
+#else
+           "f32"
+#endif
+    );
+
     const double total_time = run_benchmarks();
     printf("All benchmarks completed in %.9lf seconds \n", total_time);
 

@@ -23,6 +23,7 @@ add_executable(vecmat_tests
         test_matrix_int_ptr.c
         test_quaternion_ptr.c
         test_common_usage.c
+        test_cpu.c
 )
 target_link_libraries(vecmat_tests PRIVATE vecmat_static m)
 
@@ -34,5 +35,6 @@ add_executable(vecmat_benchmarks
         bench_main.c
         bench_vector_float.c
         bench_matrix_float.c
+        bench_quaternion.c
 )
 target_link_libraries(vecmat_benchmarks PRIVATE vecmat_static m)

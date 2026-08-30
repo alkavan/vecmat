@@ -436,6 +436,27 @@ typedef struct {
 #endif
 
 /*******************************************************************************
+ * CPU feature detection and dispatch
+ ******************************************************************************/
+
+typedef uint32_t vm_cpu_features_t;
+
+enum {
+    VM_CPU_SCALAR = 1u << 0,
+    VM_CPU_AVX2   = 1u << 1,
+    VM_CPU_SVE    = 1u << 2,
+    VM_CPU_AVX512 = 1u << 3,
+    VM_CPU_SVE2   = 1u << 4,
+    VM_CPU_AVX    = 1u << 5
+};
+
+VEC_API vm_cpu_features_t vm_cpu_compiled_features(void);
+VEC_API vm_cpu_features_t vm_cpu_runtime_features(void);
+VEC_API vm_cpu_features_t vm_cpu_selected_features(void);
+VEC_API const char *vm_cpu_name(vm_cpu_features_t features);
+VEC_API void vm_cpu_init(void);
+
+/*******************************************************************************
  * Floating-point vector functions
  ******************************************************************************/
 

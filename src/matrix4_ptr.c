@@ -4,6 +4,7 @@
 
 #include <string.h>
 #include <vecmat.h>
+#include "features/cpu.h"
 
 /**
  * @brief Sets the matrix to the identity matrix.
@@ -31,7 +32,7 @@ void mat4_identity_ptr(matrix4 *res)
  * @param a Pointer to the first matrix4 operand.
  * @param b Pointer to the second matrix4 operand.
  */
-void mat4_mul_ptr(matrix4 *res, const matrix4 *a, const matrix4 *b)
+VECMAT_SCALAR_API void mat4_mul_ptr_scalar(matrix4 *res, const matrix4 *a, const matrix4 *b)
 {
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 4; j++) {
@@ -52,13 +53,33 @@ void mat4_mul_ptr(matrix4 *res, const matrix4 *a, const matrix4 *b)
  * @param res Pointer to the matrix4 where the transposed result will be stored.
  * @param m Pointer to the constant matrix4 to be transposed.
  */
-void mat4_transpose_ptr(matrix4 *res, const matrix4 *m)
+VECMAT_SCALAR_API void mat4_transpose_ptr_scalar(matrix4 *res, const matrix4 *m)
 {
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 4; j++) {
             res->v[i * 4 + j] = m->v[j * 4 + i];
         }
     }
+}
+
+void mat4_mul_ptr(matrix4 *res, const matrix4 *a, const matrix4 *b)
+{
+#ifdef VECMAT_RUNTIME_DISPATCH
+    vm_cpu_init();
+    mat4_mul_ptr_(res, a, b);
+#else
+    mat4_mul_ptr_scalar(res, a, b);
+#endif
+}
+
+void mat4_transpose_ptr(matrix4 *res, const matrix4 *m)
+{
+#ifdef VECMAT_RUNTIME_DISPATCH
+    vm_cpu_init();
+    mat4_transpose_ptr_(res, m);
+#else
+    mat4_transpose_ptr_scalar(res, m);
+#endif
 }
 
 /**
@@ -470,7 +491,7 @@ void mat4_perspective_infinite_ptr(matrix4 *res, vm_float_t const fov_y, vm_floa
  * @param m Input matrix.
  * @param v Input vector.
  */
-void mat4_mul_vec4_ptr(vector4 *res, const matrix4 *m, const vector4 *v)
+VECMAT_SCALAR_API void mat4_mul_vec4_ptr_scalar(vector4 *res, const matrix4 *m, const vector4 *v)
 {
     const vm_float_t x = v->x;
     const vm_float_t y = v->y;
@@ -482,6 +503,16 @@ void mat4_mul_vec4_ptr(vector4 *res, const matrix4 *m, const vector4 *v)
     res->w = m->m41 * x + m->m42 * y + m->m43 * z + m->m44 * w;
 }
 
+void mat4_mul_vec4_ptr(vector4 *res, const matrix4 *m, const vector4 *v)
+{
+#ifdef VECMAT_RUNTIME_DISPATCH
+    vm_cpu_init();
+    mat4_mul_vec4_ptr_(res, m, v);
+#else
+    mat4_mul_vec4_ptr_scalar(res, m, v);
+#endif
+}
+
 /**
  * @brief Transforms a vector3 by a 4x4 matrix using homogeneous w.
  *
@@ -490,7 +521,7 @@ void mat4_mul_vec4_ptr(vector4 *res, const matrix4 *m, const vector4 *v)
  * @param v Input vector.
  * @param w Homogeneous w component.
  */
-void mat4_mul_vec3_ptr(vector3 *res, const matrix4 *m, const vector3 *v, const vm_float_t w)
+VECMAT_SCALAR_API void mat4_mul_vec3_ptr_scalar(vector3 *res, const matrix4 *m, const vector3 *v, const vm_float_t w)
 {
     const vm_float_t x = v->x;
     const vm_float_t y = v->y;
@@ -498,4 +529,14 @@ void mat4_mul_vec3_ptr(vector3 *res, const matrix4 *m, const vector3 *v, const v
     res->x = m->m11 * x + m->m12 * y + m->m13 * z + m->m14 * w;
     res->y = m->m21 * x + m->m22 * y + m->m23 * z + m->m24 * w;
     res->z = m->m31 * x + m->m32 * y + m->m33 * z + m->m34 * w;
+}
+
+void mat4_mul_vec3_ptr(vector3 *res, const matrix4 *m, const vector3 *v, const vm_float_t w)
+{
+#ifdef VECMAT_RUNTIME_DISPATCH
+    vm_cpu_init();
+    mat4_mul_vec3_ptr_(res, m, v, w);
+#else
+    mat4_mul_vec3_ptr_scalar(res, m, v, w);
+#endif
 }

@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include <vecmat.h>
+#include "features/cpu.h"
 
 /**
  * @brief Performs component-wise addition of two vector4.
@@ -11,7 +12,7 @@
  * @param a Pointer to first `vector4`.
  * @param b Pointer to second `vector4`.
  */
-void vec4_add_ptr(vector4 *res, const vector4 *a, const vector4 *b)
+VECMAT_SCALAR_API void vec4_add_ptr_scalar(vector4 *res, const vector4 *a, const vector4 *b)
 {
     res->x = a->x + b->x;
     res->y = a->y + b->y;
@@ -26,7 +27,7 @@ void vec4_add_ptr(vector4 *res, const vector4 *a, const vector4 *b)
  * @param a Pointer to first `vector4`.
  * @param b Pointer to second `vector4`.
  */
-void vec4_sub_ptr(vector4 *res, const vector4 *a, const vector4 *b)
+VECMAT_SCALAR_API void vec4_sub_ptr_scalar(vector4 *res, const vector4 *a, const vector4 *b)
 {
     res->x = a->x - b->x;
     res->y = a->y - b->y;
@@ -41,7 +42,7 @@ void vec4_sub_ptr(vector4 *res, const vector4 *a, const vector4 *b)
  * @param v Pointer to input `vector4`.
  * @param s The scalar multiplier.
  */
-void vec4_mul_scalar_ptr(vector4 *res, const vector4 *v, const vm_float_t s)
+VECMAT_SCALAR_API void vec4_mul_scalar_ptr_scalar(vector4 *res, const vector4 *v, const vm_float_t s)
 {
     res->x = v->x * s;
     res->y = v->y * s;
@@ -58,7 +59,7 @@ void vec4_mul_scalar_ptr(vector4 *res, const vector4 *v, const vm_float_t s)
  * @param v Pointer to input `vector4`.
  * @param s Scalar divisor.
  */
-void vec4_div_scalar_ptr(vector4 *res, const vector4 *v, const vm_float_t s)
+VECMAT_SCALAR_API void vec4_div_scalar_ptr_scalar(vector4 *res, const vector4 *v, const vm_float_t s)
 {
     if (s == 0.0f) {
         res->x = res->y = res->z = res->w = 0.0f;
@@ -77,7 +78,7 @@ void vec4_div_scalar_ptr(vector4 *res, const vector4 *v, const vm_float_t s)
  * @param a Pointer to first `vector4`.
  * @param b Pointer to second `vector4`.
  */
-void vec4_mul_ptr(vector4 *res, const vector4 *a, const vector4 *b)
+VECMAT_SCALAR_API void vec4_mul_ptr_scalar(vector4 *res, const vector4 *a, const vector4 *b)
 {
     res->x = a->x * b->x;
     res->y = a->y * b->y;
@@ -91,7 +92,7 @@ void vec4_mul_ptr(vector4 *res, const vector4 *a, const vector4 *b)
  * @param res Pointer to result `vector4`.
  * @param v Pointer to input `vector4`.
  */
-void vec4_neg_ptr(vector4 *res, const vector4 *v)
+VECMAT_SCALAR_API void vec4_neg_ptr_scalar(vector4 *res, const vector4 *v)
 {
     res->x = -v->x;
     res->y = -v->y;
@@ -105,7 +106,7 @@ void vec4_neg_ptr(vector4 *res, const vector4 *v)
  * @param res Pointer to result `vector4`.
  * @param v Pointer to input `vector4`.
  */
-void vec4_abs_ptr(vector4 *res, const vector4 *v)
+VECMAT_SCALAR_API void vec4_abs_ptr_scalar(vector4 *res, const vector4 *v)
 {
     res->x = VECMAT_FABS(v->x);
     res->y = VECMAT_FABS(v->y);
@@ -119,7 +120,7 @@ void vec4_abs_ptr(vector4 *res, const vector4 *v)
  * @param res Pointer to result `vector4`.
  * @param v Pointer to input `vector4`.
  */
-void vec4_normalize_ptr(vector4 *res, const vector4 *v)
+VECMAT_SCALAR_API void vec4_normalize_ptr_scalar(vector4 *res, const vector4 *v)
 {
     const vm_float_t len = vec4_length(*v);
     if (len == 0.0f) {
@@ -140,7 +141,7 @@ void vec4_normalize_ptr(vector4 *res, const vector4 *v)
  * @param a Pointer to first `vector4`.
  * @param b Pointer to second `vector4`.
  */
-void vec4_min_ptr(vector4 *res, const vector4 *a, const vector4 *b)
+VECMAT_SCALAR_API void vec4_min_ptr_scalar(vector4 *res, const vector4 *a, const vector4 *b)
 {
     res->x = VECMAT_FMIN(a->x, b->x);
     res->y = VECMAT_FMIN(a->y, b->y);
@@ -155,7 +156,7 @@ void vec4_min_ptr(vector4 *res, const vector4 *a, const vector4 *b)
  * @param a Pointer to first `vector4`.
  * @param b Pointer to second `vector4`.
  */
-void vec4_max_ptr(vector4 *res, const vector4 *a, const vector4 *b)
+VECMAT_SCALAR_API void vec4_max_ptr_scalar(vector4 *res, const vector4 *a, const vector4 *b)
 {
     res->x = VECMAT_FMAX(a->x, b->x);
     res->y = VECMAT_FMAX(a->y, b->y);
@@ -169,7 +170,7 @@ void vec4_max_ptr(vector4 *res, const vector4 *a, const vector4 *b)
  * @param res Pointer to result `vector4`.
  * @param v Pointer to input `vector4`.
  */
-void vec4_sign_ptr(vector4 *res, const vector4 *v)
+VECMAT_SCALAR_API void vec4_sign_ptr_scalar(vector4 *res, const vector4 *v)
 {
     res->x = v->x > 0.0f ? 1.0f : v->x < 0.0f ? -1.0f : 0.0f;
     res->y = v->y > 0.0f ? 1.0f : v->y < 0.0f ? -1.0f : 0.0f;
@@ -183,7 +184,7 @@ void vec4_sign_ptr(vector4 *res, const vector4 *v)
  * @param res Pointer to result `vector4`.
  * @param v Pointer to input `vector4`.
  */
-void vec4_floor_ptr(vector4 *res, const vector4 *v)
+VECMAT_SCALAR_API void vec4_floor_ptr_scalar(vector4 *res, const vector4 *v)
 {
     res->x = VECMAT_FLOOR(v->x);
     res->y = VECMAT_FLOOR(v->y);
@@ -197,7 +198,7 @@ void vec4_floor_ptr(vector4 *res, const vector4 *v)
  * @param res Pointer to result `vector4`.
  * @param v Pointer to input `vector4`.
  */
-void vec4_ceil_ptr(vector4 *res, const vector4 *v)
+VECMAT_SCALAR_API void vec4_ceil_ptr_scalar(vector4 *res, const vector4 *v)
 {
     res->x = VECMAT_CEIL(v->x);
     res->y = VECMAT_CEIL(v->y);
@@ -211,7 +212,7 @@ void vec4_ceil_ptr(vector4 *res, const vector4 *v)
  * @param res Pointer to result `vector4`.
  * @param v Pointer to input `vector4`.
  */
-void vec4_round_ptr(vector4 *res, const vector4 *v)
+VECMAT_SCALAR_API void vec4_round_ptr_scalar(vector4 *res, const vector4 *v)
 {
     res->x = VECMAT_ROUND(v->x);
     res->y = VECMAT_ROUND(v->y);
@@ -228,7 +229,7 @@ void vec4_round_ptr(vector4 *res, const vector4 *v)
  * @param b Pointer to second `vector4`.
  * @param t Interpolation factor.
  */
-void vec4_lerp_ptr(vector4 *res, const vector4 *a, const vector4 *b, const vm_float_t t)
+VECMAT_SCALAR_API void vec4_lerp_ptr_scalar(vector4 *res, const vector4 *a, const vector4 *b, const vm_float_t t)
 {
     res->x = a->x + t * (b->x - a->x);
     res->y = a->y + t * (b->y - a->y);
@@ -245,7 +246,7 @@ void vec4_lerp_ptr(vector4 *res, const vector4 *a, const vector4 *b, const vm_fl
  * @param min Pointer to minimum bounds `vector4`.
  * @param max Pointer to maximum bounds `vector4`.
  */
-void vec4_clamp_ptr(vector4 *res, const vector4 *v, const vector4 *min, const vector4 *max)
+VECMAT_SCALAR_API void vec4_clamp_ptr_scalar(vector4 *res, const vector4 *v, const vector4 *min, const vector4 *max)
 {
     res->x = VECMAT_FMAX(min->x, VECMAT_FMIN(max->x, v->x));
     res->y = VECMAT_FMAX(min->y, VECMAT_FMIN(max->y, v->y));
@@ -262,7 +263,7 @@ void vec4_clamp_ptr(vector4 *res, const vector4 *v, const vector4 *min, const ve
  * @param res Pointer to result `vector4`.
  * @param v Pointer to input `vector4`.
  */
-void vec4_homogenize_ptr(vector4 *res, const vector4 *v)
+VECMAT_SCALAR_API void vec4_homogenize_ptr_scalar(vector4 *res, const vector4 *v)
 {
     if (VECMAT_FABS(v->w) > VECMAT_EPSILON) {
         const vm_float_t inv_w = 1.0f / v->w;
@@ -295,7 +296,7 @@ void vec4_to_vec3_ptr(vector3 *res, const vector4 *v)
  * @param a First input vector.
  * @param b Second input vector.
  */
-void vec4_div_ptr(vector4 *res, const vector4 *a, const vector4 *b)
+VECMAT_SCALAR_API void vec4_div_ptr_scalar(vector4 *res, const vector4 *a, const vector4 *b)
 {
     res->x = (b->x == 0.0f) ? 0.0f : a->x / b->x;
     res->y = (b->y == 0.0f) ? 0.0f : a->y / b->y;
@@ -310,7 +311,7 @@ void vec4_div_ptr(vector4 *res, const vector4 *a, const vector4 *b)
  * @param v Input vector.
  * @param s Scalar value.
  */
-void vec4_add_scalar_ptr(vector4 *res, const vector4 *v, const vm_float_t s)
+VECMAT_SCALAR_API void vec4_add_scalar_ptr_scalar(vector4 *res, const vector4 *v, const vm_float_t s)
 {
     res->x = v->x + s;
     res->y = v->y + s;
@@ -325,7 +326,7 @@ void vec4_add_scalar_ptr(vector4 *res, const vector4 *v, const vm_float_t s)
  * @param v Input vector.
  * @param s Scalar value.
  */
-void vec4_sub_scalar_ptr(vector4 *res, const vector4 *v, const vm_float_t s)
+VECMAT_SCALAR_API void vec4_sub_scalar_ptr_scalar(vector4 *res, const vector4 *v, const vm_float_t s)
 {
     res->x = v->x - s;
     res->y = v->y - s;
@@ -341,7 +342,7 @@ void vec4_sub_scalar_ptr(vector4 *res, const vector4 *v, const vm_float_t s)
  * @param min Lower bound.
  * @param max Upper bound.
  */
-void vec4_clamp_scalar_ptr(vector4 *res, const vector4 *v, const vm_float_t min, const vm_float_t max)
+VECMAT_SCALAR_API void vec4_clamp_scalar_ptr_scalar(vector4 *res, const vector4 *v, const vm_float_t min, const vm_float_t max)
 {
     res->x = VECMAT_FMIN(VECMAT_FMAX(v->x, min), max);
     res->y = VECMAT_FMIN(VECMAT_FMAX(v->y, min), max);
@@ -355,9 +356,9 @@ void vec4_clamp_scalar_ptr(vector4 *res, const vector4 *v, const vm_float_t min,
  * @param res Output vector.
  * @param v Input vector.
  */
-void vec4_saturate_ptr(vector4 *res, const vector4 *v)
+VECMAT_SCALAR_API void vec4_saturate_ptr_scalar(vector4 *res, const vector4 *v)
 {
-    vec4_clamp_scalar_ptr(res, v, 0.0f, 1.0f);
+    vec4_clamp_scalar_ptr_scalar(res, v, 0.0f, 1.0f);
 }
 
 /**
@@ -366,7 +367,7 @@ void vec4_saturate_ptr(vector4 *res, const vector4 *v)
  * @param res Output vector.
  * @param v Input vector.
  */
-void vec4_fract_ptr(vector4 *res, const vector4 *v)
+VECMAT_SCALAR_API void vec4_fract_ptr_scalar(vector4 *res, const vector4 *v)
 {
     res->x = v->x - VECMAT_FLOOR(v->x);
     res->y = v->y - VECMAT_FLOOR(v->y);
@@ -426,4 +427,234 @@ void vec4_reject_ptr(vector4 *res, const vector4 *a, const vector4 *b)
     res->y = a->y - projected.y;
     res->z = a->z - projected.z;
     res->w = a->w - projected.w;
+}
+
+void vec4_add_ptr(vector4 *res, const vector4 *a, const vector4 *b)
+{
+#ifdef VECMAT_RUNTIME_DISPATCH
+    vm_cpu_init();
+    vec4_add_ptr_(res, a, b);
+#else
+    vec4_add_ptr_scalar(res, a, b);
+#endif
+}
+
+void vec4_sub_ptr(vector4 *res, const vector4 *a, const vector4 *b)
+{
+#ifdef VECMAT_RUNTIME_DISPATCH
+    vm_cpu_init();
+    vec4_sub_ptr_(res, a, b);
+#else
+    vec4_sub_ptr_scalar(res, a, b);
+#endif
+}
+
+void vec4_mul_ptr(vector4 *res, const vector4 *a, const vector4 *b)
+{
+#ifdef VECMAT_RUNTIME_DISPATCH
+    vm_cpu_init();
+    vec4_mul_ptr_(res, a, b);
+#else
+    vec4_mul_ptr_scalar(res, a, b);
+#endif
+}
+
+void vec4_mul_scalar_ptr(vector4 *res, const vector4 *v, const vm_float_t s)
+{
+#ifdef VECMAT_RUNTIME_DISPATCH
+    vm_cpu_init();
+    vec4_mul_scalar_ptr_(res, v, s);
+#else
+    vec4_mul_scalar_ptr_scalar(res, v, s);
+#endif
+}
+
+void vec4_div_scalar_ptr(vector4 *res, const vector4 *v, const vm_float_t s)
+{
+#ifdef VECMAT_RUNTIME_DISPATCH
+    vm_cpu_init();
+    vec4_div_scalar_ptr_(res, v, s);
+#else
+    vec4_div_scalar_ptr_scalar(res, v, s);
+#endif
+}
+
+void vec4_neg_ptr(vector4 *res, const vector4 *v)
+{
+#ifdef VECMAT_RUNTIME_DISPATCH
+    vm_cpu_init();
+    vec4_neg_ptr_(res, v);
+#else
+    vec4_neg_ptr_scalar(res, v);
+#endif
+}
+
+void vec4_abs_ptr(vector4 *res, const vector4 *v)
+{
+#ifdef VECMAT_RUNTIME_DISPATCH
+    vm_cpu_init();
+    vec4_abs_ptr_(res, v);
+#else
+    vec4_abs_ptr_scalar(res, v);
+#endif
+}
+
+void vec4_normalize_ptr(vector4 *res, const vector4 *v)
+{
+#ifdef VECMAT_RUNTIME_DISPATCH
+    vm_cpu_init();
+    vec4_normalize_ptr_(res, v);
+#else
+    vec4_normalize_ptr_scalar(res, v);
+#endif
+}
+
+void vec4_min_ptr(vector4 *res, const vector4 *a, const vector4 *b)
+{
+#ifdef VECMAT_RUNTIME_DISPATCH
+    vm_cpu_init();
+    vec4_min_ptr_(res, a, b);
+#else
+    vec4_min_ptr_scalar(res, a, b);
+#endif
+}
+
+void vec4_max_ptr(vector4 *res, const vector4 *a, const vector4 *b)
+{
+#ifdef VECMAT_RUNTIME_DISPATCH
+    vm_cpu_init();
+    vec4_max_ptr_(res, a, b);
+#else
+    vec4_max_ptr_scalar(res, a, b);
+#endif
+}
+
+void vec4_lerp_ptr(vector4 *res, const vector4 *a, const vector4 *b, const vm_float_t t)
+{
+#ifdef VECMAT_RUNTIME_DISPATCH
+    vm_cpu_init();
+    vec4_lerp_ptr_(res, a, b, t);
+#else
+    vec4_lerp_ptr_scalar(res, a, b, t);
+#endif
+}
+
+void vec4_clamp_ptr(vector4 *res, const vector4 *v, const vector4 *min, const vector4 *max)
+{
+#ifdef VECMAT_RUNTIME_DISPATCH
+    vm_cpu_init();
+    vec4_clamp_ptr_(res, v, min, max);
+#else
+    vec4_clamp_ptr_scalar(res, v, min, max);
+#endif
+}
+
+void vec4_div_ptr(vector4 *res, const vector4 *a, const vector4 *b)
+{
+#ifdef VECMAT_RUNTIME_DISPATCH
+    vm_cpu_init();
+    vec4_div_ptr_(res, a, b);
+#else
+    vec4_div_ptr_scalar(res, a, b);
+#endif
+}
+
+void vec4_add_scalar_ptr(vector4 *res, const vector4 *v, const vm_float_t s)
+{
+#ifdef VECMAT_RUNTIME_DISPATCH
+    vm_cpu_init();
+    vec4_add_scalar_ptr_(res, v, s);
+#else
+    vec4_add_scalar_ptr_scalar(res, v, s);
+#endif
+}
+
+void vec4_sub_scalar_ptr(vector4 *res, const vector4 *v, const vm_float_t s)
+{
+#ifdef VECMAT_RUNTIME_DISPATCH
+    vm_cpu_init();
+    vec4_sub_scalar_ptr_(res, v, s);
+#else
+    vec4_sub_scalar_ptr_scalar(res, v, s);
+#endif
+}
+
+void vec4_clamp_scalar_ptr(vector4 *res, const vector4 *v, const vm_float_t min, const vm_float_t max)
+{
+#ifdef VECMAT_RUNTIME_DISPATCH
+    vm_cpu_init();
+    vec4_clamp_scalar_ptr_(res, v, min, max);
+#else
+    vec4_clamp_scalar_ptr_scalar(res, v, min, max);
+#endif
+}
+
+void vec4_saturate_ptr(vector4 *res, const vector4 *v)
+{
+#ifdef VECMAT_RUNTIME_DISPATCH
+    vm_cpu_init();
+    vec4_saturate_ptr_(res, v);
+#else
+    vec4_saturate_ptr_scalar(res, v);
+#endif
+}
+
+void vec4_sign_ptr(vector4 *res, const vector4 *v)
+{
+#ifdef VECMAT_RUNTIME_DISPATCH
+    vm_cpu_init();
+    vec4_sign_ptr_(res, v);
+#else
+    vec4_sign_ptr_scalar(res, v);
+#endif
+}
+
+void vec4_floor_ptr(vector4 *res, const vector4 *v)
+{
+#ifdef VECMAT_RUNTIME_DISPATCH
+    vm_cpu_init();
+    vec4_floor_ptr_(res, v);
+#else
+    vec4_floor_ptr_scalar(res, v);
+#endif
+}
+
+void vec4_ceil_ptr(vector4 *res, const vector4 *v)
+{
+#ifdef VECMAT_RUNTIME_DISPATCH
+    vm_cpu_init();
+    vec4_ceil_ptr_(res, v);
+#else
+    vec4_ceil_ptr_scalar(res, v);
+#endif
+}
+
+void vec4_round_ptr(vector4 *res, const vector4 *v)
+{
+#ifdef VECMAT_RUNTIME_DISPATCH
+    vm_cpu_init();
+    vec4_round_ptr_(res, v);
+#else
+    vec4_round_ptr_scalar(res, v);
+#endif
+}
+
+void vec4_fract_ptr(vector4 *res, const vector4 *v)
+{
+#ifdef VECMAT_RUNTIME_DISPATCH
+    vm_cpu_init();
+    vec4_fract_ptr_(res, v);
+#else
+    vec4_fract_ptr_scalar(res, v);
+#endif
+}
+
+void vec4_homogenize_ptr(vector4 *res, const vector4 *v)
+{
+#ifdef VECMAT_RUNTIME_DISPATCH
+    vm_cpu_init();
+    vec4_homogenize_ptr_(res, v);
+#else
+    vec4_homogenize_ptr_scalar(res, v);
+#endif
 }

@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include <vecmat.h>
+#include "features/cpu.h"
 
 /**
  * @brief Sets the quaternion to the identity quaternion (x=0, y=0, z=0, w=1).
@@ -25,12 +26,22 @@ void quat_identity_ptr(quaternion *res)
  * @param a Pointer to the first quaternion.
  * @param b Pointer to the second quaternion.
  */
-void quat_mul_ptr(quaternion *res, const quaternion *a, const quaternion *b)
+VECMAT_SCALAR_API void quat_mul_ptr_scalar(quaternion *res, const quaternion *a, const quaternion *b)
 {
     res->w = a->w * b->w - a->x * b->x - a->y * b->y - a->z * b->z;
     res->x = a->w * b->x + a->x * b->w + a->y * b->z - a->z * b->y;
     res->y = a->w * b->y - a->x * b->z + a->y * b->w + a->z * b->x;
     res->z = a->w * b->z + a->x * b->y - a->y * b->x + a->z * b->w;
+}
+
+void quat_mul_ptr(quaternion *res, const quaternion *a, const quaternion *b)
+{
+#ifdef VECMAT_RUNTIME_DISPATCH
+    vm_cpu_init();
+    quat_mul_ptr_(res, a, b);
+#else
+    quat_mul_ptr_scalar(res, a, b);
+#endif
 }
 
 /**
@@ -41,7 +52,7 @@ void quat_mul_ptr(quaternion *res, const quaternion *a, const quaternion *b)
  * @param res Pointer to the output quaternion.
  * @param q Pointer to the input quaternion.
  */
-void quat_normalize_ptr(quaternion *res, const quaternion *q)
+VECMAT_SCALAR_API void quat_normalize_ptr_scalar(quaternion *res, const quaternion *q)
 {
     const vm_float_t len = VECMAT_SQRT(q->x * q->x + q->y * q->y + q->z * q->z + q->w * q->w);
     if (len > 0.0f) {
@@ -56,6 +67,16 @@ void quat_normalize_ptr(quaternion *res, const quaternion *q)
         res->z = q->z;
         res->w = q->w;
     }
+}
+
+void quat_normalize_ptr(quaternion *res, const quaternion *q)
+{
+#ifdef VECMAT_RUNTIME_DISPATCH
+    vm_cpu_init();
+    quat_normalize_ptr_(res, q);
+#else
+    quat_normalize_ptr_scalar(res, q);
+#endif
 }
 
 /**

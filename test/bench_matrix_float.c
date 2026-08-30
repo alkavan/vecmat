@@ -5,7 +5,7 @@
 #include <vecmat.h>
 #include "unitest.h"
 
-BENCHMARK(mat2_mul, "iterations: 1000000 [mat2_inverse]")
+BENCHMARK(mat2_mul, "iterations: 1000000 [mat2_mul_3x,mat2_inverse]")
 {
     const int iterations = 1000000;
     matrix2 a = {{
@@ -25,7 +25,7 @@ BENCHMARK(mat2_mul, "iterations: 1000000 [mat2_inverse]")
     }
 }
 
-BENCHMARK(mat3_mul, "iterations: 1000000 [mat3_inverse]")
+BENCHMARK(mat3_mul, "iterations: 1000000 [mat3_mul_3x,mat3_inverse]")
 {
     const int iterations = 1000000;
     matrix3 a = {{
@@ -47,7 +47,7 @@ BENCHMARK(mat3_mul, "iterations: 1000000 [mat3_inverse]")
     }
 }
 
-BENCHMARK(mat4_mul, "iterations: 1000000 [mul,inverse]")
+BENCHMARK(mat4_mul, "iterations: 1000000 [mat4_mul_3x,mat4_inverse]")
 {
     const int iterations = 1000000;
     matrix4 a = {{
@@ -71,7 +71,7 @@ BENCHMARK(mat4_mul, "iterations: 1000000 [mul,inverse]")
     }
 }
 
-BENCHMARK(mat2_mul_ptr, "iterations: 1000000 [mul_ptr,inverse_ptr]")
+BENCHMARK(mat2_mul_ptr, "iterations: 1000000 [mat2_mul_ptr_3x,mat2_inverse_ptr]")
 {
     const int iterations = 1000000;
     matrix2 a = {{
@@ -92,7 +92,7 @@ BENCHMARK(mat2_mul_ptr, "iterations: 1000000 [mul_ptr,inverse_ptr]")
     }
 }
 
-BENCHMARK(mat3_mul_ptr, "iterations: 1000000)")
+BENCHMARK(mat3_mul_ptr, "iterations: 1000000 [mat3_mul_ptr_3x,mat3_inverse_ptr]")
 {
     const int iterations = 1000000;
     matrix3 a = {{
@@ -115,7 +115,7 @@ BENCHMARK(mat3_mul_ptr, "iterations: 1000000)")
     }
 }
 
-BENCHMARK(mat4_mul_ptr, "iterations: 1000000")
+BENCHMARK(mat4_mul_ptr, "iterations: 1000000 [mat4_mul_ptr_3x,mat4_inverse_ptr]")
 {
     const int iterations = 1000000;
     matrix4 a = {{
@@ -140,7 +140,7 @@ BENCHMARK(mat4_mul_ptr, "iterations: 1000000")
     }
 }
 
-BENCHMARK(mat4_transform_chain, "iterations: 1000000")
+BENCHMARK(mat4_transform_chain, "iterations: 1000000 [mat4_mul_3x,mat4_rotation]")
 {
     const int iterations = 1000000;
     matrix4 model = mat4_identity();
@@ -157,7 +157,7 @@ BENCHMARK(mat4_transform_chain, "iterations: 1000000")
     }
 }
 
-BENCHMARK(mat4_transform_chain_ptr, "iterations: 1000000")
+BENCHMARK(mat4_transform_chain_ptr, "iterations: 1000000 [mat4_mul_ptr_3x,mat4_rotation_ptr]")
 {
     const int iterations = 1000000;
     matrix4 model; mat4_identity_ptr(&model);
@@ -174,5 +174,98 @@ BENCHMARK(mat4_transform_chain_ptr, "iterations: 1000000")
         mat4_mul_ptr(&mvp,  &proj, &temp);
         mat4_rotation_ptr(&temp, &(vector3){.x = 0.0f, .y = 1.0f, .z = 0.0f}, 1.0f);
         mat4_mul_ptr(&model, &model, &temp);
+    }
+}
+
+BENCHMARK(mat4_inverse_ptr, "iterations: 1000000 [mat4_inverse_ptr,mat4_mul_ptr]")
+{
+    const int iterations = 1000000;
+    matrix4 a = {{
+        .m11 = 2.0f, .m21 = 0.0f, .m31 = 0.0f, .m41 = 0.0f,
+        .m12 = 0.0f, .m22 = 3.0f, .m32 = 0.0f, .m42 = 0.0f,
+        .m13 = 0.0f, .m23 = 0.0f, .m33 = 4.0f, .m43 = 0.0f,
+        .m14 = 1.0f, .m24 = 2.0f, .m34 = 3.0f, .m44 = 1.0f
+    }};
+    matrix4 res;
+
+    for (int i = 0; i < iterations; i++) {
+        mat4_inverse_ptr(&res, &a);
+        mat4_mul_ptr(&a, &res, &a);
+    }
+}
+
+BENCHMARK(mat4_mul_ptr_simd, "iterations: 1000000 [simd,mat4_mul_ptr]")
+{
+    const int iterations = 1000000;
+    matrix4 a = {{
+        .m11 = 1.0f,  .m21 = 0.1f,  .m31 = 0.0f,  .m41 = 0.0f,
+        .m12 = 0.0f,  .m22 = 1.0f,  .m32 = 0.1f,  .m42 = 0.0f,
+        .m13 = 0.0f,  .m23 = 0.0f,  .m33 = 1.0f,  .m43 = 0.1f,
+        .m14 = 0.2f,  .m24 = 0.3f,  .m34 = 0.4f,  .m44 = 1.0f
+    }};
+    const matrix4 b = {{
+        .m11 = 0.98f, .m21 = 0.02f, .m31 = 0.0f,  .m41 = 0.0f,
+        .m12 = -0.02f,.m22 = 0.98f, .m32 = 0.0f,  .m42 = 0.0f,
+        .m13 = 0.0f,  .m23 = 0.0f,  .m33 = 1.0f,  .m43 = 0.0f,
+        .m14 = 0.01f, .m24 = 0.0f,  .m34 = 0.0f,  .m44 = 1.0f
+    }};
+    matrix4 res;
+
+    for (int i = 0; i < iterations; i++) {
+        mat4_mul_ptr(&res, &a, &b);
+        a = res;
+    }
+}
+
+BENCHMARK(mat4_transpose_ptr_simd, "iterations: 1000000 [simd,mat4_transpose_ptr]")
+{
+    const int iterations = 1000000;
+    matrix4 a = {{
+        .m11 = 1.0f,  .m21 = 2.0f,  .m31 = 3.0f,  .m41 = 4.0f,
+        .m12 = 5.0f,  .m22 = 6.0f,  .m32 = 7.0f,  .m42 = 8.0f,
+        .m13 = 9.0f,  .m23 = 10.0f, .m33 = 11.0f, .m43 = 12.0f,
+        .m14 = 13.0f, .m24 = 14.0f, .m34 = 15.0f, .m44 = 16.0f
+    }};
+    matrix4 res;
+
+    for (int i = 0; i < iterations; i++) {
+        mat4_transpose_ptr(&res, &a);
+        a = res;
+    }
+}
+
+BENCHMARK(mat4_mul_vec4_ptr_simd, "iterations: 1000000 [simd,mat4_mul_vec4_ptr]")
+{
+    const int iterations = 1000000;
+    const matrix4 m = {{
+        .m11 = 1.0f, .m21 = 0.0f, .m31 = 0.0f, .m41 = 0.0f,
+        .m12 = 0.0f, .m22 = 2.0f, .m32 = 0.0f, .m42 = 0.0f,
+        .m13 = 0.0f, .m23 = 0.0f, .m33 = 3.0f, .m43 = 0.0f,
+        .m14 = 1.0f, .m24 = 2.0f, .m34 = 3.0f, .m44 = 1.0f
+    }};
+    vector4 v = {.x = 1.0f, .y = 2.0f, .z = 3.0f, .w = 1.0f};
+    vector4 res;
+
+    for (int i = 0; i < iterations; i++) {
+        mat4_mul_vec4_ptr(&res, &m, &v);
+        v = res;
+    }
+}
+
+BENCHMARK(mat4_mul_vec3_ptr_simd, "iterations: 1000000 [simd,mat4_mul_vec3_ptr]")
+{
+    const int iterations = 1000000;
+    const matrix4 m = {{
+        .m11 = 1.0f, .m21 = 0.0f, .m31 = 0.0f, .m41 = 0.0f,
+        .m12 = 0.0f, .m22 = 1.0f, .m32 = 0.0f, .m42 = 0.0f,
+        .m13 = 0.0f, .m23 = 0.0f, .m33 = 1.0f, .m43 = 0.0f,
+        .m14 = 0.5f, .m24 = 0.25f,.m34 = 1.0f, .m44 = 1.0f
+    }};
+    vector3 v = {.x = 1.0f, .y = 2.0f, .z = 3.0f};
+    vector3 res;
+
+    for (int i = 0; i < iterations; i++) {
+        mat4_mul_vec3_ptr(&res, &m, &v, 1.0f);
+        v = res;
     }
 }
