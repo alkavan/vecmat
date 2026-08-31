@@ -93,7 +93,7 @@ vector3i vec3i_z_scale(const vm_int_t z)
 /**
  * @brief Component-wise addition of two vectors.
  *
- * See `vec3i_add_ptr` for the out-parameter version.
+ * @see vec3i_add_ptr
  *
  * @param a First vector.
  * @param b Second vector.
@@ -109,7 +109,7 @@ vector3i vec3i_add(const vector3i a, const vector3i b)
 /**
  * @brief Component-wise subtraction of two vectors.
  *
- * See `vec3i_sub_ptr` for the out-parameter version.
+ * @see vec3i_sub_ptr
  *
  * @param a First vector.
  * @param b Second vector.
@@ -125,7 +125,7 @@ vector3i vec3i_sub(const vector3i a, const vector3i b)
 /**
  * @brief Component-wise multiplication of vector by scalar.
  *
- * See `vec3i_mul_scalar_ptr` for the out-parameter version.
+ * @see vec3i_mul_scalar_ptr
  *
  * @param v The vector.
  * @param s The scalar.
@@ -141,7 +141,7 @@ vector3i vec3i_mul_scalar(const vector3i v, const vm_int_t s)
 /**
  * @brief Component-wise division of vector by scalar.
  *
- * See `vec3i_div_scalar_ptr` for the out-parameter version.
+ * @see vec3i_div_scalar_ptr
  *
  * @param v The vector.
  * @param s The scalar (non-zero).
@@ -157,7 +157,7 @@ vector3i vec3i_div_scalar(const vector3i v, const vm_int_t s)
 /**
  * @brief Component-wise multiplication of two vectors.
  *
- * See `vec3i_mul_ptr` for the out-parameter version.
+ * @see vec3i_mul_ptr
  *
  * @param a First vector.
  * @param b Second vector.
@@ -173,7 +173,7 @@ vector3i vec3i_mul(const vector3i a, const vector3i b)
 /**
  * @brief Negation of a vector.
  *
- * See `vec3i_neg_ptr` for the out-parameter version.
+ * @see vec3i_neg_ptr
  *
  * @param v The vector.
  * @return The negated vector.
@@ -188,7 +188,7 @@ vector3i vec3i_neg(const vector3i v)
 /**
  * @brief Computes the absolute value per component of a `vector3i`.
  *
- * See `vec3i_abs_ptr` for the out-parameter version.
+ * @see vec3i_abs_ptr
  *
  * @param v The vector.
  * @return The absolute vector3i.
@@ -203,7 +203,7 @@ vector3i vec3i_abs(const vector3i v)
 /**
  * @brief Computes the cross-product of two `vector3i`.
  *
- * See `vec3i_cross_ptr` for the out-parameter version.
+ * @see vec3i_cross_ptr
  *
  * @param a First vector.
  * @param b Second vector.
@@ -219,7 +219,7 @@ vector3i vec3i_cross(const vector3i a, const vector3i b)
 /**
  * @brief Normalizes a `vector3i` to unit length.
  *
- * See `vec3i_normalize_ptr` for the out-parameter version.
+ * @see vec3i_normalize_ptr
  *
  * @param v The vector (non-zero).
  * @return The normalized vector.
@@ -234,7 +234,7 @@ vector3i vec3i_normalize(const vector3i v)
 /**
  * @brief Computes the component-wise minimum of two `vector3i`.
  *
- * See `vec3i_min_ptr` for the out-parameter version.
+ * @see vec3i_min_ptr
  *
  * @param a First vector.
  * @param b Second vector.
@@ -250,7 +250,7 @@ vector3i vec3i_min(const vector3i a, const vector3i b)
 /**
  * @brief Computes the component-wise maximum of two `vector3i`.
  *
- * See `vec3i_max_ptr` for the out-parameter version.
+ * @see vec3i_max_ptr
  *
  * @param a First vector.
  * @param b Second vector.
@@ -266,7 +266,7 @@ vector3i vec3i_max(const vector3i a, const vector3i b)
 /**
  * @brief Computes the sign per component of a `vector3i` (-1, 0, or 1).
  *
- * See `vec3i_sign_ptr` for the out-parameter version.
+ * @see vec3i_sign_ptr
  *
  * @param v The vector.
  * @return The sign vector.
@@ -281,7 +281,7 @@ vector3i vec3i_sign(const vector3i v)
 /**
  * @brief Linearly interpolates between two `vector3i`.
  *
- * See `vec3i_lerp_ptr` for the out-parameter version.
+ * @see vec3i_lerp_ptr
  *
  * @param a Start vector.
  * @param b End vector.
@@ -298,7 +298,7 @@ vector3i vec3i_lerp(const vector3i a, const vector3i b, const vm_float_t t)
 /**
  * @brief Clamps a `vector3i` between min and max per component.
  *
- * See `vec3i_clamp_ptr` for the out-parameter version.
+ * @see vec3i_clamp_ptr
  *
  * @param v The vector.
  * @param min Minimum bounds.

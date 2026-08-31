@@ -6,7 +6,9 @@ name: Vecmat CI Workflow
 
 on:
   push:
-    branches: [master]
+    branches:
+      - master
+      - 'v*.x'
     tags: ['v*']
   pull_request:
   workflow_dispatch:
@@ -156,6 +158,8 @@ jobs:
         if: matrix.run_tests
         run: ./build/test/vecmat_benchmarks
 
+      # Version-line branches (v0.2.x, v0.3.x, …) build and test only.
+      # Install trees and GitHub Releases are produced from v* tags.
       - name: Package install tree
         if: startsWith(github.ref, 'refs/tags/v')
         run: |

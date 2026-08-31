@@ -2,8 +2,8 @@
 A simple math and linear algebra library in C for 2D/3D graphics,
 machine learning, physics, and science.
 
-**Vecmat is a heartfelt ❤ love letter ️to the C programming language** —
-with emphasis the elegance, simplicity and readability of the language, even for
+**Vecmat is a heartfelt ❤ love letter to the C programming language** —
+with emphasis on the elegance, simplicity and readability of the language, even for
 scenarios where other languages might seem more suited. Performance is important
 but second to usability and elegance.
 
@@ -16,28 +16,37 @@ Elegance, simplicity, and readability matter more than squeezing every cycle.
 - Keep the **public API stable**. Speedups live behind the same names.
 - Work well in **graphics engines, simulations, and games**, not only tiny demos.
 - Stay portable C11, easy to pull in with CMake (`FetchContent` or `find_package`).
-- Grow SIMD amd MMA without forcing apps to pass ISA flags.
+- Grow SIMD and MMA without forcing apps to pass ISA flags.
 
 ## Features
 - Default interfaces use **value types** and obvious names (`vector3`, `matrix4`, `quaternion`).
+- Angles are **radians** on unsuffixed APIs. Write `VM_DEG(90)` or call the `_deg` suffix at the human/config edge;
+  `VM_RAD(M_PI_2)` documents an already-radian literal.
 - The **real work** lives in `_ptr` functions (pointers in, pointers out). Those are what SIMD/MMA backends implement.
 - You can access components as **`.x/.y/.z`** or as **`m11`, `m21`, ...** or as a flat **`.v[]` array**.
 - Performance is not ignored; it is layered *under* a stable, comfortable API.
 - BSD 3-Clause License — great for individuals, organizations, and companies.
 - Includes a unit testing and benchmarking framework [`unitest.h`](test/unitest.h)
-- Exceptions in tests are handled using a custom handler [`except.h`](test/except.h) and you can use it for whatever
-  it's only 24 lines of code.
+- Exceptions in tests are handled using a custom handler [`except.h`](test/except.h); 
+  it is only 24 lines and you can reuse it.
 
 ### Precision chosen at build time
 - Default: `float` and `int32_t`.
 - Optional: `double` (`VECMAT_USE_F64`), and int width 8 / 16 / 32.
 
 ### Math types
+
 - Float vectors: 2D, 3D, 4D (`vector2` / `vector3` / `vector4`).
 - Integer vectors: same sizes (`vector2i` / `vector3i` / `vector4i`).
 - Float and integer matrices: 2x2, 3x3, 4x4.
 - Quaternions for rotation.
 - Easing functions for animation-style interpolation.
+- Clip-space presets for OpenGL (`RH_NO`), Vulkan (`RH_ZO`) and Direct3D (`LH_ZO`).
+- Dense packed `vm_gemm` (`C = α op(A) op(B) + β C`), batched GEMM, and heap `vm_mat` with LU / QR / SVD / Cholesky (solve, det,
+  inverse, least squares).
+- Sparse CSR (`vm_spmat`) with CG / BiCGSTAB and Jacobi / SSOR / IC(0) preconditioners.
+- Time integrators (semi-implicit Euler, velocity Verlet, RK2 / RK4), CFL helper, and `vm_rigid_step`.
+- Regular-grid / MAC operators and an assembled 5-/7-point Laplacian for Poisson projection.
 
 ### Features to Avoid
 - No SSE and no NEON on purpose. The library jumps to AVX / AVX2 / AVX-512 and ARM SVE / SVE2.
@@ -46,9 +55,145 @@ Elegance, simplicity, and readability matter more than squeezing every cycle.
 - By-value helpers for everyday code.
 - `_ptr` kernels for hot paths and SIMD.
 
-### Precision chosen at build time
-- Default: `float` and `int32_t`.
-- Optional: `double` (`VECMAT_USE_F64`), and int width 8 / 16 / 32.
+## Extended Features
+
+### Computer Graphics
+
+#### Clip-space helpers
+Build projection and view matrices for different graphics APIs and depth conventions.
+
+**Perspective projections** — camera frustum matrices (radians; `_deg` if FOV is in degrees).
+The unsuffixed `mat4_perspective` / `mat4_perspective_fov` / `mat4_perspective_infinite`
+helpers also take radians. Use `mat4_perspective_deg` (and friends) for degrees:
+- `mat4_perspective_clip` / `mat4_perspective_clip_deg`
+- `mat4_perspective_rh_no` / `mat4_perspective_rh_no_deg`
+- `mat4_perspective_rh_zo` / `mat4_perspective_rh_zo_deg`
+- `mat4_perspective_lh_zo` / `mat4_perspective_lh_zo_deg`
+- `mat4_perspective_lh_no` / `mat4_perspective_lh_no_deg`
+
+**Orthographic projections** — parallel projection matrices from frustum bounds:
+- `mat4_ortho_clip`
+- `mat4_ortho_rh_no`
+- `mat4_ortho_rh_zo`
+- `mat4_ortho_lh_zo`
+- `mat4_ortho_lh_no`
+
+**Look-at view matrices** — world-to-view transforms from eye, target, and up:
+- `mat4_look_at_clip`
+- `mat4_look_at_rh`
+- `mat4_look_at_lh`
+
+**Look-from-direction view matrices** — same basis as look-at, but the camera aims along a direction (FPS / fly camera, no target point):
+- `mat4_look_from_dir` / `mat4_look_from_dir_clip`
+- `mat4_look_from_dir_rh` / `mat4_look_from_dir_lh`
+- `quat_look` / `quat_look_clip` — orientation whose local −Z (RH) or +Z (LH) aims along the direction
+- `quat_from_to` — shortest rotation taking one vector onto another
+
+**Infinite / reverse-Z projections** — infinite far plane, optionally with reversed depth (near → 1, infinity → 0 on ZO):
+- `mat4_perspective_infinite` stays historic OpenGL `RH_NO`
+- `mat4_perspective_infinite_clip` — infinite + any clip convention (`*_ZO` is infinite + zero-to-one)
+- `mat4_infinite_reverse_z` — modern-engine preset: infinite + RH + ZO + reversed depth
+- `mat4_infinite_reverse_z_clip` — same mapping for the other clip conventions
+
+**Viewport, world ↔ window** — NDC to a pixel box and back. Geometric `vec3_project` (onto a direction) is unchanged:
+- `mat4_viewport` / `mat4_viewport_depth`
+- `vec3_world_to_window` / `vec3_window_to_world`
+- `vec3_world_to_window_clip` / `vec3_window_to_world_clip`
+
+**Affine inverse and normal matrices** — skip the 4×4 adjugate when the transform is `[A t; 0 1]`:
+- `mat4_inverse_affine` — invert the 3×3 linear part and apply it to the translation
+- `mat3_normal` / `mat4_normal` — inverse-transpose of the 3×3 for transforming normals
+
+**Clip conventions** — handedness + depth range selectors used by the `*_clip` helpers:
+- `VM_CLIP_RH_NO` — right-handed, clip z in `[-1, 1]` (OpenGL-style)
+- `VM_CLIP_RH_ZO` — right-handed, clip z in `[0, 1]` (Vulkan-style)
+- `VM_CLIP_LH_ZO` — left-handed, clip z in `[0, 1]` (Direct3D-style)
+- `VM_CLIP_LH_NO` — left-handed, clip z in `[-1, 1]`
+
+#### Rotation helpers
+Build 4×4 rotation matrices from axis angles in radians
+(`mat4_rotation` / `mat4_rotation_x` / `mat4_rotation_y` / `mat4_rotation_z`).
+Use `*_deg` or `VM_DEG(...)` when the angle is in degrees:
+- `mat4_rotation_x` / `mat4_rotation_x_deg`
+- `mat4_rotation_y` / `mat4_rotation_y_deg`
+- `mat4_rotation_z` / `mat4_rotation_z_deg`
+- `mat4_rotation` / `mat4_rotation_deg`
+
+---
+
+### Point Clouds, 3D Reconstruction, DNNs, LLMs
+
+#### GEMM (General Matrix–Matrix Multiplication — BLAS Standard)
+
+- `vm_gemm` is a blocked, packed `C = α op(A) op(B) + β C` for arbitrary dense panels (row- or column-major, optional
+  transposes). Tiles are packed into an 8×8-friendly layout on a reusable heap workspace; the inner kernel is dispatched
+  to AVX / AVX2 / AVX-512F / SVE / SVE2 (scalar otherwise). `vm_gemm_ref` is the triple-loop reference used by tests.
+- `vm_gemm_ex` adds an optional fused bias (`C(i,j) += bias[j]`) and/or ReLU epilogue.
+- `vm_gemm_batch` / `vm_gemm_strided_batch` pack a shared `B` once when every problem uses the same weights
+  (`B[p]` identical, or `strideB == 0`). The batch is threaded with pthreads / Win32 by default (not OpenMP);
+  `vm_gemm_set_threads(n)` or `VECMAT_GEMM_THREADS` caps the workers (`1` disables, `0` is hardware auto).
+  Tiny batches stay serial so a single small GEMM does not pay spawn cost.
+- `vm_im2col` writes an NCHW image to a GEMM-ready panel for convolution. fp16 / bf16 are not in this release.
+
+#### Dense Linear Algebra
+
+- Heap `vm_mat` (M×N, column-major) for general dense work beyond the fixed 2×2 / 3×3 / 4×4 types.
+- **LU** — `vm_lu_factor` / `vm_lu_solve` with partial pivoting; `vm_mat_det` and `vm_mat_inverse` are thin wrappers on the same path (square systems).
+- **QR** — Householder `vm_qr_factor` / `vm_qr_unpack`; `vm_qr_solve` for least-squares `min ||Ax − b||` when `m ≥ n`.
+- **SVD** — thin one-sided Jacobi `vm_svd_factor` (`A = U diag(s) Vᵀ`, singular values descending) for rank, conditioning, and reconstruction-style work.
+- **Cholesky** — in-place `vm_chol_factor` / `vm_chol_solve` for dense SPD systems (tiny Poisson, covariance, SPD least squares).
+
+---
+
+### Physics and Simulations
+
+Vecmat is still a math library: it does not ship a fluid solver, an SPH engine, or a constraint island.
+It supplies the primitives those codes call every substep.
+
+**Precision.** Graphics can stay `float`. Scientific time integration and Poisson solves should configure
+`-DVECMAT_USE_F64=ON` so `vm_float_t` is `double`. The same relative-tolerance style used by LU / QR
+(`tol ~ n ε max|A|`) is reused by CG / BiCGSTAB as `||r|| / max(||b||, ε)`.
+
+#### Sparse systems
+
+- `vm_spmat` — square CSR, built from triplets (`vm_spmat_from_triplets` sorts and sums duplicates)
+- `vm_spmv` — `y = A x`
+- `vm_cg` — conjugate gradient for SPD systems (pressure Poisson, implicit diffusion, linear elasticity)
+- `vm_bicgstab` — nonsymmetric Krylov (advection–diffusion)
+- Left preconditioners: Jacobi, SSOR (ω = 1), IC(0). IC(0) falls back to Jacobi if a pivot breaks down.
+- `vm_ksp_info` reports `iters`, `rel_res`, `ok`
+
+A 2-D Poisson problem on an `N×N` grid is `N²` unknowns with about five non-zeros per row. Dense LU is
+already the wrong tool at `N = 64`. CG + Jacobi is enough for a teaching projection step; IC(0)+CG is
+what a small research code can ship.
+
+#### Time integration
+
+- `vm_euler_semi` — `v += a dt`, `x += v dt` (particles, games)
+- `vm_verlet` — velocity Verlet with an `acc(x)` callback (MD / SPH / Hamiltonians)
+- `vm_rk2` / `vm_rk4` — explicit Runge–Kutta on a flat state vector
+- `vm_cfl_dt(cfl, dx, speed)` — `dt = cfl * dx / (|u|+ε)`
+- `vm_rigid_step` — symplectic Euler on `(x, v, q, ω)` with body-frame torque and `I⁻¹(τ − ω×Iω)`
+
+`quat_integrate` is the orientation exponential map used inside `vm_rigid_step`.
+
+#### Rigid algebra
+
+- `mat3_chol` / `mat3_spd_solve` — 3×3 SPD solve without LU pivoting
+- `vm_inertia_world` — `I_w = R I_b Rᵀ`
+- `vm_omega_from_L` — recover `ω` from `L = Iω`
+- `vm_rigid_energy` — `½ m |v|² + ½ ω·(Iω)`
+- `vm_baumgarte_correct` — one-normal positional / velocity correction
+- `mat3_sym_eigen` — principal axes of an inertia tensor (setup / analysis)
+
+`x`, `v`, `F` are world-frame; `ω` and `τ` are body-frame.
+
+#### Grid operators
+
+- `vm_grid3` — uniform Cartesian metadata (`nz == 1` is 2-D)
+- MAC index helpers: `vm_mac_u` / `vm_mac_v` / `vm_mac_w` and counts
+- `vm_mac_div`, `vm_mac_grad`, `vm_mac_curl_z`
+- `vm_grid_laplacian` — assemble the SPD operator `−∇²` (5-point / 7-point) with Dirichlet or Neumann rows
 
 ## Documentation
 
@@ -58,18 +203,6 @@ Elegance, simplicity, and readability matter more than squeezing every cycle.
 ```bash
 cd doc && doxygen Doxyfile
 ```
-
-### History
-This library started as a quick replacement to the `mathc` library by Felipe
-Ferreira da Silva but evolved into somewhat larger scope. While Felipe's library
-worked well for some simple stuff, the `mathc` API wasn't ideal for larger like
-graphics engines, simulations, and games. I found the math API was somewhat
-incomplete, and not straightforward as expected.
-
-I decided to build my own library with the main goal of common API, easy to use,
-and self-explanatory interfaces. While `mathc` put performance first making the
-API uncomfortable, `vecmat` puts usage and API first; that means that all
-default interfaces are copy and type names are expected.
 
 ## SIMD and MMA
 
@@ -83,7 +216,10 @@ default interfaces are copy and type names are expected.
 | `-DVECMAT_ENABLE_AVX2=ON`      | ON on x86-64              | Compile AVX2 kernels (`-mavx2` / `/arch:AVX2`)          |
 | `-DVECMAT_ENABLE_AVX512=ON`    | ON on x86-64              | Compile AVX-512F kernels (`-mavx512f` / `/arch:AVX512`) |
 | `-DVECMAT_ENABLE_SVE=ON`       | ON on AArch64             | Compile SVE kernels (`-march=armv8-a+sve`)              |
-| `-DVECMAT_ENABLE_SVE2=ON`      | ON on AArch64             | Compile SVE kernels (`-march=armv8-a+sve2`)             |
+| `-DVECMAT_ENABLE_SVE2=ON`      | ON on AArch64             | Compile SVE2 kernels (`-march=armv8-a+sve2`)            |
+
+`vm_cpu_init()` is thread-safe (C11 atomics, double-checked locking) and
+idempotent. Concurrent first-use of dispatched kernels is safe.
 
 **How to check for features:**
 ```c
@@ -117,6 +253,7 @@ printf("compiled=%s runtime=%s selected=%s\n",
 ### Relevant Resources
 * [Convenient CPU feature detection and dispatch](https://blog.magnum.graphics/backstage/cpu-feature-detection-dispatch/) by [Vladimír Vondruš](https://github.com/mosra)
 * [LAPACK: Linear Algebra PACKage](https://www.netlib.org/lapack/explore-html/d3/dcc/md__r_e_a_d_m_e.html)
+* [BiCGSTAB](https://www.ctcms.nist.gov/~langer/oof2man/RegisteredClass-StabilizedBiConjugateGradient.html)
 
 ## CMake Integration
 
@@ -127,7 +264,7 @@ if(NOT TARGET vecmat::vecmat)
     include(FetchContent)
     FetchContent_Declare(vecmat
         GIT_REPOSITORY https://github.com/alkavan/vecmat.git
-        GIT_TAG v0.1.0
+        GIT_TAG v0.2.4
     )
     FetchContent_MakeAvailable(vecmat)
 endif()
@@ -137,11 +274,11 @@ target_link_libraries(my_app PRIVATE vecmat::vecmat)
 
 ### Installed Package
 ```cmake
-find_package(vecmat 0.1 CONFIG REQUIRED)
+find_package(vecmat 0.2 CONFIG REQUIRED)
 target_link_libraries(my_app PRIVATE vecmat::vecmat)
 ```
 
-## System integration / Out-of-source build and installation 
+## System integration / Out-of-source build and installation
 ```bash
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug \
   -DVECMAT_BUILD_TESTS=ON \

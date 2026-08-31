@@ -241,7 +241,13 @@ void vec4i_to_vec3i_ptr(vector3i *res, const vector4i *v)
     res->z = v->z;
 }
 
-// Floor division: toward -inf; returns 0 if b == 0.
+/**
+ * @brief Floor division toward -inf; returns 0 if `b == 0`.
+ *
+ * @param a Dividend.
+ * @param b Divisor.
+ * @return `floor(a / b)`, or 0 if `b` is 0.
+ */
 static vm_int_t vm_div_floor4(const vm_int_t a, const vm_int_t b)
 {
     if (b == 0) {
@@ -255,7 +261,13 @@ static vm_int_t vm_div_floor4(const vm_int_t a, const vm_int_t b)
     return q;
 }
 
-// Floor modulo: result in [0, b) for b > 0 (or (b, 0] for b < 0); 0 if b == 0.
+/**
+ * @brief Floor modulo matching `vm_div_floor4`.
+ *
+ * @param a Dividend.
+ * @param b Divisor.
+ * @return Floor modulus.
+ */
 static vm_int_t vm_mod_floor4(const vm_int_t a, const vm_int_t b)
 {
     if (b == 0) {

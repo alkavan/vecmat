@@ -54,10 +54,10 @@ TEST_CASE(test_common_matrix_access_and_determinant, "[common][matrix3][access,d
     REQUIRE(VECMAT_EQ(mat.m33, 4.0f, EPSILON));
 
     // Determinant function
-    const float det = mat.m11 * (mat.m22 * mat.m33 - mat.m23 * mat.m32)
+    const vm_float_t det = mat.m11 * (mat.m22 * mat.m33 - mat.m23 * mat.m32)
               - mat.m12 * (mat.m21 * mat.m33 - mat.m23 * mat.m31)
               + mat.m13 * (mat.m21 * mat.m32 - mat.m22 * mat.m31);
-    REQUIRE(VECMAT_EQ(det, 24.0f, EPSILON));  // 2*3*4 = 24
+    REQUIRE(VECMAT_EQ(det, VM_F(24.0), EPSILON));  // 2*3*4 = 24
 
     // Accessing by index and scaling
     for (int i = 0; i < 9; i++) {
@@ -100,7 +100,7 @@ TEST_CASE(test_common_matrix_multiply_affine, "[common][matrix3,matrix4][multipl
     /* Column-major GEMM: C[col*3 + row] = sum_k A[k*3 + row] * B[col*3 + k] */
     for (int c = 0; c < 3; c++) {
         for (int r = 0; r < 3; r++) {
-            float sum = 0.0f;
+            vm_float_t sum = 0.0f;
             for (int k = 0; k < 3; k++) {
                 sum += a.v[k * 3 + r] * b.v[c * 3 + k];
             }

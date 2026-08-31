@@ -51,9 +51,9 @@ TEST_CASE(mat2_inverse_ptr_test, "[matrix2_ptr]") {
 }
 
 TEST_CASE(mat2_rotation_z_ptr_test, "[matrix2_ptr]") {
-    const vm_float_t degrees = 90.0f;
+    const vm_float_t radians = VM_RAD(M_PI_2);
     matrix2 rot;
-    mat2_rotation_z_ptr(&rot, degrees);
+    mat2_rotation_z_ptr(&rot, radians);
     // For 90 degrees: cos(90)=0, sin(90)=1
     // Matrix should be: [0, -1; 1, 0]
     REQUIRE(VECMAT_EQ(rot.m11,  0.0f, EPSILON));
@@ -167,9 +167,9 @@ TEST_CASE(mat3_inverse_ptr_test, "[matrix3_ptr]") {
 }
 
 TEST_CASE(mat3_rotation_z_ptr_test, "[matrix3_ptr]") {
-    const vm_float_t degrees = 90.0f;
+    const vm_float_t radians = VM_RAD(M_PI_2);
     matrix3 rot;
-    mat3_rotation_z_ptr(&rot, degrees);
+    mat3_rotation_z_ptr(&rot, radians);
     // For 90 degrees: cos(90°)=~0, sin(90°)=~1
     // Matrix should be: [0, -1, 0; 1, 0, 0; 0, 0, 1]
     REQUIRE(VECMAT_EQ(rot.m11,  0.0f, EPSILON));
@@ -251,7 +251,7 @@ TEST_CASE(mat4_mul_ptr_test, "[matrix4_ptr]") {
 }
 
 TEST_CASE(mat4_mul_ptr_associative_test, "[matrix4_ptr]") {
-    const matrix4 r = mat4_rotation_z(90.0f);
+    const matrix4 r = mat4_rotation_z(VM_RAD(M_PI_2));
     const matrix4 t = mat4_translate((vector3){.x = 1.0f, .y = 2.0f, .z = 3.0f});
     const vector4 v = {.x = 1.0f, .y = 0.0f, .z = 0.0f, .w = 1.0f};
     matrix4 tr;
@@ -321,7 +321,7 @@ TEST_CASE(mat4_scale_ptr_test, "[matrix4_ptr]") {
 TEST_CASE(mat4_rotation_ptr_test, "[matrix4_ptr]") {
     matrix4 res;
     const vector3 axis = {.x = 0.0f, .y = 0.0f, .z = 1.0f};
-    mat4_rotation_ptr(&res, &axis, 90.0f);
+    mat4_rotation_ptr(&res, &axis, VM_RAD(M_PI_2));
     REQUIRE(VECMAT_EQ(res.m11, 0.0f, EPSILON));
     REQUIRE(VECMAT_EQ(res.m21, 1.0f, EPSILON));
     REQUIRE(VECMAT_EQ(res.m12, -1.0f, EPSILON));
@@ -360,13 +360,12 @@ TEST_CASE(mat4_mul_vec3_ptr_test, "[matrix4_ptr]") {
 
 TEST_CASE(mat4_perspective_ptr_test, "[matrix4_ptr]") {
     matrix4 res;
-    const vm_float_t fov = 90.0f;
+    const vm_float_t fov = VM_RAD(M_PI_2);
     const vm_float_t aspect = 1.0f;
     const vm_float_t near = 0.1f;
     const vm_float_t far = 100.0f;
     mat4_perspective_ptr(&res, fov, aspect, near, far);
-    const vm_float_t rad = deg_to_rad(fov / 2.0f);
-    const vm_float_t tan_half_fov = VECMAT_TAN(rad);
+    const vm_float_t tan_half_fov = VECMAT_TAN(fov * VM_F(0.5));
     REQUIRE(VECMAT_EQ(res.m11, 1.0f / (aspect * tan_half_fov), EPSILON));
     REQUIRE(VECMAT_EQ(res.m22, 1.0f / tan_half_fov, EPSILON));
     REQUIRE(VECMAT_EQ(res.m33, -(far + near) / (far - near), EPSILON));
@@ -398,27 +397,25 @@ TEST_CASE(mat4_look_at_ptr_test, "[matrix4_ptr]") {
 
 TEST_CASE(mat4_perspective_fov_ptr_test, "[matrix4_ptr]") {
     matrix4 res;
-    const vm_float_t fov = 90.0f;
+    const vm_float_t fov = VM_RAD(M_PI_2);
     const vm_float_t w = 800.0f;
     const vm_float_t h = 600.0f;
     const vm_float_t n = 0.1f;
     const vm_float_t f = 100.0f;
     mat4_perspective_fov_ptr(&res, fov, w, h, n, f);
     const vm_float_t aspect = w / h;
-    const vm_float_t rad = deg_to_rad(fov / 2.0f);
-    const vm_float_t tan_half_fov = VECMAT_TAN(rad);
+    const vm_float_t tan_half_fov = VECMAT_TAN(fov * VM_F(0.5));
     REQUIRE(VECMAT_EQ(res.m11, 1.0f / (aspect * tan_half_fov), EPSILON));
     REQUIRE(VECMAT_EQ(res.m22, 1.0f / tan_half_fov, EPSILON));
 }
 
 TEST_CASE(mat4_perspective_infinite_ptr_test, "[matrix4_ptr]") {
     matrix4 res;
-    const vm_float_t fov_y = 90.0f;
+    const vm_float_t fov_y = VM_RAD(M_PI_2);
     const vm_float_t aspect = 1.0f;
     const vm_float_t n = 0.1f;
     mat4_perspective_infinite_ptr(&res, fov_y, aspect, n);
-    const vm_float_t rad = deg_to_rad(fov_y / 2.0f);
-    const vm_float_t tan_half_fov = VECMAT_TAN(rad);
+    const vm_float_t tan_half_fov = VECMAT_TAN(fov_y * VM_F(0.5));
     REQUIRE(VECMAT_EQ(res.m11, 1.0f / (aspect * tan_half_fov), EPSILON));
     REQUIRE(VECMAT_EQ(res.m22, 1.0f / tan_half_fov, EPSILON));
     REQUIRE(VECMAT_EQ(res.m33, -1.0f, EPSILON));
@@ -431,7 +428,7 @@ TEST_CASE(mat2_scale_from_mat3_ptr_test, "[matrix2_ptr]") {
     mat2_scale_ptr(&s, &sv);
     REQUIRE(vec2_eq(mat2_mul_vec2(s, (vector2){.x = 1.0f, .y = 1.0f}), (vector2){.x = 2.0f, .y = 3.0f}));
     matrix3 rot;
-    mat3_rotation_z_ptr(&rot, 90.0f);
+    mat3_rotation_z_ptr(&rot, VM_RAD(M_PI_2));
     matrix2 r;
     mat2_from_mat3_ptr(&r, &rot);
     REQUIRE(vec2_near(mat2_mul_vec2(r, (vector2){.x = 1.0f, .y = 0.0f}), (vector2){.x = 0.0f, .y = 1.0f}, EPSILON));
@@ -443,7 +440,7 @@ TEST_CASE(mat3_affine_ptr_test, "[matrix3_ptr]") {
     mat3_translate_ptr(&t, &tv);
     REQUIRE(vec2_eq(mat3_mul_vec2(t, (vector2){.x = 1.0f, .y = 2.0f}), (vector2){.x = 6.0f, .y = 9.0f}));
     matrix3 rx;
-    mat3_rotation_x_ptr(&rx, 90.0f);
+    mat3_rotation_x_ptr(&rx, VM_RAD(M_PI_2));
     REQUIRE(vec3_near(mat3_mul_vec3(rx, (vector3){.x = 0.0f, .y = 1.0f, .z = 0.0f}),
                       (vector3){.x = 0.0f, .y = 0.0f, .z = 1.0f}, EPSILON));
     const matrix4 m4 = mat4_scale((vector3){.x = 2.0f, .y = 3.0f, .z = 4.0f});
@@ -456,7 +453,7 @@ TEST_CASE(mat3_affine_ptr_test, "[matrix3_ptr]") {
 
 TEST_CASE(mat4_trs_extract_ptr_test, "[matrix4_ptr]") {
     matrix4 rot;
-    mat4_rotation_y_ptr(&rot, 90.0f);
+    mat4_rotation_y_ptr(&rot, VM_RAD(M_PI_2));
     REQUIRE(vec3_near(mat4_mul_vec3(rot, (vector3){.x = 0.0f, .y = 0.0f, .z = 1.0f}, 1.0f),
                       (vector3){.x = 1.0f, .y = 0.0f, .z = 0.0f}, EPSILON));
 

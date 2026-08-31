@@ -4,6 +4,10 @@
 
 #include <vecmat.h>
 
+#if !defined(__STDC_NO_ATOMICS__)
+#include <stdatomic.h>
+#endif
+
 #if defined(__x86_64__) || defined(_M_X64) || defined(__amd64__) || \
     defined(__i386__) || defined(_M_IX86)
 #define VECMAT_ARCH_X86 1
@@ -32,10 +36,26 @@
 #endif
 
 static vm_cpu_features_t runtime_cache;
-static int runtime_cached;
+#if !defined(__STDC_NO_ATOMICS__)
+static atomic_int runtime_cached;
+static atomic_flag runtime_lock = ATOMIC_FLAG_INIT;
+#else
+static volatile int runtime_cached;
+#endif
 
 #if defined(VECMAT_ARCH_X86)
 #if defined(_MSC_VER)
+/**
+ * @brief CPUID wrapper (MSVC).
+ *
+ * @param leaf CPUID leaf.
+ * @param sub CPUID subleaf.
+ * @param eax EAX result.
+ * @param ebx EBX result.
+ * @param ecx ECX result.
+ * @param edx EDX result.
+ * @return 1 on success.
+ */
 static int vm_cpuid(unsigned leaf, unsigned sub,
                     unsigned *eax, unsigned *ebx, unsigned *ecx, unsigned *edx)
 {
@@ -48,11 +68,28 @@ static int vm_cpuid(unsigned leaf, unsigned sub,
     return 1;
 }
 
+/**
+ * @brief Reads an XCR register (MSVC).
+ *
+ * @param idx XCR index (`0` for XCR0).
+ * @return Low 32 bits of the XCR value.
+ */
 static unsigned vm_xgetbv(unsigned idx)
 {
     return (unsigned)_xgetbv(idx);
 }
 #else
+/**
+ * @brief CPUID wrapper (GCC/Clang).
+ *
+ * @param leaf CPUID leaf.
+ * @param sub CPUID subleaf.
+ * @param eax EAX result.
+ * @param ebx EBX result.
+ * @param ecx ECX result.
+ * @param edx EDX result.
+ * @return Non-zero on success.
+ */
 static int vm_cpuid(const unsigned leaf, const unsigned sub,
                     unsigned *eax, unsigned *ebx, unsigned *ecx, unsigned *edx)
 {
@@ -62,6 +99,12 @@ static int vm_cpuid(const unsigned leaf, const unsigned sub,
     return (int)__get_cpuid_count(leaf, sub, eax, ebx, ecx, edx);
 }
 
+/**
+ * @brief Reads an XCR register (GCC/Clang).
+ *
+ * @param idx XCR index (`0` for XCR0).
+ * @return Low 32 bits of the XCR value.
+ */
 static unsigned vm_xgetbv(unsigned idx)
 {
     unsigned eax, edx;
@@ -70,6 +113,11 @@ static unsigned vm_xgetbv(unsigned idx)
 }
 #endif
 
+/**
+ * @brief Probes AVX plus OSXSAVE / YMM state.
+ *
+ * @return Non-zero if AVX is usable.
+ */
 static int vm_cpu_probe_avx(void)
 {
     unsigned eax = 0, ebx = 0, ecx = 0, edx = 0;
@@ -81,6 +129,11 @@ static int vm_cpu_probe_avx(void)
     return (vm_xgetbv(0) & 0x6u) == 0x6u; /* XMM+YMM state */
 }
 
+/**
+ * @brief Probes AVX2 (requires usable AVX).
+ *
+ * @return Non-zero if AVX2 is usable.
+ */
 static int vm_cpu_probe_avx2(void)
 {
     unsigned eax = 0, ebx = 0, ecx = 0, edx = 0;
@@ -91,6 +144,11 @@ static int vm_cpu_probe_avx2(void)
     return (ebx & (1u << 5)) != 0; /* AVX2 */
 }
 
+/**
+ * @brief Probes AVX-512F plus required XCR0 state.
+ *
+ * @return Non-zero if AVX-512F is usable.
+ */
 static int vm_cpu_probe_avx512f(void)
 {
     unsigned eax = 0, ebx = 0, ecx = 0, edx = 0;
@@ -107,6 +165,11 @@ static int vm_cpu_probe_avx512f(void)
 }
 #endif /* VECMAT_ARCH_X86 */
 
+/**
+ * @brief Probes SVE via Linux AT_HWCAP.
+ *
+ * @return Non-zero if SVE is usable.
+ */
 static int vm_cpu_probe_sve(void)
 {
 #if defined(VECMAT_ARCH_AARCH64) && defined(__linux__)
@@ -116,6 +179,11 @@ static int vm_cpu_probe_sve(void)
 #endif
 }
 
+/**
+ * @brief Probes SVE2 via Linux AT_HWCAP2.
+ *
+ * @return Non-zero if SVE2 is usable.
+ */
 static int vm_cpu_probe_sve2(void)
 {
 #if defined(VECMAT_ARCH_AARCH64) && defined(__linux__)
@@ -127,6 +195,11 @@ static int vm_cpu_probe_sve2(void)
 #endif
 }
 
+/**
+ * @brief ISA bits compiled into this binary.
+ *
+ * @return Feature mask of enabled backends.
+ */
 vm_cpu_features_t vm_cpu_compiled_features(void)
 {
     vm_cpu_features_t f = VM_CPU_SCALAR;
@@ -148,10 +221,20 @@ vm_cpu_features_t vm_cpu_compiled_features(void)
     return f;
 }
 
+/**
+ * @brief ISA bits detected on this CPU (cached).
+ *
+ * @return Feature mask of usable backends.
+ */
 vm_cpu_features_t vm_cpu_runtime_features(void)
 {
+#if !defined(__STDC_NO_ATOMICS__)
+    if (atomic_load_explicit(&runtime_cached, memory_order_acquire))
+        return runtime_cache;
+#else
     if (runtime_cached)
         return runtime_cache;
+#endif
 
     vm_cpu_features_t f = VM_CPU_SCALAR;
 #if defined(VECMAT_ARCH_X86)
@@ -167,11 +250,28 @@ vm_cpu_features_t vm_cpu_runtime_features(void)
     if (vm_cpu_probe_sve2())
         f |= VM_CPU_SVE2;
 
+#if !defined(__STDC_NO_ATOMICS__)
+    while (atomic_flag_test_and_set_explicit(&runtime_lock, memory_order_acquire)) {
+        /* spin */
+    }
+    if (!atomic_load_explicit(&runtime_cached, memory_order_relaxed)) {
+        runtime_cache = f;
+        atomic_store_explicit(&runtime_cached, 1, memory_order_release);
+    }
+    atomic_flag_clear_explicit(&runtime_lock, memory_order_release);
+    return runtime_cache;
+#else
     runtime_cache = f;
     runtime_cached = 1;
     return f;
+#endif
 }
 
+/**
+ * @brief Highest-priority ISA that is both compiled and present.
+ *
+ * @return Single selected feature bit (or scalar).
+ */
 vm_cpu_features_t vm_cpu_selected_features(void)
 {
     const vm_cpu_features_t have =
@@ -190,6 +290,12 @@ vm_cpu_features_t vm_cpu_selected_features(void)
     return VM_CPU_SCALAR;
 }
 
+/**
+ * @brief Short name of the highest bit set in `features`.
+ *
+ * @param features Feature mask.
+ * @return Stable string such as `avx2` or `scalar`.
+ */
 const char *vm_cpu_name(const vm_cpu_features_t features)
 {
     if (features & VM_CPU_SVE2)
@@ -208,6 +314,9 @@ const char *vm_cpu_name(const vm_cpu_features_t features)
 }
 
 #if !defined(VECMAT_RUNTIME_DISPATCH)
+/**
+ * @brief No-op dispatch init; still warms the runtime feature cache.
+ */
 void vm_cpu_init(void)
 {
     (void)vm_cpu_runtime_features();

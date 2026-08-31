@@ -65,18 +65,31 @@ matrix3 mat3_inverse(const matrix3 m)
 }
 
 /**
- * @brief Constructs the 3x3 rotation matrix around the Z-axis.
+ * @brief Constructs a 3x3 rotation matrix around the Z axis.
  *
  * See `mat3_rotation_z_ptr` instead.
  *
- * @param degrees The rotation angle in degrees.
+ * @param radians Rotation angle in radians.
  * @return The rotation matrix3.
  */
-matrix3 mat3_rotation_z(const vm_float_t degrees)
+matrix3 mat3_rotation_z(const vm_float_t radians)
 {
     matrix3 m;
-    mat3_rotation_z_ptr(&m, degrees);
+    mat3_rotation_z_ptr(&m, radians);
     return m;
+}
+
+/**
+ * @brief Constructs a 3x3 rotation matrix around the Z axis.
+ *
+ * The angle is given in degrees and internally converted to radians.
+ *
+ * @param degrees The rotation angle in degrees.
+ * @return The resulting rotation matrix3.
+ */
+matrix3 mat3_rotation_z_deg(const vm_float_t degrees)
+{
+    return mat3_rotation_z(deg_to_rad(degrees));
 }
 
 /**
@@ -125,33 +138,57 @@ vector2 mat3_mul_vec2(const matrix3 m, const vector2 v)
 }
 
 /**
- * @brief Builds a 3x3 rotation matrix around the X axis (degrees).
+ * @brief Constructs a 3x3 rotation matrix around the X axis.
  *
  * See `mat3_rotation_x_ptr` instead.
  *
- * @param degrees Rotation angle in degrees.
- * @return The resulting matrix3.
+ * @param radians Rotation angle in radians.
+ * @return The rotation matrix3.
  */
-matrix3 mat3_rotation_x(const vm_float_t degrees)
+matrix3 mat3_rotation_x(const vm_float_t radians)
 {
     matrix3 res;
-    mat3_rotation_x_ptr(&res, degrees);
+    mat3_rotation_x_ptr(&res, radians);
     return res;
 }
 
 /**
- * @brief Builds a 3x3 rotation matrix around the Y axis (degrees).
+ * @brief Constructs a 3x3 rotation matrix around the X axis.
  *
- * See `mat3_rotation_y_ptr` instead.
+ * The angle is provided in degrees and converted to radians internally.
  *
- * @param degrees Rotation angle in degrees.
- * @return The resulting matrix3.
+ * @param degrees The rotation angle in degrees.
+ * @return The rotation matrix3.
  */
-matrix3 mat3_rotation_y(const vm_float_t degrees)
+matrix3 mat3_rotation_x_deg(const vm_float_t degrees)
+{
+    return mat3_rotation_x(deg_to_rad(degrees));
+}
+
+/**
+ * @brief Constructs a 3x3 rotation matrix around the Y axis.
+ * @see `mat3_rotation_y_ptr`
+ *
+ * @param radians The rotation angle in radians.
+ * @return The rotation matrix3.
+ */
+matrix3 mat3_rotation_y(const vm_float_t radians)
 {
     matrix3 res;
-    mat3_rotation_y_ptr(&res, degrees);
+    mat3_rotation_y_ptr(&res, radians);
     return res;
+}
+/**
+ * @brief 3x3 rotation about Y from an angle in degrees.
+ *
+ * @see mat3_rotation_y_ptr
+ *
+ * @param degrees Rotation angle in degrees.
+ * @return Rotation matrix3.
+ */
+matrix3 mat3_rotation_y_deg(const vm_float_t degrees)
+{
+    return mat3_rotation_y(deg_to_rad(degrees));
 }
 
 /**
@@ -197,4 +234,40 @@ matrix3 mat3_from_mat4(const matrix4 m)
     matrix3 res;
     mat3_from_mat4_ptr(&res, &m);
     return res;
+}
+
+/**
+ * @brief Inverse-transpose of a 3x3 (normal matrix).
+ *
+ * See `mat3_normal_ptr` instead.
+ *
+ * @param m Linear part of a model transform.
+ * @return The normal matrix3.
+ */
+matrix3 mat3_normal(const matrix3 m)
+{
+    matrix3 res;
+    mat3_normal_ptr(&res, &m);
+    return res;
+}
+
+/**
+ * @brief Symmetric 3x3 eigensolve (Jacobi). `m` is symmetrized as (A+A^T)/2.
+ *
+ * Eigenvalues are unsorted principal moments. Eigenvectors are the columns
+ * of the returned rotation (`axes * diag(moments) * axes^T ~= m`).
+ *
+ * @see mat3_sym_eigen_ptr
+ *
+ * @param m Input matrix (symmetrized internally).
+ * @param axes Optional; receives eigenvector columns. May be NULL.
+ * @return Eigenvalues as a vector3.
+ */
+vector3 mat3_sym_eigen(const matrix3 m, matrix3 *axes)
+{
+    vector3 ev;
+    matrix3 local_axes;
+    matrix3 *out_axes = axes ? axes : &local_axes;
+    mat3_sym_eigen_ptr(&ev, out_axes, &m);
+    return ev;
 }

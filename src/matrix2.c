@@ -65,18 +65,29 @@ matrix2 mat2_inverse(const matrix2 m)
 }
 
 /**
- * @brief Constructs a 2x2 Z-axis rotation matrix.
+ * @brief Constructs a 2x2 rotation matrix around the Z axis.
  *
  * See `mat2_rotation_z_ptr` instead.
  *
- * @param degrees Rotation angle in degrees.
+ * @param radians Rotation angle in radians.
  * @return The rotation matrix2.
  */
-matrix2 mat2_rotation_z(const vm_float_t degrees)
+matrix2 mat2_rotation_z(const vm_float_t radians)
 {
     matrix2 res;
-    mat2_rotation_z_ptr(&res, degrees);
+    mat2_rotation_z_ptr(&res, radians);
     return res;
+}
+
+/**
+ * @brief Constructs a 2x2 rotation matrix from an angle in degrees around the Z axis.
+ *
+ * @param degrees The rotation angle in degrees.
+ * @return The rotation matrix2.
+ */
+matrix2 mat2_rotation_z_deg(const vm_float_t degrees)
+{
+    return mat2_rotation_z(deg_to_rad(degrees));
 }
 
 /**

@@ -192,7 +192,13 @@ void vec2i_cross_ptr(vector2i *res, const vector2i *a, const vector2i *b)
     res->y = 0;
 }
 
-// Floor division: toward -inf; returns 0 if b == 0.
+/**
+ * @brief Floor division toward -inf; returns 0 if `b == 0`.
+ *
+ * @param a Dividend.
+ * @param b Divisor.
+ * @return `floor(a / b)`, or 0 if `b` is 0.
+ */
 static vm_int_t vm_div_floor(const vm_int_t a, const vm_int_t b)
 {
     if (b == 0) {
@@ -206,7 +212,15 @@ static vm_int_t vm_div_floor(const vm_int_t a, const vm_int_t b)
     return q;
 }
 
-// Floor modulo: result in [0, b) for b > 0 (or (b, 0] for b < 0); 0 if b == 0.
+/**
+ * @brief Floor modulo matching `vm_div_floor`.
+ *
+ * Result is in [0, b) for b > 0 (or (b, 0] for b < 0); 0 if b == 0.
+ *
+ * @param a Dividend.
+ * @param b Divisor.
+ * @return Floor modulus.
+ */
 static vm_int_t vm_mod_floor(const vm_int_t a, const vm_int_t b)
 {
     if (b == 0) {

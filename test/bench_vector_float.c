@@ -14,7 +14,7 @@ BENCHMARK(vec2_mul_scalar, "iterations: 1000000 [vec2_add,vec2_sub,vec2_dot,vec2
         const vector2 b = {.x = 3.0f, .y = 4.0f};
         const vector2 c = vec2_add(a, b);
         a = vec2_sub(c, b);
-        const float dot = vec2_dot(a, b);
+        const vm_float_t dot = vec2_dot(a, b);
         a = vec2_mul_scalar(a, dot);
     }
 }
@@ -29,7 +29,7 @@ BENCHMARK(vec2_mul_scalar_ptr, "iterations: 1000000 [vec2_add_ptr,vec2_sub_ptr,v
         const vector2 b = {.x = 3.0f, .y = 4.0f};
         vec2_add_ptr(&res, &a, &b);
         vec2_sub_ptr(&a, &res, &b);
-        const float dot = vec2_dot(a, b);
+        const vm_float_t dot = vec2_dot(a, b);
         vec2_mul_scalar_ptr(&res, &a, dot);
     }
 }
@@ -43,7 +43,7 @@ BENCHMARK(vec2_normalize, "iterations: 1000000 [vec2_add,vec2_normalize,vec2_len
         const vector2 b = {.x = 3.0f, .y = 4.0f};
         vector2 c = vec2_add(a, b);
         a = vec2_normalize(c);
-        const float len = vec2_length(a);
+        const vm_float_t len = vec2_length(a);
         c = vec2_mul_scalar(a, len);
     }
 }
@@ -58,7 +58,7 @@ BENCHMARK(vec2_normalize_ptr, "iterations: 1000000 [vec2_add_ptr,vec2_normalize_
     for(int i = 0; i < iterations; i++) {
         vec2_add_ptr(&res, &a, &b);
         vec2_normalize_ptr(&a, &res);
-        const float len = vec2_length(a);
+        const vm_float_t len = vec2_length(a);
         vec2_mul_scalar_ptr(&res, &a, len);
     }
 }
@@ -72,7 +72,7 @@ BENCHMARK(vec2_length, "iterations: 1000000 [vec2_add,vec2_sub,vec2_length,vec2_
         const vector2 b = {.x = 3.0f, .y = 4.0f};
         vector2 c = vec2_add(a, b);
         a = vec2_sub(c, b);
-        const float len = vec2_length(a);
+        const vm_float_t len = vec2_length(a);
         c = vec2_mul_scalar(a, len);
     }
 }
@@ -86,7 +86,7 @@ BENCHMARK(vec3_cross, "iterations: 1000000 [vec3_add,vec3_sub,vec3_dot,vec3_mul_
         const vector3 b = {.x = 4.0f, .y = 5.0f, .z = 6.0f};
         vector3 c = vec3_add(a, b);
         a = vec3_sub(c, b);
-        const float dot = vec3_dot(a, b);
+        const vm_float_t dot = vec3_dot(a, b);
         c = vec3_mul_scalar(a, dot);
         vector3 cross = vec3_cross(a, b);
     }
@@ -102,7 +102,7 @@ BENCHMARK(vec3_cross_ptr, "iterations: 1000000 [vec3_add_ptr,vec3_sub_ptr,vec3_d
         const vector3 b = {.x = 4.0f, .y = 5.0f, .z = 6.0f};
         vec3_add_ptr(&res, &a, &b);
         vec3_sub_ptr(&a, &res, &b);
-        const float dot = vec3_dot(a, b);
+        const vm_float_t dot = vec3_dot(a, b);
         vec3_mul_scalar_ptr(&res, &a, dot);
         vector3 cross;
         vec3_cross_ptr(&cross, &a, &b);
@@ -118,7 +118,7 @@ BENCHMARK(vec3_normalize, "iterations: 1000000 [vec3_add,vec3_normalize,vec3_len
         const vector3 b = {.x = 4.0f, .y = 5.0f, .z = 6.0f};
         vector3 c = vec3_add(a, b);
         a = vec3_normalize(c);
-        const float len = vec3_length(a);
+        const vm_float_t len = vec3_length(a);
         c = vec3_mul_scalar(a, len);
     }
 }
@@ -133,7 +133,7 @@ BENCHMARK(vec3_normalize_ptr, "iterations: 1000000 [vec3_add_ptr,vec3_normalize_
         const vector3 b = {.x = 4.0f, .y = 5.0f, .z = 6.0f};
         vec3_add_ptr(&res, &a, &b);
         vec3_normalize_ptr(&a, &res);
-        const float len = vec3_length(a);
+        const vm_float_t len = vec3_length(a);
         vec3_mul_scalar_ptr(&res, &a, len);
     }
 }
@@ -146,7 +146,7 @@ BENCHMARK(vec3_reflect, "iterations: 1000000 [vec3_reflect,vec3_dot,vec3_mul_sca
     for(int i = 0; i < iterations; i++) {
         const vector3 normal = {.x = 0.0f, .y = 1.0f, .z = 0.0f};
         const vector3 reflected = vec3_reflect(incident, normal);
-        const float dot = vec3_dot(reflected, normal);
+        const vm_float_t dot = vec3_dot(reflected, normal);
         incident = vec3_mul_scalar(reflected, dot);
     }
 }
@@ -160,7 +160,7 @@ BENCHMARK(vec3_reflect_ptr, "iterations: 1000000 [vec3_reflect_ptr,vec3_dot,vec3
 
     for(int i = 0; i < iterations; i++) {
         vec3_reflect_ptr(&res, &incident, &normal);
-        const float dot = vec3_dot(res, normal);
+        const vm_float_t dot = vec3_dot(res, normal);
         vec3_mul_scalar_ptr(&incident, &res, dot);
     }
 }
@@ -174,7 +174,7 @@ BENCHMARK(vec3_lerp, "iterations: 1000000 [vec3_lerp,vec3_add,vec3_length,vec3_m
         const vector3 b = {.x = 4.0f, .y = 5.0f, .z = 6.0f};
         const vector3 c = vec3_lerp(a, b, 0.5f);
         a = vec3_add(c, a);
-        const float len = vec3_length(c);
+        const vm_float_t len = vec3_length(c);
         a = vec3_mul_scalar(a, len);
     }
 }
@@ -189,7 +189,7 @@ BENCHMARK(vec3_lerp_ptr, "iterations: 1000000 [vec3_lerp_ptr,vec3_add_ptr,vec3_l
     for(int i = 0; i < iterations; i++) {
         vec3_lerp_ptr(&res, &a, &b, 0.5f);
         vec3_add_ptr(&a, &res, &a);
-        const float len = vec3_length(res);
+        const vm_float_t len = vec3_length(res);
         vec3_mul_scalar_ptr(&a, &a, len);
     }
 }
@@ -203,7 +203,7 @@ BENCHMARK(vec4_mul_scalar, "iterations: 1000000 [vec4_add,vec4_sub,vec4_dot,vec4
         const vector4 b = {.x = 5.0f, .y = 6.0f, .z = 7.0f, .w = 8.0f};
         vector4 c = vec4_add(a, b);
         a = vec4_sub(c, b);
-        const float dot = vec4_dot(a, b);
+        const vm_float_t dot = vec4_dot(a, b);
         c = vec4_mul_scalar(a, dot);
     }
 }
@@ -218,7 +218,7 @@ BENCHMARK(vec4_mul_scalar_ptr, "iterations: 1000000 [vec4_add_ptr,vec4_sub_ptr,v
         const vector4 b = {.x = 5.0f, .y = 6.0f, .z = 7.0f, .w = 8.0f};
         vec4_add_ptr(&res, &a, &b);
         vec4_sub_ptr(&a, &res, &b);
-        const float dot = vec4_dot(a, b);
+        const vm_float_t dot = vec4_dot(a, b);
         vec4_mul_scalar_ptr(&res, &a, dot);
     }
 }
@@ -232,7 +232,7 @@ BENCHMARK(vec4_normalize, "iterations: 1000000 [vec4_add,vec4_normalize,vec4_len
         const vector4 b = {.x = 5.0f, .y = 6.0f, .z = 7.0f, .w = 8.0f};
         vector4 c = vec4_add(a, b);
         a = vec4_normalize(c);
-        const float len = vec4_length(a);
+        const vm_float_t len = vec4_length(a);
         c = vec4_mul_scalar(a, len);
     }
 }
@@ -247,7 +247,7 @@ BENCHMARK(vec4_normalize_ptr, "iterations: 1000000 [vec4_add_ptr,vec4_normalize_
         const vector4 b = {.x = 5.0f, .y = 6.0f, .z = 7.0f, .w = 8.0f};
         vec4_add_ptr(&res, &a, &b);
         vec4_normalize_ptr(&a, &res);
-        const float len = vec4_length(a);
+        const vm_float_t len = vec4_length(a);
         vec4_mul_scalar_ptr(&res, &a, len);
     }
 }
@@ -261,7 +261,7 @@ BENCHMARK(vec4_lerp, "iterations: 1000000 [vec4_lerp,vec4_add,vec4_length,vec4_m
         const vector4 b = {.x = 5.0f, .y = 6.0f, .z = 7.0f, .w = 8.0f};
         const vector4 c = vec4_lerp(a, b, 0.5f);
         a = vec4_add(c, a);
-        const float len = vec4_length(c);
+        const vm_float_t len = vec4_length(c);
         a = vec4_mul_scalar(a, len);
     }
 }
@@ -276,7 +276,7 @@ BENCHMARK(vec4_lerp_ptr, "iterations: 1000000 [vec4_lerp_ptr,vec4_add_ptr,vec4_l
     for(int i = 0; i < iterations; i++) {
         vec4_lerp_ptr(&res, &a, &b, 0.5f);
         vec4_add_ptr(&a, &res, &a);
-        const float len = vec4_length(res);
+        const vm_float_t len = vec4_length(res);
         vec4_mul_scalar_ptr(&a, &a, len);
     }
 }

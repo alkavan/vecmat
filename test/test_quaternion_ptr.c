@@ -39,7 +39,7 @@ TEST_CASE(quat_normalize_ptr_test, "[quaternion_ptr]") {
 }
 
 TEST_CASE(quat_from_euler_ptr_test, "[quaternion_ptr]") {
-    const vector3 euler = {.x = 0.0f, .y = 0.0f, .z = 90.0f};
+    const vector3 euler = {.x = 0.0f, .y = 0.0f, .z = VM_RAD(M_PI_2)};
     quaternion q;
     quat_from_euler_ptr(&q, &euler);
     // 90 deg around Z: cos(45), 0,0,sin(45)
@@ -51,7 +51,7 @@ TEST_CASE(quat_from_euler_ptr_test, "[quaternion_ptr]") {
 
 TEST_CASE(quat_to_mat4_ptr_test, "[quaternion_ptr]") {
     quaternion q;
-    quat_from_euler_ptr(&q, &(vector3){.x = 0.0f, .y = 0.0f, .z = 90.0f});
+    quat_from_euler_ptr(&q, &(vector3){.x = 0.0f, .y = 0.0f, .z = VM_RAD(M_PI_2)});
     matrix4 m;
     quat_to_mat4_ptr(&m, &q);
     // Should match rotate Z 90
@@ -64,7 +64,7 @@ TEST_CASE(quat_to_mat4_ptr_test, "[quaternion_ptr]") {
 
 TEST_CASE(quat_rotate_and_slerp_ptr_test, "[quaternion_ptr]") {
     quaternion q;
-    quat_from_axis_angle_ptr(&q, &(vector3){.x = 0.0f, .y = 0.0f, .z = 1.0f}, 90.0f);
+    quat_from_axis_angle_ptr(&q, &(vector3){.x = 0.0f, .y = 0.0f, .z = 1.0f}, VM_RAD(M_PI_2));
     vector3 r;
     quat_rotate_vec3_ptr(&r, &q, &(vector3){.x = 1.0f, .y = 0.0f, .z = 0.0f});
     REQUIRE(vec3_near(r, (vector3){.x = 0.0f, .y = 1.0f, .z = 0.0f}, EPSILON));
@@ -82,5 +82,5 @@ TEST_CASE(quat_rotate_and_slerp_ptr_test, "[quaternion_ptr]") {
 
     vector3 euler;
     quat_to_euler_ptr(&euler, &q);
-    REQUIRE(VECMAT_EQ(euler.z, 90.0f, EPSILON));
+    REQUIRE(VECMAT_EQ(euler.z, VM_RAD(M_PI_2), EPSILON));
 }

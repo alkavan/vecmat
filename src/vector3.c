@@ -93,7 +93,7 @@ vector3 vec3_z_scale(const vm_float_t z)
 /**
  * @brief Component-wise addition of two vectors.
  *
- * See `vec3_add_ptr` for the out-parameter version.
+ * @see vec3_add_ptr
  *
  * @param a First vector.
  * @param b Second vector.
@@ -109,7 +109,7 @@ vector3 vec3_add(const vector3 a, const vector3 b)
 /**
  * @brief Component-wise subtraction of two vectors.
  *
- * See `vec3_sub_ptr` for the out-parameter version.
+ * @see vec3_sub_ptr
  *
  * @param a First vector.
  * @param b Second vector.
@@ -125,7 +125,7 @@ vector3 vec3_sub(const vector3 a, const vector3 b)
 /**
  * @brief Component-wise multiplication of vector by scalar.
  *
- * See `vec3_mul_scalar_ptr` for the out-parameter version.
+ * @see vec3_mul_scalar_ptr
  *
  * @param v The vector.
  * @param s The scalar.
@@ -141,7 +141,7 @@ vector3 vec3_mul_scalar(const vector3 v, const vm_float_t s)
 /**
  * @brief Component-wise division of vector by scalar.
  *
- * See `vec3_div_scalar_ptr` for the out-parameter version.
+ * @see vec3_div_scalar_ptr
  *
  * @param v The vector.
  * @param s The scalar (non-zero).
@@ -157,7 +157,7 @@ vector3 vec3_div_scalar(const vector3 v, const vm_float_t s)
 /**
  * @brief Component-wise multiplication of two vectors.
  *
- * See `vec3_mul_ptr` for the out-parameter version.
+ * @see vec3_mul_ptr
  *
  * @param a First vector.
  * @param b Second vector.
@@ -173,7 +173,7 @@ vector3 vec3_mul(const vector3 a, const vector3 b)
 /**
  * @brief Negation of a vector.
  *
- * See `vec3_neg_ptr` for the out-parameter version.
+ * @see vec3_neg_ptr
  *
  * @param v The vector.
  * @return The negated vector.
@@ -188,7 +188,7 @@ vector3 vec3_neg(const vector3 v)
 /**
  * @brief Computes the absolute value per component of a vector3.
  *
- * See `vec3_abs_ptr` for the out-parameter version.
+ * @see vec3_abs_ptr
  *
  * @param v The vector.
  * @return The absolute vector3.
@@ -203,7 +203,7 @@ vector3 vec3_abs(const vector3 v)
 /**
  * @brief Computes the cross-product of two vector3.
  *
- * See `vec3_cross_ptr` for the out-parameter version.
+ * @see vec3_cross_ptr
  *
  * @param a First vector.
  * @param b Second vector.
@@ -219,7 +219,7 @@ vector3 vec3_cross(const vector3 a, const vector3 b)
 /**
  * @brief Normalizes a vector3 to unit length.
  *
- * See `vec3_normalize_ptr` for the out-parameter version.
+ * @see vec3_normalize_ptr
  *
  * @param v The vector (non-zero).
  * @return The normalized vector.
@@ -234,7 +234,7 @@ vector3 vec3_normalize(const vector3 v)
 /**
  * @brief Computes the component-wise minimum of two vector3.
  *
- * See `vec3_min_ptr` for the out-parameter version.
+ * @see vec3_min_ptr
  *
  * @param a First vector.
  * @param b Second vector.
@@ -250,7 +250,7 @@ vector3 vec3_min(const vector3 a, const vector3 b)
 /**
  * @brief Computes the component-wise maximum of two vector3.
  *
- * See `vec3_max_ptr` for the out-parameter version.
+ * @see vec3_max_ptr
  *
  * @param a First vector.
  * @param b Second vector.
@@ -266,7 +266,7 @@ vector3 vec3_max(const vector3 a, const vector3 b)
 /**
  * @brief Computes the sign per component of a vector3 (-1, 0, or 1).
  *
- * See `vec3_sign_ptr` for the out-parameter version.
+ * @see vec3_sign_ptr
  *
  * @param v The vector.
  * @return The sign vector.
@@ -281,7 +281,7 @@ vector3 vec3_sign(const vector3 v)
 /**
  * @brief Applies the floor per component to a vector3.
  *
- * See `vec3_floor_ptr` for the out-parameter version.
+ * @see vec3_floor_ptr
  *
  * @param v The vector.
  * @return The floored vector.
@@ -296,7 +296,7 @@ vector3 vec3_floor(const vector3 v)
 /**
  * @brief Applies ceil per component to a vector3.
  *
- * See `vec3_ceil_ptr` for the out-parameter version.
+ * @see vec3_ceil_ptr
  *
  * @param v The vector.
  * @return The ceiling vector.
@@ -311,7 +311,7 @@ vector3 vec3_ceil(const vector3 v)
 /**
  * @brief Applies round per component to a vector3.
  *
- * See `vec3_round_ptr` for the out-parameter version.
+ * @see vec3_round_ptr
  *
  * @param v The vector.
  * @return The rounded vector.
@@ -326,7 +326,7 @@ vector3 vec3_round(const vector3 v)
 /**
  * @brief Reflects an incident vector over normal.
  *
- * See `vec3_reflect_ptr` for the out-parameter version.
+ * @see vec3_reflect_ptr
  *
  * @param incident The incident vector.
  * @param normal The surface normal.
@@ -343,7 +343,7 @@ vector3 vec3_reflect(const vector3 incident, const vector3 normal)
  * @brief Refracts an incident vector across an interface with a given normal
  * and ratio of refraction eta.
  *
- * See `vec3_refract_ptr` for the out-parameter version.
+ * @see vec3_refract_ptr
  *
  * @param incident The incident vector.
  * @param normal The surface normal.
@@ -360,7 +360,7 @@ vector3 vec3_refract(const vector3 incident, const vector3 normal, const vm_floa
 /**
  * @brief Linearly interpolates between two `vector3`.
  *
- * See `vec3_lerp_ptr` for the out-parameter version.
+ * @see vec3_lerp_ptr
  *
  * @param a Start vector.
  * @param b End vector.
@@ -377,7 +377,7 @@ vector3 vec3_lerp(const vector3 a, const vector3 b, const vm_float_t t)
 /**
  * @brief Clamps a `vector3` between min and max per component.
  *
- * See `vec3_clamp_ptr` for the out-parameter version.
+ * @see vec3_clamp_ptr
  *
  * @param v The vector.
  * @param min Minimum bounds.
@@ -602,19 +602,35 @@ vector3 vec3_reject(const vector3 a, const vector3 b)
 
 /**
  * @brief Rotates v around axis by angle radians.
- *
- * See `vec3_rotate_axis_ptr` instead.
+ * @see vec3_rotate_axis_ptr
  *
  * @param v Input vector.
  * @param axis Rotation axis.
- * @param angle Angle in radians.
+ * @param radians Angle in radians.
  * @return The resulting vector3.
  */
-vector3 vec3_rotate_axis(const vector3 v, const vector3 axis, const vm_float_t angle)
+vector3 vec3_rotate_axis(const vector3 v, const vector3 axis, const vm_float_t radians)
 {
     vector3 res;
-    vec3_rotate_axis_ptr(&res, &v, &axis, angle);
+    vec3_rotate_axis_ptr(&res, &v, &axis, radians);
     return res;
+}
+
+/**
+ * @brief Rotates a vector around an arbitrary axis by a given angle in degrees.
+ *
+ * This is a convenience wrapper that converts @p degrees to radians and
+ * delegates to @ref vec3_rotate_axis.
+ *
+ * @param v The vector to rotate.
+ * @param axis The axis of rotation. The axis vector is assumed to be normalized.
+ * @param degrees The rotation angle in degrees.
+ *
+ * @return The rotated vector.
+ */
+vector3 vec3_rotate_axis_deg(const vector3 v, const vector3 axis, const vm_float_t degrees)
+{
+    return vec3_rotate_axis(v, axis, deg_to_rad(degrees));
 }
 
 /**

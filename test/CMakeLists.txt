@@ -24,8 +24,16 @@ add_executable(vecmat_tests
         test_quaternion_ptr.c
         test_common_usage.c
         test_cpu.c
+        test_extended.c
+        test_physics.c
 )
 target_link_libraries(vecmat_tests PRIVATE vecmat_static m)
+
+find_package(Threads)
+if(Threads_FOUND)
+    target_link_libraries(vecmat_tests PRIVATE Threads::Threads)
+    target_compile_definitions(vecmat_tests PRIVATE VECMAT_TEST_THREADS)
+endif()
 
 # enable if you want to print out successful tests, only failed are printed by default
 #target_compile_definitions(vecmat_tests PRIVATE UNITEST_PRINT_SUCCESS)
@@ -36,5 +44,6 @@ add_executable(vecmat_benchmarks
         bench_vector_float.c
         bench_matrix_float.c
         bench_quaternion.c
+        bench_gemm.c
 )
 target_link_libraries(vecmat_benchmarks PRIVATE vecmat_static m)

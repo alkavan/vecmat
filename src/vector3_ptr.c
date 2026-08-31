@@ -436,18 +436,31 @@ void vec3_reject_ptr(vector3 *res, const vector3 *a, const vector3 *b)
  * @param res Output vector.
  * @param v Input vector.
  * @param axis Rotation axis.
- * @param angle Angle in radians.
+ * @param radians Angle in radians.
  */
-void vec3_rotate_axis_ptr(vector3 *res, const vector3 *v, const vector3 *axis, const vm_float_t angle)
+void vec3_rotate_axis_ptr(vector3 *res, const vector3 *v, const vector3 *axis, const vm_float_t radians)
 {
     vector3 k;
     vec3_normalize_ptr(&k, axis);
-    const vm_float_t cs = VECMAT_COS(angle);
-    const vm_float_t sn = VECMAT_SIN(angle);
+    const vm_float_t cs = VECMAT_COS(radians);
+    const vm_float_t sn = VECMAT_SIN(radians);
     const vm_float_t d = vec3_dot(*v, k);
     res->x = v->x * cs + (k.y * v->z - k.z * v->y) * sn + k.x * d * (1.0f - cs);
     res->y = v->y * cs + (k.z * v->x - k.x * v->z) * sn + k.y * d * (1.0f - cs);
     res->z = v->z * cs + (k.x * v->y - k.y * v->x) * sn + k.z * d * (1.0f - cs);
+}
+
+/**
+ * @brief Component-wise rotation of a vector around an axis by a given angle in degrees.
+ *
+ * @param res Result vector.
+ * @param v Vector to rotate.
+ * @param axis Rotation axis.
+ * @param degrees Angle in degrees.
+ */
+void vec3_rotate_axis_deg_ptr(vector3 *res, const vector3 *v, const vector3 *axis, const vm_float_t degrees)
+{
+    vec3_rotate_axis_ptr(res, v, axis, deg_to_rad(degrees));
 }
 
 /**

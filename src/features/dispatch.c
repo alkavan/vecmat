@@ -4,11 +4,20 @@
 
 #include "cpu.h"
 
+#if !defined(__STDC_NO_ATOMICS__)
+#include <stdatomic.h>
+#endif
+
 #define VECMAT_FN_PTR(name, params, args) name##_fn name##_ = name##_scalar;
 VECMAT_DISPATCH_LIST(VECMAT_FN_PTR)
 #undef VECMAT_FN_PTR
 
-static int dispatch_ready;
+#if !defined(__STDC_NO_ATOMICS__)
+static atomic_int dispatch_ready;
+static atomic_flag dispatch_lock = ATOMIC_FLAG_INIT;
+#else
+static volatile int dispatch_ready;
+#endif
 
 #if defined(VECMAT_ENABLE_SVE2)
 #define VECMAT_PICK_SVE2(name)                 \
@@ -67,6 +76,11 @@ static int dispatch_ready;
         name##_ = fn;                          \
     } while (0)
 
+/**
+ * @brief Binds dispatched function pointers for `features`.
+ *
+ * @param features Selected ISA mask.
+ */
 static void vm_cpu_bind(const vm_cpu_features_t features)
 {
 #define VECMAT_BIND(name, params, args) VECMAT_PICK(name);
@@ -74,10 +88,26 @@ static void vm_cpu_bind(const vm_cpu_features_t features)
 #undef VECMAT_BIND
 }
 
+/**
+ * @brief One-time runtime dispatch bind (thread-safe).
+ */
 void vm_cpu_init(void)
 {
+#if !defined(__STDC_NO_ATOMICS__)
+    if (atomic_load_explicit(&dispatch_ready, memory_order_acquire))
+        return;
+    while (atomic_flag_test_and_set_explicit(&dispatch_lock, memory_order_acquire)) {
+        /* spin until the initializing thread finishes */
+    }
+    if (!atomic_load_explicit(&dispatch_ready, memory_order_relaxed)) {
+        vm_cpu_bind(vm_cpu_selected_features());
+        atomic_store_explicit(&dispatch_ready, 1, memory_order_release);
+    }
+    atomic_flag_clear_explicit(&dispatch_lock, memory_order_release);
+#else
     if (dispatch_ready)
         return;
     vm_cpu_bind(vm_cpu_selected_features());
     dispatch_ready = 1;
+#endif
 }

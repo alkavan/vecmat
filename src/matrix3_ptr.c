@@ -103,17 +103,15 @@ void mat3_inverse_ptr(matrix3 *res, const matrix3 *m)
 }
 
 /**
- * @brief Sets the 3x3 matrix to a rotation around the Z-axis by the given angle
- * in degrees.
+ * @brief Sets the 3x3 matrix to a Z-axis rotation by the given angle in radians.
  *
  * @param res Pointer to the output matrix3.
- * @param degrees Rotation angle in degrees.
+ * @param radians Rotation angle in radians.
  */
-void mat3_rotation_z_ptr(matrix3 *res, const vm_float_t degrees)
+void mat3_rotation_z_ptr(matrix3 *res, const vm_float_t radians)
 {
-    const vm_float_t rad = degrees * (vm_float_t)(M_PI / 180.0);
-    const vm_float_t c = VECMAT_COS(rad);
-    const vm_float_t s = VECMAT_SIN(rad);
+    const vm_float_t c = VECMAT_COS(radians);
+    const vm_float_t s = VECMAT_SIN(radians);
 
     res->m11 = c;
     res->m12 = -s;
@@ -129,16 +127,28 @@ void mat3_rotation_z_ptr(matrix3 *res, const vm_float_t degrees)
 }
 
 /**
- * @brief Builds a 3x3 rotation matrix around the X axis (degrees).
+ * @brief Initializes the 3x3 matrix to a rotation around the Z axis.
  *
- * @param res Output value.
+ * @see mat3_rotation_z_ptr
+ *
+ * @param res Pointer to the output matrix3.
  * @param degrees Rotation angle in degrees.
  */
-void mat3_rotation_x_ptr(matrix3 *res, const vm_float_t degrees)
+void mat3_rotation_z_deg_ptr(matrix3 *res, const vm_float_t degrees)
 {
-    const vm_float_t rad = deg_to_rad(degrees);
-    const vm_float_t c = VECMAT_COS(rad);
-    const vm_float_t s = VECMAT_SIN(rad);
+    mat3_rotation_z_ptr(res, deg_to_rad(degrees));
+}
+
+/**
+ * @brief Sets the 3x3 matrix to a rotation around the X axis.
+ *
+ * @param res Pointer to the output matrix3.
+ * @param radians Rotation angle in radians.
+ */
+void mat3_rotation_x_ptr(matrix3 *res, const vm_float_t radians)
+{
+    const vm_float_t c = VECMAT_COS(radians);
+    const vm_float_t s = VECMAT_SIN(radians);
     *res = (matrix3){
         .m11 = 1.0f, .m21 = 0.0f, .m31 = 0.0f,
         .m12 = 0.0f, .m22 = c,    .m32 = s,
@@ -147,21 +157,46 @@ void mat3_rotation_x_ptr(matrix3 *res, const vm_float_t degrees)
 }
 
 /**
- * @brief Builds a 3x3 rotation matrix around the Y axis (degrees).
+ * @brief Initializes the 3x3 matrix to a rotation around the X axis.
  *
- * @param res Output value.
+ * @see mat3_rotation_x_ptr
+ *
+ * @param res Pointer to the output matrix3.
  * @param degrees Rotation angle in degrees.
  */
-void mat3_rotation_y_ptr(matrix3 *res, const vm_float_t degrees)
+void mat3_rotation_x_deg_ptr(matrix3 *res, const vm_float_t degrees)
 {
-    const vm_float_t rad = deg_to_rad(degrees);
-    const vm_float_t c = VECMAT_COS(rad);
-    const vm_float_t s = VECMAT_SIN(rad);
+    mat3_rotation_x_ptr(res, deg_to_rad(degrees));
+}
+
+/**
+ * @brief Sets the 3x3 matrix to a rotation around the Y axis.
+ *
+ * @param res Pointer to the output matrix3.
+ * @param radians Rotation angle in radians.
+ */
+void mat3_rotation_y_ptr(matrix3 *res, const vm_float_t radians)
+{
+    const vm_float_t c = VECMAT_COS(radians);
+    const vm_float_t s = VECMAT_SIN(radians);
     *res = (matrix3){
         .m11 = c,    .m21 = 0.0f, .m31 = -s,
         .m12 = 0.0f, .m22 = 1.0f, .m32 = 0.0f,
         .m13 = s,    .m23 = 0.0f, .m33 = c
     };
+}
+
+/**
+ * @brief Initializes the 3x3 matrix to a rotation around the Y axis.
+ *
+ * @see mat3_rotation_y_ptr
+ *
+ * @param res Pointer to the output matrix3.
+ * @param degrees Rotation angle in degrees.
+ */
+void mat3_rotation_y_deg_ptr(matrix3 *res, const vm_float_t degrees)
+{
+    mat3_rotation_y_ptr(res, deg_to_rad(degrees));
 }
 
 /**
@@ -204,6 +239,21 @@ void mat3_from_mat4_ptr(matrix3 *res, const matrix4 *m)
 }
 
 /**
+ * @brief Inverse-transpose of a 3x3, for transforming normals.
+ *
+ * If @p m is singular the result is identity.
+ *
+ * @param res Normal matrix.
+ * @param m Linear part of a model transform.
+ */
+void mat3_normal_ptr(matrix3 *res, const matrix3 *m)
+{
+    matrix3 inv;
+    mat3_inverse_ptr(&inv, m);
+    mat3_transpose_ptr(res, &inv);
+}
+
+/**
  * @brief Multiplies a 3x3 matrix by a vector3.
  *
  * @param res Output value.
@@ -233,4 +283,105 @@ void mat3_mul_vec2_ptr(vector2 *res, const matrix3 *m, const vector2 *v)
     const vm_float_t y = v->y;
     res->x = m->m11 * x + m->m12 * y + m->m13;
     res->y = m->m21 * x + m->m22 * y + m->m23;
+}
+
+/**
+ * @brief Performs one Jacobi rotation step for symmetric matrix eigenvalue decomposition.
+ *
+ * Rotates the matrix @a to eliminate the off-diagonal element at (p,q) using a Givens rotation
+ * if its magnitude exceeds the given tolerance. The accumulated eigenvectors in @v are updated
+ * with the same rotation.
+ *
+ * @param a Pointer to the symmetric matrix being diagonalized (modified in-place).
+ * @param v Pointer to the matrix of accumulated eigenvectors (modified in-place).
+ * @param p First rotation index (0-2).
+ * @param q Second rotation index (0-2).
+ * @param tol Threshold below which the off-diagonal element is considered zero.
+ */
+static void vm_mat3_jacobi_rotate(matrix3 *a, matrix3 *v, const int p, const int q, const vm_float_t tol)
+{
+    const vm_float_t apq = a->v[p + q * 3];
+    const vm_float_t app = a->v[p + p * 3];
+    const vm_float_t aqq = a->v[q + q * 3];
+    const vm_float_t pair = VECMAT_FABS(app) + VECMAT_FABS(aqq);
+    if (VECMAT_FABS(apq) <= tol * (VM_F(1.0) + pair)) {
+        return;
+    }
+
+    const vm_float_t tau = (aqq - app) / (VM_F(2.0) * apq);
+    const vm_float_t t = (tau >= 0)
+        ? VM_F(1.0) / (tau + VECMAT_SQRT(VM_F(1.0) + tau * tau))
+        : VM_F(-1.0) / (-tau + VECMAT_SQRT(VM_F(1.0) + tau * tau));
+    const vm_float_t c = VM_F(1.0) / VECMAT_SQRT(VM_F(1.0) + t * t);
+    const vm_float_t s = t * c;
+
+    for (int i = 0; i < 3; ++i) {
+        if (i == p || i == q) {
+            continue;
+        }
+        const vm_float_t aip = a->v[i + p * 3];
+        const vm_float_t aiq = a->v[i + q * 3];
+        const vm_float_t np = c * aip - s * aiq;
+        const vm_float_t nq = s * aip + c * aiq;
+        a->v[i + p * 3] = a->v[p + i * 3] = np;
+        a->v[i + q * 3] = a->v[q + i * 3] = nq;
+    }
+
+    a->v[p + p * 3] = c * c * app - VM_F(2.0) * s * c * apq + s * s * aqq;
+    a->v[q + q * 3] = s * s * app + VM_F(2.0) * s * c * apq + c * c * aqq;
+    a->v[p + q * 3] = a->v[q + p * 3] = VM_F(0.0);
+
+    for (int i = 0; i < 3; ++i) {
+        const vm_float_t vip = v->v[i + p * 3];
+        const vm_float_t viq = v->v[i + q * 3];
+        v->v[i + p * 3] = c * vip - s * viq;
+        v->v[i + q * 3] = s * vip + c * viq;
+    }
+}
+
+/**
+ * @brief Jacobi eigensolve of a symmetric 3x3 matrix.
+ *
+ * `m` is first replaced by `(m + m^T) / 2`. Eigenvalues are the diagonal of
+ * the rotated matrix; eigenvector `i` is column `i` of `axes`.
+ *
+ * @param eigenvalues Output eigenvalues.
+ * @param axes Output eigenvector columns.
+ * @param m Input matrix (copied and symmetrized).
+ */
+void mat3_sym_eigen_ptr(vector3 *eigenvalues, matrix3 *axes, const matrix3 *m)
+{
+    matrix3 a;
+    a.m11 = m->m11;
+    a.m22 = m->m22;
+    a.m33 = m->m33;
+    a.m21 = a.m12 = VM_F(0.5) * (m->m21 + m->m12);
+    a.m31 = a.m13 = VM_F(0.5) * (m->m31 + m->m13);
+    a.m32 = a.m23 = VM_F(0.5) * (m->m32 + m->m23);
+
+    mat3_identity_ptr(axes);
+
+    vm_float_t scale = VECMAT_FABS(a.m11);
+    scale = VECMAT_FMAX(scale, VECMAT_FABS(a.m22));
+    scale = VECMAT_FMAX(scale, VECMAT_FABS(a.m33));
+    scale = VECMAT_FMAX(scale, VECMAT_FABS(a.m12));
+    scale = VECMAT_FMAX(scale, VECMAT_FABS(a.m13));
+    scale = VECMAT_FMAX(scale, VECMAT_FABS(a.m23));
+    const vm_float_t tol = (scale > VM_F(0.0))
+        ? VECMAT_EPSILON * VM_F(3.0) * scale
+        : VECMAT_EPSILON;
+
+    for (int iter = 0; iter < 32; ++iter) {
+        const vm_float_t off = VECMAT_FABS(a.m12) + VECMAT_FABS(a.m13) + VECMAT_FABS(a.m23);
+        if (off <= tol) {
+            break;
+        }
+        vm_mat3_jacobi_rotate(&a, axes, 0, 1, tol);
+        vm_mat3_jacobi_rotate(&a, axes, 0, 2, tol);
+        vm_mat3_jacobi_rotate(&a, axes, 1, 2, tol);
+    }
+
+    eigenvalues->x = a.m11;
+    eigenvalues->y = a.m22;
+    eigenvalues->z = a.m33;
 }

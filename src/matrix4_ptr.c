@@ -66,6 +66,15 @@ VECMAT_SCALAR_API void mat4_transpose_ptr_scalar(matrix4 *res, const matrix4 *m)
     }
 }
 
+/**
+ * @brief Multiplies two 4x4 matrices (dispatched).
+ *
+ * @see mat4_mul_ptr_scalar
+ *
+ * @param res Result matrix.
+ * @param a Left matrix.
+ * @param b Right matrix.
+ */
 void mat4_mul_ptr(matrix4 *res, const matrix4 *a, const matrix4 *b)
 {
 #ifdef VECMAT_RUNTIME_DISPATCH
@@ -76,6 +85,14 @@ void mat4_mul_ptr(matrix4 *res, const matrix4 *a, const matrix4 *b)
 #endif
 }
 
+/**
+ * @brief Transposes a 4x4 matrix (dispatched).
+ *
+ * @see mat4_transpose_ptr_scalar
+ *
+ * @param res Result matrix.
+ * @param m Input matrix.
+ */
 void mat4_transpose_ptr(matrix4 *res, const matrix4 *m)
 {
 #ifdef VECMAT_RUNTIME_DISPATCH
@@ -183,21 +200,21 @@ void mat4_scale_ptr(matrix4 *res, const vector3 *v)
 }
 
 /**
- * @brief Sets the matrix to a rotation matrix around the specified axis by the given angle.
+ * @brief Sets the matrix to a rotation matrix around the given axis.
  *
- * The rotation is performed around the normalized axis vector by the specified angle in degrees.
- * The resulting matrix is a 4x4 rotation matrix stored in column-major order.
+ * Constructs a 4x4 rotation matrix that rotates by the specified angle
+ * (in radians) around the provided axis. The axis vector is normalized
+ * internally.
  *
- * @param res Pointer to the matrix4 to store the resulting rotation matrix.
- * @param axis Pointer to the vector3 representing the axis of rotation.
- * @param angle The rotation angle in degrees.
+ * @param res Pointer to the matrix4 that will receive the rotation matrix.
+ * @param axis Pointer to the vector3 representing the rotation axis.
+ * @param radians The rotation angle in radians.
  */
-void mat4_rotation_ptr(matrix4 *res, const vector3 *axis, const vm_float_t angle)
+void mat4_rotation_ptr(matrix4 *res, const vector3 *axis, const vm_float_t radians)
 {
     const vector3 normalized_axis = vec3_normalize(*axis);
-    const vm_float_t rad = deg_to_rad(angle);
-    const vm_float_t c = VECMAT_COS(rad);
-    const vm_float_t s = VECMAT_SIN(rad);
+    const vm_float_t c = VECMAT_COS(radians);
+    const vm_float_t s = VECMAT_SIN(radians);
     const vm_float_t omc = 1.0f - c;
     const vm_float_t x = normalized_axis.x, y = normalized_axis.y, z = normalized_axis.z;
 
@@ -215,20 +232,61 @@ void mat4_rotation_ptr(matrix4 *res, const vector3 *axis, const vm_float_t angle
 }
 
 /**
+ * @brief Sets the matrix to a rotation matrix using an axis and angle in degrees.
+ *
+ * @see mat4_rotation_ptr
+ *
+ * @param res Pointer to the matrix4 that will receive the rotation matrix.
+ * @param axis Pointer to the vector3 defining the rotation axis.
+ * @param degrees The rotation angle in degrees.
+ */
+void mat4_rotation_deg_ptr(matrix4 *res, const vector3 *axis, const vm_float_t degrees)
+{
+    mat4_rotation_ptr(res, axis, deg_to_rad(degrees));
+}
+
+/**
+ * @brief Builds a 4x4 rotation matrix around the X axis (radians).
+ *
+ * @param res Result matrix.
+ * @param radians Rotation angle in radians.
+ */
+void mat4_rotation_x_ptr(matrix4 *res, const vm_float_t radians)
+{
+    const vm_float_t c = VECMAT_COS(radians);
+    const vm_float_t s = VECMAT_SIN(radians);
+    mat4_identity_ptr(res);
+    res->m22 = c;
+    res->m32 = s;
+    res->m23 = -s;
+    res->m33 = c;
+}
+
+/**
  * @brief Builds a 4x4 rotation matrix around the X axis (degrees).
  *
  * @param res Output value.
  * @param degrees Rotation angle in degrees.
  */
-void mat4_rotation_x_ptr(matrix4 *res, const vm_float_t degrees)
+void mat4_rotation_x_deg_ptr(matrix4 *res, const vm_float_t degrees)
 {
-    const vm_float_t rad = deg_to_rad(degrees);
-    const vm_float_t c = VECMAT_COS(rad);
-    const vm_float_t s = VECMAT_SIN(rad);
+    mat4_rotation_x_ptr(res, deg_to_rad(degrees));
+}
+
+/**
+ * @brief Sets the matrix to a rotation matrix around the Y axis.
+ *
+ * @param res Pointer to the matrix4 to store the result.
+ * @param radians Rotation angle in radians.
+ */
+void mat4_rotation_y_ptr(matrix4 *res, const vm_float_t radians)
+{
+    const vm_float_t c = VECMAT_COS(radians);
+    const vm_float_t s = VECMAT_SIN(radians);
     mat4_identity_ptr(res);
-    res->m22 = c;
-    res->m32 = s;
-    res->m23 = -s;
+    res->m11 = c;
+    res->m31 = -s;
+    res->m13 = s;
     res->m33 = c;
 }
 
@@ -238,16 +296,26 @@ void mat4_rotation_x_ptr(matrix4 *res, const vm_float_t degrees)
  * @param res Output value.
  * @param degrees Rotation angle in degrees.
  */
-void mat4_rotation_y_ptr(matrix4 *res, const vm_float_t degrees)
+void mat4_rotation_y_deg_ptr(matrix4 *res, const vm_float_t degrees)
 {
-    const vm_float_t rad = deg_to_rad(degrees);
-    const vm_float_t c = VECMAT_COS(rad);
-    const vm_float_t s = VECMAT_SIN(rad);
+    mat4_rotation_y_ptr(res, deg_to_rad(degrees));
+}
+
+/**
+ * @brief Sets the matrix to a rotation around the Z axis.
+ *
+ * @param res Pointer to the matrix4 to store the result.
+ * @param radians Rotation angle in radians.
+ */
+void mat4_rotation_z_ptr(matrix4 *res, const vm_float_t radians)
+{
+    const vm_float_t c = VECMAT_COS(radians);
+    const vm_float_t s = VECMAT_SIN(radians);
     mat4_identity_ptr(res);
     res->m11 = c;
-    res->m31 = -s;
-    res->m13 = s;
-    res->m33 = c;
+    res->m21 = s;
+    res->m12 = -s;
+    res->m22 = c;
 }
 
 /**
@@ -256,16 +324,9 @@ void mat4_rotation_y_ptr(matrix4 *res, const vm_float_t degrees)
  * @param res Output value.
  * @param degrees Rotation angle in degrees.
  */
-void mat4_rotation_z_ptr(matrix4 *res, const vm_float_t degrees)
+void mat4_rotation_z_deg_ptr(matrix4 *res, const vm_float_t degrees)
 {
-    const vm_float_t rad = deg_to_rad(degrees);
-    const vm_float_t c = VECMAT_COS(rad);
-    const vm_float_t s = VECMAT_SIN(rad);
-    mat4_identity_ptr(res);
-    res->m11 = c;
-    res->m21 = s;
-    res->m12 = -s;
-    res->m22 = c;
+    mat4_rotation_z_ptr(res, deg_to_rad(degrees));
 }
 
 /**
@@ -357,7 +418,7 @@ void mat4_extract_rotation_ptr(quaternion *res, const matrix4 *m)
  * aspect ratio, and near and far clipping planes. The matrix is stored in the provided result pointer.
  *
  * @param res Pointer to the matrix4 to store the perspective projection matrix.
- * @param fov Field of view in degrees.
+ * @param fov Field of view in radians.
  * @param aspect Aspect ratio of the viewport (width divided by height).
  * @param near Distance to the near clipping plane.
  * @param far Distance to the far clipping plane.
@@ -365,8 +426,7 @@ void mat4_extract_rotation_ptr(quaternion *res, const matrix4 *m)
 void mat4_perspective_ptr(matrix4 *res, const vm_float_t fov, const vm_float_t aspect,
                           const vm_float_t near, const vm_float_t far)
 {
-    const vm_float_t rad = deg_to_rad(fov / 2.0f);
-    const vm_float_t tan_half_fov = VECMAT_TAN(rad);
+    const vm_float_t tan_half_fov = VECMAT_TAN(fov * VM_F(0.5));
 
     for (int i = 0; i < 16; i++) res->v[i] = 0.0f;
     res->v[0] = 1.0f / (aspect * tan_half_fov);
@@ -377,10 +437,26 @@ void mat4_perspective_ptr(matrix4 *res, const vm_float_t fov, const vm_float_t a
 }
 
 /**
+ * @brief Sets the matrix to a perspective projection matrix using field of view in degrees.
+ *
+ * @see mat4_perspective_ptr
+ *
+ * @param res Pointer to the matrix4 to receive the perspective projection.
+ * @param fov_deg Vertical field of view angle in degrees.
+ * @param aspect Aspect ratio (width / height).
+ * @param near Distance to the near clipping plane.
+ * @param far Distance to the far clipping plane.
+ */
+void mat4_perspective_deg_ptr(matrix4 *res, const vm_float_t fov_deg, const vm_float_t aspect,
+                              const vm_float_t near, const vm_float_t far)
+{
+    mat4_perspective_ptr(res, deg_to_rad(fov_deg), aspect, near, far);
+}
+
+/**
  * @brief Sets the matrix to an orthographic projection matrix.
  *
- * This function configures the matrix for an orthographic projection,
- * mapping a rectangular frustum defined by the clipping planes to the canonical view volume.
+ * @see mat4_ortho_clip_ptr
  *
  * @param res Pointer to the matrix4 to set to the orthographic projection matrix.
  * @param left The left clipping plane coordinate.
@@ -393,13 +469,7 @@ void mat4_perspective_ptr(matrix4 *res, const vm_float_t fov, const vm_float_t a
 void mat4_ortho_ptr(matrix4 *res, const vm_float_t left, const vm_float_t right, const vm_float_t bottom,
                     const vm_float_t top, const vm_float_t near, const vm_float_t far)
 {
-    res->v[0]  = 2.0f / (right - left);
-    res->v[5]  = 2.0f / (top - bottom);
-    res->v[10] = -2.0f / (far - near);
-    res->v[12] = -(right + left) / (right - left);
-    res->v[13] = -(top + bottom) / (top - bottom);
-    res->v[14] = -(far + near) / (far - near);
-    res->v[15] = 1.0f;
+    mat4_ortho_clip_ptr(res, left, right, bottom, top, near, far, VM_CLIP_RH_NO);
 }
 
 /**
@@ -443,7 +513,7 @@ void mat4_look_at_ptr(matrix4 *res, const vector3 *position, const vector3 *targ
  * viewport width and height, near clipping plane, and far clipping plane.
  *
  * @param res Pointer to the matrix4 to set to the perspective projection matrix.
- * @param fov Field of view angle in degrees.
+ * @param fov Field of view angle in radians.
  * @param w Viewport width.
  * @param h Viewport height.
  * @param n Near clipping plane distance.
@@ -452,8 +522,7 @@ void mat4_look_at_ptr(matrix4 *res, const vector3 *position, const vector3 *targ
 void mat4_perspective_fov_ptr(matrix4 *res, const vm_float_t fov, const vm_float_t w, const vm_float_t h,
                               const vm_float_t n, const vm_float_t f)
 {
-    const vm_float_t rad = deg_to_rad(fov / 2.0f);
-    const vm_float_t tan_half_fov = VECMAT_TAN(rad);
+    const vm_float_t tan_half_fov = VECMAT_TAN(fov * VM_F(0.5));
     const vm_float_t aspect = w / h;
 
     for (int i = 0; i < 16; i++) res->v[i] = 0.0f;
@@ -465,27 +534,60 @@ void mat4_perspective_fov_ptr(matrix4 *res, const vm_float_t fov, const vm_float
 }
 
 /**
+ * @brief Sets the matrix to a perspective projection matrix using vertical field of view in degrees.
+ *
+ * @see mat4_perspective_fov_ptr
+ *
+ * @param res Pointer to the matrix4 to be set.
+ * @param fov_deg Vertical field of view angle in degrees.
+ * @param w Width of the viewport.
+ * @param h Height of the viewport.
+ * @param n Distance to the near clipping plane.
+ * @param f Distance to the far clipping plane.
+ */
+void mat4_perspective_fov_deg_ptr(matrix4 *res, const vm_float_t fov_deg, const vm_float_t w, const vm_float_t h,
+                                  const vm_float_t n, const vm_float_t f)
+{
+    mat4_perspective_fov_ptr(res, deg_to_rad(fov_deg), w, h, n, f);
+}
+
+/**
  * @brief Sets the matrix to an infinite perspective projection matrix.
  *
- * This function constructs a perspective projection matrix with an infinite far plane,
- * which is useful for rendering scenes where depth precision is less critical beyond the near plane.
- * The matrix is set such that the field of view and aspect ratio are applied, with the near plane at distance n.
+ * This function constructs a perspective projection matrix with an infinite
+ * far plane, which is useful for rendering scenes where depth precision is less
+ * critical beyond the near plane. The matrix is set such that the field of view
+ * and aspect ratio are applied, with the near plane at distance n.
  *
  * @param res Pointer to the matrix4 to set to the infinite perspective projection.
- * @param fov_y Vertical field of view in degrees.
+ * @param fov_y Vertical field of view in radians.
  * @param aspect Aspect ratio of the viewport (width / height).
  * @param n Distance to the near clipping plane.
  */
 void mat4_perspective_infinite_ptr(matrix4 *res, vm_float_t const fov_y, vm_float_t const aspect, vm_float_t const n)
 {
-    const vm_float_t rad = deg_to_rad(fov_y / 2.0f);
-    const vm_float_t tan_half_fov = VECMAT_TAN(rad);
+    const vm_float_t tan_half_fov = VECMAT_TAN(fov_y * VM_F(0.5));
     for (int i = 0; i < 16; i++) res->v[i] = 0.0f;
     res->v[0] = 1.0f / (aspect * tan_half_fov);
     res->v[5] = 1.0f / tan_half_fov;
     res->v[10] = -1.0f;
     res->v[11] = -1.0f;
     res->v[14] = -2.0f * n;
+}
+
+/**
+ * @brief Sets the matrix to an infinite perspective projection matrix using
+ *        vertical field of view in degrees.
+ *
+ * @param res Pointer to the matrix4 to store the resulting projection matrix.
+ * @param fov_y_deg Vertical field of view angle in degrees.
+ * @param aspect Aspect ratio (width / height).
+ * @param n Near clipping plane distance.
+ */
+void mat4_perspective_infinite_deg_ptr(matrix4 *res, const vm_float_t fov_y_deg,
+                                       const vm_float_t aspect, const vm_float_t n)
+{
+    mat4_perspective_infinite_ptr(res, deg_to_rad(fov_y_deg), aspect, n);
 }
 
 /**
@@ -507,6 +609,15 @@ VECMAT_SCALAR_API void mat4_mul_vec4_ptr_scalar(vector4 *res, const matrix4 *m, 
     res->w = m->m41 * x + m->m42 * y + m->m43 * z + m->m44 * w;
 }
 
+/**
+ * @brief Transforms a vector4 by a 4x4 matrix (dispatched).
+ *
+ * @see mat4_mul_vec4_ptr_scalar
+ *
+ * @param res Result vector.
+ * @param m Input matrix.
+ * @param v Input vector.
+ */
 void mat4_mul_vec4_ptr(vector4 *res, const matrix4 *m, const vector4 *v)
 {
 #ifdef VECMAT_RUNTIME_DISPATCH
@@ -535,6 +646,16 @@ VECMAT_SCALAR_API void mat4_mul_vec3_ptr_scalar(vector3 *res, const matrix4 *m, 
     res->z = m->m31 * x + m->m32 * y + m->m33 * z + m->m34 * w;
 }
 
+/**
+ * @brief Transforms a vector3 by a 4x4 matrix using homogeneous w (dispatched).
+ *
+ * @see mat4_mul_vec3_ptr_scalar
+ *
+ * @param res Result vector.
+ * @param m Input matrix.
+ * @param v Input vector.
+ * @param w Homogeneous w component.
+ */
 void mat4_mul_vec3_ptr(vector3 *res, const matrix4 *m, const vector3 *v, const vm_float_t w)
 {
 #ifdef VECMAT_RUNTIME_DISPATCH
@@ -543,4 +664,591 @@ void mat4_mul_vec3_ptr(vector3 *res, const matrix4 *m, const vector3 *v, const v
 #else
     mat4_mul_vec3_ptr_scalar(res, m, v, w);
 #endif
+}
+
+/**
+ * @brief Constructs a perspective projection matrix with configurable clip space.
+ *
+ * Computes a 4x4 perspective projection matrix based on vertical field of view,
+ * aspect ratio, near and far planes, and the desired clip space convention.
+ *
+ * @param res Pointer to the matrix4 to receive the computed projection matrix.
+ * @param fov_y Vertical field of view in radians.
+ * @param aspect Aspect ratio (width / height).
+ * @param near Distance to the near clipping plane.
+ * @param far Distance to the far clipping plane.
+ * @param clip Clip space convention to use (VM_CLIP_RH_NO, VM_CLIP_RH_ZO, VM_CLIP_LH_ZO or VM_CLIP_LH_NO).
+ */
+void mat4_perspective_clip_ptr(matrix4 *res, const vm_float_t fov_y, const vm_float_t aspect,
+                               const vm_float_t near, const vm_float_t far, const vm_clip_t clip)
+{
+    const vm_float_t tan_half = VECMAT_TAN(fov_y * VM_F(0.5));
+    const vm_float_t a = VM_F(1.0) / (aspect * tan_half);
+    const vm_float_t b = VM_F(1.0) / tan_half;
+    const vm_float_t fn = far - near;
+
+    memset(res->v, 0, sizeof(res->v));
+    res->m11 = a;
+    res->m22 = b;
+
+    switch (clip) {
+    case VM_CLIP_RH_ZO:
+        res->m33 = -far / fn;
+        res->m43 = VM_F(-1.0);
+        res->m34 = -(far * near) / fn;
+        break;
+    case VM_CLIP_LH_ZO:
+        res->m33 = far / fn;
+        res->m43 = VM_F(1.0);
+        res->m34 = -(far * near) / fn;
+        break;
+    case VM_CLIP_LH_NO:
+        res->m33 = (far + near) / fn;
+        res->m43 = VM_F(1.0);
+        res->m34 = VM_F(-2.0) * far * near / fn;
+        break;
+    case VM_CLIP_RH_NO:
+    default:
+        res->m33 = -(far + near) / fn;
+        res->m43 = VM_F(-1.0);
+        res->m34 = VM_F(-2.0) * far * near / fn;
+        break;
+    }
+}
+
+/**
+ * @brief Sets a perspective projection matrix using vertical field of view in degrees.
+ *
+ * @see mat4_perspective_clip_ptr
+ *
+ * @param res Pointer to the matrix4 that will receive the computed projection matrix.
+ * @param fov_y_deg Vertical field of view angle in degrees.
+ * @param aspect Aspect ratio (width / height).
+ * @param near Distance to the near clipping plane.
+ * @param far Distance to the far clipping plane.
+ * @param clip Clip space convention to use.
+ */
+void mat4_perspective_clip_deg_ptr(matrix4 *res, const vm_float_t fov_y_deg, const vm_float_t aspect,
+                                   const vm_float_t near, const vm_float_t far, const vm_clip_t clip)
+{
+    mat4_perspective_clip_ptr(res, deg_to_rad(fov_y_deg), aspect, near, far, clip);
+}
+
+/**
+ * @brief Sets the matrix to an orthographic projection matrix.
+ *
+ * Constructs a 4x4 orthographic projection matrix based on the provided frustum bounds
+ * and the selected clip space convention.
+ *
+ * @param res Pointer to the matrix4 to store the result.
+ * @param left Left clipping plane.
+ * @param right Right clipping plane.
+ * @param bottom Bottom clipping plane.
+ * @param top Top clipping plane.
+ * @param near Near clipping plane.
+ * @param far Far clipping plane.
+ * @param clip Clip space convention to use (one of the VM_CLIP_* values).
+ */
+void mat4_ortho_clip_ptr(matrix4 *res, const vm_float_t left, const vm_float_t right,
+                         const vm_float_t bottom, const vm_float_t top,
+                         const vm_float_t near, const vm_float_t far, const vm_clip_t clip)
+{
+    const vm_float_t rl = right - left;
+    const vm_float_t tb = top - bottom;
+    const vm_float_t fn = far - near;
+
+    memset(res->v, 0, sizeof(res->v));
+    res->m11 = VM_F(2.0) / rl;
+    res->m22 = VM_F(2.0) / tb;
+    res->m14 = -(right + left) / rl;
+    res->m24 = -(top + bottom) / tb;
+    res->m44 = VM_F(1.0);
+
+    switch (clip) {
+    case VM_CLIP_RH_ZO:
+        res->m33 = VM_F(-1.0) / fn;
+        res->m34 = -near / fn;
+        break;
+    case VM_CLIP_LH_ZO:
+        res->m33 = VM_F(1.0) / fn;
+        res->m34 = -near / fn;
+        break;
+    case VM_CLIP_LH_NO:
+        res->m33 = VM_F(2.0) / fn;
+        res->m34 = -(far + near) / fn;
+        break;
+    case VM_CLIP_RH_NO:
+    default:
+        res->m33 = VM_F(-2.0) / fn;
+        res->m34 = -(far + near) / fn;
+        break;
+    }
+}
+
+/**
+ * @brief Constructs a look-at view matrix with support for different clip space conventions.
+ *
+ * Computes a 4x4 view matrix that positions the camera at @p position looking towards @p target,
+ * with @p up defining the world up direction. The resulting matrix is affected by the selected
+ * clip space handedness and depth range via the @p clip parameter.
+ *
+ * For right-handed clip conventions the function delegates to mat4_look_at_ptr. For left-handed
+ * conventions a dedicated basis is constructed where the camera forward direction points along
+ * positive Z.
+ *
+ * @param res Pointer to the matrix4 that will receive the computed view matrix.
+ * @param position Camera position in world space.
+ * @param target Target point in world space the camera is looking at.
+ * @param up World up direction vector.
+ * @param clip Clip space convention that determines handedness and depth range.
+ */
+void mat4_look_at_clip_ptr(matrix4 *res, const vector3 *position, const vector3 *target,
+                           const vector3 *up, const vm_clip_t clip)
+{
+    const int left_handed = (clip == VM_CLIP_LH_ZO || clip == VM_CLIP_LH_NO);
+
+    if (!left_handed) {
+        mat4_look_at_ptr(res, position, target, up);
+        return;
+    }
+
+    const vector3 z_axis = vec3_normalize(vec3_sub(*target, *position));
+    const vector3 x_axis = vec3_normalize(vec3_cross(*up, z_axis));
+    const vector3 y_axis = vec3_cross(z_axis, x_axis);
+
+    mat4_identity_ptr(res);
+    res->v[0] = x_axis.x;
+    res->v[1] = y_axis.x;
+    res->v[2] = z_axis.x;
+    res->v[4] = x_axis.y;
+    res->v[5] = y_axis.y;
+    res->v[6] = z_axis.y;
+    res->v[8] = x_axis.z;
+    res->v[9] = y_axis.z;
+    res->v[10] = z_axis.z;
+    res->v[12] = -vec3_dot(x_axis, *position);
+    res->v[13] = -vec3_dot(y_axis, *position);
+    res->v[14] = -vec3_dot(z_axis, *position);
+}
+
+/**
+ * @brief Inverse of an affine matrix `[R t; 0 1]`.
+ *
+ * Inverts the upper-left 3×3 and corrects the translation. Last row is fixed
+ * as `[0 0 0 1]`. For a full 4×4 inverse, use `mat4_inverse`. Singular 3×3
+ * yields identity.
+ *
+ * @param res Output inverse matrix.
+ * @param m   Affine 4×4 matrix.
+ */
+void mat4_inverse_affine_ptr(matrix4 *res, const matrix4 *m)
+{
+    matrix3 a;
+    matrix3 ai;
+    mat3_from_mat4_ptr(&a, m);
+    mat3_inverse_ptr(&ai, &a);
+
+    const vector3 t = { .x = m->m14, .y = m->m24, .z = m->m34 };
+    const vector3 tin_v = mat3_mul_vec3(ai, t);
+
+    mat4_from_mat3_ptr(res, &ai);
+    res->m14 = -tin_v.x;
+    res->m24 = -tin_v.y;
+    res->m34 = -tin_v.z;
+    res->m41 = VM_F(0.0);
+    res->m42 = VM_F(0.0);
+    res->m43 = VM_F(0.0);
+    res->m44 = VM_F(1.0);
+}
+
+/**
+ * @brief Inverse-transpose of the upper-left 3x3, embedded in a matrix4.
+ *
+ * Used to transform surface normals under a (possibly non-uniformly scaled)
+ * model matrix. Last row/column stay identity.
+ *
+ * @param res Normal matrix as a matrix4.
+ * @param m Model matrix.
+ */
+void mat4_normal_ptr(matrix4 *res, const matrix4 *m)
+{
+    matrix3 a;
+    matrix3 n;
+    mat3_from_mat4_ptr(&a, m);
+    mat3_normal_ptr(&n, &a);
+    mat4_from_mat3_ptr(res, &n);
+}
+
+/**
+ * @brief View matrix from eye position and a look direction (no target point).
+ *
+ * Equivalent to `mat4_look_at(position, position + direction, up)` with a
+ * default forward if @p direction is near zero.
+ *
+ * @param res View matrix.
+ * @param position Eye position.
+ * @param direction Look direction.
+ * @param up World up direction.
+ */
+void mat4_look_from_dir_ptr(matrix4 *res, const vector3 *position,
+                            const vector3 *direction, const vector3 *up)
+{
+    mat4_look_from_dir_clip_ptr(res, position, direction, up, VM_CLIP_RH_NO);
+}
+
+/**
+ * @brief Clip-aware look-from-direction view matrix.
+ *
+ * @param res View matrix.
+ * @param position Eye position.
+ * @param direction World-space look direction (need not be unit).
+ * @param up World up hint.
+ * @param clip Handedness / depth convention.
+ */
+void mat4_look_from_dir_clip_ptr(matrix4 *res, const vector3 *position,
+                                 const vector3 *direction, const vector3 *up,
+                                 const vm_clip_t clip)
+{
+    vector3 dir = *direction;
+    if (vec3_length_squared(dir) <= VECMAT_EPSILON * VECMAT_EPSILON) {
+        const int left_handed = (clip == VM_CLIP_LH_ZO || clip == VM_CLIP_LH_NO);
+        dir.x = VM_F(0.0);
+        dir.y = VM_F(0.0);
+        dir.z = left_handed ? VM_F(1.0) : VM_F(-1.0);
+    }
+    const vector3 target = vec3_add(*position, dir);
+    mat4_look_at_clip_ptr(res, position, &target, up, clip);
+}
+
+/**
+ * @brief Viewport matrix from origin `(x, y)` and size `(width, height)`.
+ *
+ * Maps NDC to window coordinates with depth in `[0, 1]`.
+ * @see mat4_viewport_depth_ptr
+ *
+ * @param res    Output 4×4 matrix.
+ * @param x      Viewport origin x.
+ * @param y      Viewport origin y.
+ * @param width  Viewport width.
+ * @param height Viewport height.
+ */
+void mat4_viewport_ptr(matrix4 *res, const vm_float_t x, const vm_float_t y,
+                       const vm_float_t width, const vm_float_t height)
+{
+    mat4_viewport_depth_ptr(res, x, y, width, height, VM_F(0.0), VM_F(1.0));
+}
+
+/**
+ * @brief Viewport matrix from origin, size, and depth range `[n, f]`.
+ *
+ * Maps NDC to window coordinates with depth in `[n, f]`.
+ *
+ * @param res    Output 4×4 matrix.
+ * @param x      Viewport origin x.
+ * @param y      Viewport origin y.
+ * @param width  Viewport width.
+ * @param height Viewport height.
+ * @param n      Near depth.
+ * @param f      Far depth.
+ */
+void mat4_viewport_depth_ptr(matrix4 *res, const vm_float_t x, const vm_float_t y,
+                             const vm_float_t width, const vm_float_t height,
+                             const vm_float_t n, const vm_float_t f)
+{
+    mat4_identity_ptr(res);
+    res->m11 = width * VM_F(0.5);
+    res->m22 = height * VM_F(0.5);
+    res->m33 = (f - n) * VM_F(0.5);
+    res->m14 = x + width * VM_F(0.5);
+    res->m24 = y + height * VM_F(0.5);
+    res->m34 = (n + f) * VM_F(0.5);
+}
+
+/**
+ * @brief Infinite perspective matrix for a chosen clip convention.
+ *
+ * No far plane. `fov_y` is in radians.
+ *
+ * @param res    Output 4×4 matrix.
+ * @param fov_y  Vertical field of view in radians.
+ * @param aspect Aspect ratio (width / height).
+ * @param n      Near plane distance.
+ * @param clip   Clip space convention (handedness and ZO/NO depth).
+ */
+void mat4_perspective_infinite_clip_ptr(matrix4 *res, const vm_float_t fov_y,
+                                        const vm_float_t aspect, const vm_float_t n,
+                                        const vm_clip_t clip)
+{
+    const vm_float_t tan_half = VECMAT_TAN(fov_y * VM_F(0.5));
+    memset(res->v, 0, sizeof(res->v));
+    res->m11 = VM_F(1.0) / (aspect * tan_half);
+    res->m22 = VM_F(1.0) / tan_half;
+
+    switch (clip) {
+    case VM_CLIP_RH_ZO:
+        res->m33 = VM_F(-1.0);
+        res->m43 = VM_F(-1.0);
+        res->m34 = -n;
+        break;
+    case VM_CLIP_LH_ZO:
+        res->m33 = VM_F(1.0);
+        res->m43 = VM_F(1.0);
+        res->m34 = -n;
+        break;
+    case VM_CLIP_LH_NO:
+        res->m33 = VM_F(1.0);
+        res->m43 = VM_F(1.0);
+        res->m34 = VM_F(-2.0) * n;
+        break;
+    case VM_CLIP_RH_NO:
+    default:
+        res->m33 = VM_F(-1.0);
+        res->m43 = VM_F(-1.0);
+        res->m34 = VM_F(-2.0) * n;
+        break;
+    }
+}
+
+/**
+ * @brief Infinite perspective matrix from FOV in degrees and clip space.
+ * @see mat4_perspective_infinite_clip_ptr
+ *
+ * @param res       Output 4×4 matrix.
+ * @param fov_y_deg Vertical field of view in degrees.
+ * @param aspect    Aspect ratio (width / height).
+ * @param n         Near plane distance.
+ * @param clip      Clip space convention (handedness and ZO/NO depth).
+ */
+void mat4_perspective_infinite_clip_deg_ptr(matrix4 *res, const vm_float_t fov_y_deg,
+                                            const vm_float_t aspect, const vm_float_t n,
+                                            const vm_clip_t clip)
+{
+    mat4_perspective_infinite_clip_ptr(res, deg_to_rad(fov_y_deg), aspect, n, clip);
+}
+
+/**
+ * @brief Infinite reverse-Z perspective matrix (RH, [0, 1] depth).
+ * @see mat4_infinite_reverse_z_clip_ptr
+ *
+ * @param res    Output 4×4 matrix.
+ * @param fov_y  Vertical field of view in radians.
+ * @param aspect Aspect ratio (width / height).
+ * @param n      Near plane distance.
+ */
+void mat4_infinite_reverse_z_ptr(matrix4 *res, const vm_float_t fov_y,
+                                 const vm_float_t aspect, const vm_float_t n)
+{
+    mat4_infinite_reverse_z_clip_ptr(res, fov_y, aspect, n, VM_CLIP_RH_ZO);
+}
+
+/**
+ * @brief Infinite reverse-Z perspective matrix for a chosen clip convention.
+ *
+ * No far plane; depth is reversed for better precision. `fov_y` is in radians.
+ *
+ * @param res    Output 4×4 matrix.
+ * @param fov_y  Vertical field of view in radians.
+ * @param aspect Aspect ratio (width / height).
+ * @param n      Near plane distance.
+ * @param clip   Clip space convention (handedness and ZO/NO depth).
+ */
+void mat4_infinite_reverse_z_clip_ptr(matrix4 *res, const vm_float_t fov_y,
+                                      const vm_float_t aspect, const vm_float_t n,
+                                      const vm_clip_t clip)
+{
+    const vm_float_t tan_half = VECMAT_TAN(fov_y * VM_F(0.5));
+    memset(res->v, 0, sizeof(res->v));
+    res->m11 = VM_F(1.0) / (aspect * tan_half);
+    res->m22 = VM_F(1.0) / tan_half;
+
+    switch (clip) {
+    case VM_CLIP_LH_ZO:
+        res->m33 = VM_F(0.0);
+        res->m43 = VM_F(1.0);
+        res->m34 = n;
+        break;
+    case VM_CLIP_LH_NO:
+        res->m33 = VM_F(-1.0);
+        res->m43 = VM_F(1.0);
+        res->m34 = VM_F(2.0) * n;
+        break;
+    case VM_CLIP_RH_NO:
+        res->m33 = VM_F(1.0);
+        res->m43 = VM_F(-1.0);
+        res->m34 = VM_F(2.0) * n;
+        break;
+    case VM_CLIP_RH_ZO:
+    default:
+        res->m33 = VM_F(0.0);
+        res->m43 = VM_F(-1.0);
+        res->m34 = n;
+        break;
+    }
+}
+
+/**
+ * @brief Infinite reverse-Z perspective matrix from a vertical FOV in degrees.
+ *
+ * @see mat4_infinite_reverse_z_ptr
+ *
+ * @param res       Output 4×4 matrix.
+ * @param fov_y_deg Vertical field of view in degrees.
+ * @param aspect    Aspect ratio (width / height).
+ * @param n         Near plane distance.
+ */
+void mat4_infinite_reverse_z_deg_ptr(matrix4 *res, const vm_float_t fov_y_deg,
+                                     const vm_float_t aspect, const vm_float_t n)
+{
+    mat4_infinite_reverse_z_ptr(res, deg_to_rad(fov_y_deg), aspect, n);
+}
+
+/**
+ * @brief Infinite reverse-Z perspective matrix from FOV in degrees and clip space.
+ *
+ * @see mat4_infinite_reverse_z_clip_ptr
+ *
+ * @param res       Output 4×4 matrix.
+ * @param fov_y_deg Vertical field of view in degrees.
+ * @param aspect    Aspect ratio (width / height).
+ * @param n         Near plane distance.
+ * @param clip      Clip space convention (handedness and ZO/NO depth).
+ */
+void mat4_infinite_reverse_z_clip_deg_ptr(matrix4 *res, const vm_float_t fov_y_deg,
+                                          const vm_float_t aspect, const vm_float_t n,
+                                          const vm_clip_t clip)
+{
+    mat4_infinite_reverse_z_clip_ptr(res, deg_to_rad(fov_y_deg), aspect, n, clip);
+}
+
+/**
+ * @brief Return true if clip uses a [0, 1] (ZO) depth range.
+ * @param clip Clip space convention.
+ */
+static int vm_clip_is_zo(const vm_clip_t clip)
+{
+    return clip == VM_CLIP_RH_ZO || clip == VM_CLIP_LH_ZO;
+}
+
+/**
+ * @brief Projects a world-space point into window coordinates using model,
+ *        projection, viewport, and clip depth range.
+ *
+ * Applies MVP, perspective-divides to NDC, then maps x/y into the viewport.
+ * Depth (`res->z`) is stored in the selected clip convention (ZO or NO).
+ * If `w` is near zero, writes `(0, 0, 0)`.
+ *
+ * @param res        Output window-space point (x, y, depth).
+ * @param world      World-space position.
+ * @param model      Model matrix.
+ * @param projection Projection matrix.
+ * @param viewport   Viewport rectangle (x, y, width, height).
+ * @param clip       Clip depth range (ZO or NO).
+ */
+void vec3_world_to_window_clip_ptr(vector3 *res, const vector3 *world,
+                                   const matrix4 *model, const matrix4 *projection,
+                                   const vector4 *viewport, const vm_clip_t clip)
+{
+    const matrix4 mvp = mat4_mul(*projection, *model);
+    const vector4 obj = { .x = world->x, .y = world->y, .z = world->z, VM_F(.w = 1.0)};
+    const vector4 clip_v = mat4_mul_vec4(mvp, obj);
+    if (VECMAT_FABS(clip_v.w) <= VECMAT_EPSILON) {
+        res->x = VM_F(0.0);
+        res->y = VM_F(0.0);
+        res->z = VM_F(0.0);
+        return;
+    }
+    const vm_float_t inv_w = VM_F(1.0) / clip_v.w;
+    const vm_float_t ndc_x = clip_v.x * inv_w;
+    const vm_float_t ndc_y = clip_v.y * inv_w;
+    const vm_float_t ndc_z = clip_v.z * inv_w;
+    res->x = viewport->x + viewport->z * (ndc_x + VM_F(1.0)) * VM_F(0.5);
+    res->y = viewport->y + viewport->w * (ndc_y + VM_F(1.0)) * VM_F(0.5);
+    res->z = vm_clip_is_zo(clip) ? ndc_z : (ndc_z + VM_F(1.0)) * VM_F(0.5);
+}
+
+/**
+ * @brief Projects a world-space point to window coordinates (OpenGL clip).
+ *
+ * @see vec3_world_to_window_clip_ptr
+ *
+ * @param res Window-space point.
+ * @param world World-space position.
+ * @param model Model matrix.
+ * @param projection Projection matrix.
+ * @param viewport Viewport rectangle (x, y, width, height).
+ */
+void vec3_world_to_window_ptr(vector3 *res, const vector3 *world,
+                              const matrix4 *model, const matrix4 *projection,
+                              const vector4 *viewport)
+{
+    vec3_world_to_window_clip_ptr(res, world, model, projection, viewport, VM_CLIP_RH_NO);
+}
+
+/**
+ * @brief Un-projects a window-space point to world coordinates using model,
+ *        projection, viewport, and clip depth range.
+ *
+ * Maps window x/y into NDC, converts depth with the selected clip convention
+ * (ZO or NO), then applies the inverse MVP and perspective-divides.
+ * If the viewport size or `w` is near zero, writes `(0, 0, 0)`.
+ *
+ * @param res        Output world-space point.
+ * @param window     Window-space point (x, y, depth).
+ * @param model      Model matrix.
+ * @param projection Projection matrix.
+ * @param viewport   Viewport rectangle (x, y, width, height).
+ * @param clip       Clip depth range (ZO or NO).
+ */
+void vec3_window_to_world_clip_ptr(vector3 *res, const vector3 *window,
+                                   const matrix4 *model, const matrix4 *projection,
+                                   const vector4 *viewport, const vm_clip_t clip)
+{
+    const vm_float_t w = viewport->z;
+    const vm_float_t h = viewport->w;
+    if (VECMAT_FABS(w) <= VECMAT_EPSILON || VECMAT_FABS(h) <= VECMAT_EPSILON) {
+        res->x = VM_F(0.0);
+        res->y = VM_F(0.0);
+        res->z = VM_F(0.0);
+        return;
+    }
+
+    const vm_float_t ndc_x = VM_F(2.0) * (window->x - viewport->x) / w - VM_F(1.0);
+    const vm_float_t ndc_y = VM_F(2.0) * (window->y - viewport->y) / h - VM_F(1.0);
+    const vm_float_t ndc_z = vm_clip_is_zo(clip) ? window->z
+                                                 : VM_F(2.0) * window->z - VM_F(1.0);
+
+    const matrix4 mvp = mat4_mul(*projection, *model);
+    const matrix4 inv = mat4_inverse(mvp);
+    const vector4 ndc = { .x = ndc_x, .y = ndc_y, .z = ndc_z, VM_F(.w = 1.0)};
+    const vector4 obj = mat4_mul_vec4(inv, ndc);
+    if (VECMAT_FABS(obj.w) <= VECMAT_EPSILON) {
+        res->x = VM_F(0.0);
+        res->y = VM_F(0.0);
+        res->z = VM_F(0.0);
+        return;
+    }
+    const vm_float_t inv_w = VM_F(1.0) / obj.w;
+    res->x = obj.x * inv_w;
+    res->y = obj.y * inv_w;
+    res->z = obj.z * inv_w;
+}
+
+/**
+ * @brief Un-projects a window-space point to world coordinates using model,
+ *        projection, and viewport.
+ *
+ * Convenience wrapper around `vec3_window_to_world_clip_ptr` with
+ * `VM_CLIP_RH_NO` (right-handed, [-1, 1] depth).
+ *
+ * @param res        Output world-space point.
+ * @param window     Window-space point (x, y, depth).
+ * @param model      Model matrix.
+ * @param projection Projection matrix.
+ * @param viewport   Viewport rectangle (x, y, width, height).
+ */
+void vec3_window_to_world_ptr(vector3 *res, const vector3 *window,
+                              const matrix4 *model, const matrix4 *projection,
+                              const vector4 *viewport)
+{
+    vec3_window_to_world_clip_ptr(res, window, model, projection, viewport, VM_CLIP_RH_NO);
 }

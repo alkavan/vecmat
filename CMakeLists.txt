@@ -122,8 +122,15 @@ set(VECMAT_SOURCES
         src/matrix3i_ptr.c
         src/matrix4i_ptr.c
         src/quaternion_ptr.c
-        src/easing.c
         src/features/cpu.c
+        src/features/dense.c
+        src/features/easing.c
+        src/features/gemm.c
+        src/features/physics.c
+        src/features/sparse.c
+        src/solvers/lu.c
+        src/solvers/qr.c
+        src/solvers/svd.c
 )
 
 add_library(vecmat_shared SHARED ${VECMAT_SOURCES})
@@ -176,6 +183,14 @@ if(WITH_THREAD_SAFETY)
     target_compile_definitions(vecmat_static PUBLIC DYNVEC_THREAD_SAFE)
 endif()
 
+find_package(Threads)
+if(Threads_FOUND)
+    target_link_libraries(vecmat_shared PUBLIC Threads::Threads)
+    target_link_libraries(vecmat_static PUBLIC Threads::Threads)
+    target_compile_definitions(vecmat_shared PRIVATE VECMAT_HAS_THREADS)
+    target_compile_definitions(vecmat_static PRIVATE VECMAT_HAS_THREADS)
+endif()
+
 target_include_directories(vecmat_shared
         PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -203,6 +218,7 @@ if(VECMAT_ENABLE_AVX)
     set(_vecmat_avx_sources
             src/simd/avx/vector4_ptr.c
             src/simd/avx/matrix4_ptr.c
+            src/simd/avx/gemm.c
     )
     if(MSVC)
         set(_vecmat_avx_opts /arch:AVX)
@@ -224,6 +240,7 @@ if(VECMAT_ENABLE_AVX2)
     set(_vecmat_avx2_sources
             src/simd/avx2/vector4_ptr.c
             src/simd/avx2/matrix4_ptr.c
+            src/simd/avx2/gemm.c
     )
     if(MSVC)
         set(_vecmat_avx2_opts /arch:AVX2)
@@ -243,6 +260,7 @@ if(VECMAT_ENABLE_AVX512)
     set(_vecmat_avx512_sources
             src/simd/avx512/vector4_ptr.c
             src/simd/avx512/matrix4_ptr.c
+            src/simd/avx512/gemm.c
     )
     if(MSVC)
         set(_vecmat_avx512_opts /arch:AVX512)
@@ -262,6 +280,7 @@ if(VECMAT_ENABLE_SVE)
     set(_vecmat_sve_sources
             src/simd/sve/vector4_ptr.c
             src/simd/sve/matrix4_ptr.c
+            src/simd/sve/gemm.c
     )
     set_source_files_properties(${_vecmat_sve_sources} PROPERTIES
             COMPILE_OPTIONS "-march=armv8-a+sve"
@@ -277,6 +296,7 @@ if(VECMAT_ENABLE_SVE2)
     set(_vecmat_sve2_sources
             src/simd/sve2/vector4_ptr.c
             src/simd/sve2/matrix4_ptr.c
+            src/simd/sve2/gemm.c
     )
     set_source_files_properties(${_vecmat_sve2_sources} PROPERTIES
             COMPILE_OPTIONS "-march=armv8-a+sve2"

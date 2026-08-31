@@ -216,7 +216,13 @@ void vec3i_clamp_ptr(vector3i *res, const vector3i *v, const vector3i *min, cons
     res->z = v->z < min->z ? min->z : (v->z > max->z ? max->z : v->z);
 }
 
-// Floor division: toward -inf; returns 0 if b == 0.
+/**
+ * @brief Floor division toward -inf; returns 0 if `b == 0`.
+ *
+ * @param a Dividend.
+ * @param b Divisor.
+ * @return `floor(a / b)`, or 0 if `b` is 0.
+ */
 static vm_int_t vm_div_floor3(const vm_int_t a, const vm_int_t b)
 {
     if (b == 0) {
@@ -230,7 +236,13 @@ static vm_int_t vm_div_floor3(const vm_int_t a, const vm_int_t b)
     return q;
 }
 
-// Floor modulo: result in [0, b) for b > 0 (or (b, 0] for b < 0); 0 if b == 0.
+/**
+ * @brief Floor modulo matching `vm_div_floor3`.
+ *
+ * @param a Dividend.
+ * @param b Divisor.
+ * @return Floor modulus.
+ */
 static vm_int_t vm_mod_floor3(const vm_int_t a, const vm_int_t b)
 {
     if (b == 0) {

@@ -50,17 +50,24 @@
 #define M_SQRT1_2  0.707106781186547524401  // 1/sqrt(2)
 #endif
 
+// Radians/Degrees conversions
 static const float  VM_DEG_TO_RAD_F32 = 0.017453292519943295769236907684886f;
 static const float  VM_RAD_TO_DEG_F32 = 57.295779513082320876798154814105f;
 static const double VM_DEG_TO_RAD_F64 = 0.017453292519943295769236907684886;
 static const double VM_RAD_TO_DEG_F64 = 57.295779513082320876798154814105;
 
+// Epsilon conversions
+#define VECMAT_EPS_F32 1e-6f
+#define VECMAT_EPS_F64 1e-12
+
+// Max/Min conversions
 #define VECMAT_FLT_MAX __FLT_MAX__
 #define VECMAT_DBL_MAX __DBL_MAX__
 
 #define VECMAT_FLT_MIN __FLT_MIN__
 #define VECMAT_DBL_MIN __DBL_MIN__
 
+// Vector/Matrix common size Conversions
 #define VECMAT_VEC2_SIZE 2
 #define VECMAT_VEC3_SIZE 3
 #define VECMAT_VEC4_SIZE 4
@@ -75,7 +82,7 @@ static const double VM_RAD_TO_DEG_F64 = 57.295779513082320876798154814105;
  * Floating-point type
  ******************************************************************************/
 
-#if defined(VECMAT_USE_F64)
+#ifdef VECMAT_USE_F64
 typedef double vm_float_t;
 #else
 typedef float vm_float_t;
@@ -94,6 +101,17 @@ static const vm_float_t VM_RAD_TO_DEG = VM_RAD_TO_DEG_F32;
 #else
 #define VM_F(x) x##f
 #endif
+
+/**
+ * Angle literals in the library's native unit (radians).
+ *
+ * `VM_DEG(90)` writes a human degree constant and yields radians.
+ * `VM_RAD(M_PI_2)` documents that the value is already radians and
+ * casts it to `vm_float_t`. Unsuffixed angle APIs take and return radians;
+ * use the `_deg` suffix at the human/config boundary.
+ */
+#define VM_DEG(d) ((vm_float_t)(d) * VM_DEG_TO_RAD)
+#define VM_RAD(r) ((vm_float_t)(r))
 
 /*******************************************************************************
  * Integer type
@@ -121,36 +139,54 @@ typedef int32_t vm_int_t;
  * Floating-point vector types
  ******************************************************************************/
 
+/**
+ * @struct vector2
+ * @brief 2-D floating-point vector (`x`, `y`).
+ *
+ * Also addressable as `v[2]`.
+ */
 typedef struct {
     union {
         struct {
-            vm_float_t x;
-            vm_float_t y;
+            vm_float_t x;  /**< X component. */
+            vm_float_t y;  /**< Y component. */
         };
-        vm_float_t v[VECMAT_VEC2_SIZE];
+        vm_float_t v[VECMAT_VEC2_SIZE];  /**< Components as an array. */
     };
 } vector2;
 
+/**
+ * @struct vector3
+ * @brief 3-D floating-point vector (`x`, `y`, `z`).
+ *
+ * Also addressable as `v[3]`.
+ */
 typedef struct {
     union {
         struct {
-            vm_float_t x;
-            vm_float_t y;
-            vm_float_t z;
+            vm_float_t x;  /**< X component. */
+            vm_float_t y;  /**< Y component. */
+            vm_float_t z;  /**< Z component. */
         };
-        vm_float_t v[VECMAT_VEC3_SIZE];
+        vm_float_t v[VECMAT_VEC3_SIZE];  /**< Components as an array. */
     };
 } vector3;
 
+/**
+ * @struct vector4
+ * @brief 4-D floating-point vector (`x`, `y`, `z`, `w`).
+ *
+ * Also addressable as `v[4]`.
+ */
 typedef struct {
     union {
         struct {
-            vm_float_t x;
-            vm_float_t y;
-            vm_float_t z;
-            vm_float_t w;
+            vm_float_t x;  /**< X component. */
+            vm_float_t y;  /**< Y component. */
+            vm_float_t z;  /**< Z component. */
+            vm_float_t w;  /**< W component. */
         };
-        vm_float_t v[VECMAT_VEC4_SIZE];
+        vm_float_t v[VECMAT_VEC4_SIZE];  /**< Components as an array. */
     };
 } vector4;
 
@@ -158,36 +194,54 @@ typedef struct {
  * Integer vector types
  ******************************************************************************/
 
+/**
+ * @struct vector2i
+ * @brief 2-D integer vector (`x`, `y`).
+ *
+ * Also addressable as `v[2]`.
+ */
 typedef struct {
     union {
         struct {
-            vm_int_t x;
-            vm_int_t y;
+            vm_int_t x;  /**< X component. */
+            vm_int_t y;  /**< Y component. */
         };
-        vm_int_t v[VECMAT_VEC2_SIZE];
+        vm_int_t v[VECMAT_VEC2_SIZE];  /**< Components as an array. */
     };
 } vector2i;
 
+/**
+ * @struct vector3i
+ * @brief 3-D integer vector (`x`, `y`, `z`).
+ *
+ * Also addressable as `v[3]`.
+ */
 typedef struct {
     union {
         struct {
-            vm_int_t x;
-            vm_int_t y;
-            vm_int_t z;
+            vm_int_t x;  /**< X component. */
+            vm_int_t y;  /**< Y component. */
+            vm_int_t z;  /**< Z component. */
         };
-        vm_int_t v[VECMAT_VEC3_SIZE];
+        vm_int_t v[VECMAT_VEC3_SIZE];  /**< Components as an array. */
     };
 } vector3i;
 
+/**
+ * @struct vector4i
+ * @brief 4-D integer vector (`x`, `y`, `z`, `w`).
+ *
+ * Also addressable as `v[4]`.
+ */
 typedef struct {
     union {
         struct {
-            vm_int_t x;
-            vm_int_t y;
-            vm_int_t z;
-            vm_int_t w;
+            vm_int_t x;  /**< X component. */
+            vm_int_t y;  /**< Y component. */
+            vm_int_t z;  /**< Z component. */
+            vm_int_t w;  /**< W component. */
         };
-        vm_int_t v[VECMAT_VEC4_SIZE];
+        vm_int_t v[VECMAT_VEC4_SIZE];  /**< Components as an array. */
     };
 } vector4i;
 
@@ -195,80 +249,83 @@ typedef struct {
  * Floating-point matrix types
  ******************************************************************************/
 
-/*
- * 2x2 MATRIX
- * ---------------
+/**
+ * @struct matrix2
+ * @brief 2x2 column-major floating-point matrix.
+ *
+ * Layout:
  * [0/m11] [2/m12]
  * [1/m21] [3/m22]
- * ---------------
  */
 typedef struct {
     union {
         struct {
-            vm_float_t m11;
-            vm_float_t m21;
-            vm_float_t m12;
-            vm_float_t m22;
+            vm_float_t m11;  /**< Column 0, row 0. */
+            vm_float_t m21;  /**< Column 0, row 1. */
+            vm_float_t m12;  /**< Column 1, row 0. */
+            vm_float_t m22;  /**< Column 1, row 1. */
         };
-        vm_float_t v[VECMAT_MAT2_SIZE];
+        vm_float_t v[VECMAT_MAT2_SIZE];  /**< Elements in column-major order. */
     };
 } matrix2;
 
-/*
- * 3X3 MATRIX
- * -----------------------
+/**
+ * @struct matrix3
+ * @brief 3x3 column-major floating-point matrix.
+ *
+ * Layout:
  * [0/m11] [3/m12] [6/m13]
  * [1/m21] [4/m22] [7/m23]
  * [2/m31] [5/m32] [8/m33]
- * -----------------------
  */
 typedef struct {
     union {
         struct {
-            vm_float_t m11;
-            vm_float_t m21;
-            vm_float_t m31;
-            vm_float_t m12;
-            vm_float_t m22;
-            vm_float_t m32;
-            vm_float_t m13;
-            vm_float_t m23;
-            vm_float_t m33;
+            vm_float_t m11;  /**< Column 0, row 0. */
+            vm_float_t m21;  /**< Column 0, row 1. */
+            vm_float_t m31;  /**< Column 0, row 2. */
+            vm_float_t m12;  /**< Column 1, row 0. */
+            vm_float_t m22;  /**< Column 1, row 1. */
+            vm_float_t m32;  /**< Column 1, row 2. */
+            vm_float_t m13;  /**< Column 2, row 0. */
+            vm_float_t m23;  /**< Column 2, row 1. */
+            vm_float_t m33;  /**< Column 2, row 2. */
         };
-        vm_float_t v[VECMAT_MAT3_SIZE];
+        vm_float_t v[VECMAT_MAT3_SIZE];  /**< Elements in column-major order. */
     };
 } matrix3;
 
-/*
- * 4x4 MATRIX
- * -----------------------------------
+/**
+ * @struct matrix4
+ * @brief 4x4 column-major floating-point matrix.
+ *
+ * Layout:
  * [ 0/m11] [ 4/m12] [ 8/m13] [12/m14]
  * [ 1/m21] [ 5/m22] [ 9/m23] [13/m24]
  * [ 2/m31] [ 6/m32] [10/m33] [14/m34]
  * [ 3/m41] [ 7/m42] [11/m43] [15/m44]
- * -----------------------------------
  */
 typedef struct {
     union {
         struct {
-            vm_float_t m11;
-            vm_float_t m21;
-            vm_float_t m31;
-            vm_float_t m41;
-            vm_float_t m12;
-            vm_float_t m22;
-            vm_float_t m32;
-            vm_float_t m42;
-            vm_float_t m13;
-            vm_float_t m23;
-            vm_float_t m33;
-            vm_float_t m43;
-            vm_float_t m14;
-            vm_float_t m24;
-            vm_float_t m34;
-            vm_float_t m44;
+            vm_float_t m11;  /**< Column 0, row 0. */
+            vm_float_t m21;  /**< Column 0, row 1. */
+            vm_float_t m31;  /**< Column 0, row 2. */
+            vm_float_t m41;  /**< Column 0, row 3. */
+            vm_float_t m12;  /**< Column 1, row 0. */
+            vm_float_t m22;  /**< Column 1, row 1. */
+            vm_float_t m32;  /**< Column 1, row 2. */
+            vm_float_t m42;  /**< Column 1, row 3. */
+            vm_float_t m13;  /**< Column 2, row 0. */
+            vm_float_t m23;  /**< Column 2, row 1. */
+            vm_float_t m33;  /**< Column 2, row 2. */
+            vm_float_t m43;  /**< Column 2, row 3. */
+            vm_float_t m14;  /**< Column 3, row 0. */
+            vm_float_t m24;  /**< Column 3, row 1. */
+            vm_float_t m34;  /**< Column 3, row 2. */
+            vm_float_t m44;  /**< Column 3, row 3. */
         };
-        vm_float_t v[VECMAT_MAT4_SIZE];
+        vm_float_t v[VECMAT_MAT4_SIZE];  /**< Elements in column-major order. */
     };
 } matrix4;
 
@@ -276,108 +333,231 @@ typedef struct {
  * Integer matrix types
  ******************************************************************************/
 
-/*
- * 2x2 MATRIX
- * ---------------
+/**
+ * @struct matrix2i
+ * @brief 2x2 column-major integer matrix.
+ *
+ * Layout:
  * [0/m11] [2/m12]
  * [1/m21] [3/m22]
- * ---------------
  */
 typedef struct {
     union {
         struct {
-            vm_int_t m11;
-            vm_int_t m21;
-            vm_int_t m12;
-            vm_int_t m22;
+            vm_int_t m11;  /**< Column 0, row 0. */
+            vm_int_t m21;  /**< Column 0, row 1. */
+            vm_int_t m12;  /**< Column 1, row 0. */
+            vm_int_t m22;  /**< Column 1, row 1. */
         };
-        vm_int_t v[VECMAT_MAT2_SIZE];
+        vm_int_t v[VECMAT_MAT2_SIZE];  /**< Elements in column-major order. */
     };
 } matrix2i;
 
-/*
- * 3X3 MATRIX
- * -----------------------
+/**
+ * @struct matrix3i
+ * @brief 3x3 column-major integer matrix.
+ *
+ * Layout:
  * [0/m11] [3/m12] [6/m13]
  * [1/m21] [4/m22] [7/m23]
  * [2/m31] [5/m32] [8/m33]
- * -----------------------
  */
 typedef struct {
     union {
         struct {
-            vm_int_t m11;
-            vm_int_t m21;
-            vm_int_t m31;
-            vm_int_t m12;
-            vm_int_t m22;
-            vm_int_t m32;
-            vm_int_t m13;
-            vm_int_t m23;
-            vm_int_t m33;
+            vm_int_t m11;  /**< Column 0, row 0. */
+            vm_int_t m21;  /**< Column 0, row 1. */
+            vm_int_t m31;  /**< Column 0, row 2. */
+            vm_int_t m12;  /**< Column 1, row 0. */
+            vm_int_t m22;  /**< Column 1, row 1. */
+            vm_int_t m32;  /**< Column 1, row 2. */
+            vm_int_t m13;  /**< Column 2, row 0. */
+            vm_int_t m23;  /**< Column 2, row 1. */
+            vm_int_t m33;  /**< Column 2, row 2. */
         };
-        vm_int_t v[VECMAT_MAT3_SIZE];
+        vm_int_t v[VECMAT_MAT3_SIZE];  /**< Elements in column-major order. */
     };
 } matrix3i;
 
-/*
- * 4x4 MATRIX
- * -----------------------------------
+/**
+ * @struct matrix4i
+ * @brief 4x4 column-major integer matrix.
+ *
+ * Layout:
  * [ 0/m11] [ 4/m12] [ 8/m13] [12/m14]
  * [ 1/m21] [ 5/m22] [ 9/m23] [13/m24]
  * [ 2/m31] [ 6/m32] [10/m33] [14/m34]
  * [ 3/m41] [ 7/m42] [11/m43] [15/m44]
- * -----------------------------------
  */
 typedef struct {
     union {
         struct {
-            vm_int_t m11;
-            vm_int_t m21;
-            vm_int_t m31;
-            vm_int_t m41;
-            vm_int_t m12;
-            vm_int_t m22;
-            vm_int_t m32;
-            vm_int_t m42;
-            vm_int_t m13;
-            vm_int_t m23;
-            vm_int_t m33;
-            vm_int_t m43;
-            vm_int_t m14;
-            vm_int_t m24;
-            vm_int_t m34;
-            vm_int_t m44;
+            vm_int_t m11;  /**< Column 0, row 0. */
+            vm_int_t m21;  /**< Column 0, row 1. */
+            vm_int_t m31;  /**< Column 0, row 2. */
+            vm_int_t m41;  /**< Column 0, row 3. */
+            vm_int_t m12;  /**< Column 1, row 0. */
+            vm_int_t m22;  /**< Column 1, row 1. */
+            vm_int_t m32;  /**< Column 1, row 2. */
+            vm_int_t m42;  /**< Column 1, row 3. */
+            vm_int_t m13;  /**< Column 2, row 0. */
+            vm_int_t m23;  /**< Column 2, row 1. */
+            vm_int_t m33;  /**< Column 2, row 2. */
+            vm_int_t m43;  /**< Column 2, row 3. */
+            vm_int_t m14;  /**< Column 3, row 0. */
+            vm_int_t m24;  /**< Column 3, row 1. */
+            vm_int_t m34;  /**< Column 3, row 2. */
+            vm_int_t m44;  /**< Column 3, row 3. */
         };
-        vm_int_t v[VECMAT_MAT4_SIZE];
+        vm_int_t v[VECMAT_MAT4_SIZE];  /**< Elements in column-major order. */
     };
 } matrix4i;
 
 /**
  * @struct quaternion
- * @brief
+ * @brief Rotation quaternion (vector part x,y,z, scalar part w).
+ *
+ * Also addressable as v[4].
  */
 typedef struct {
     union {
         struct {
-            vm_float_t x;
-            vm_float_t y;
-            vm_float_t z;
-            vm_float_t w;
+            vm_float_t x;  /**< Vector part X. */
+            vm_float_t y;  /**< Vector part Y. */
+            vm_float_t z;  /**< Vector part Z. */
+            vm_float_t w;  /**< Scalar part. */
         };
-        vm_float_t v[VECMAT_QUAT_SIZE];
+        vm_float_t v[VECMAT_QUAT_SIZE];  /**< Components as an array. */
     };
 } quaternion;
 
-// Epsilon
-#define VECMAT_EPS_F32 1e-6f
-#define VECMAT_EPS_F64 1e-12
+/*******************************************************************************
+ * Clip-space / storage conventions
+ ******************************************************************************/
 
-#ifdef VECMAT_USE_F64
-#define VECMAT_EPSILON VECMAT_EPS_F64
-#else
-#define VECMAT_EPSILON VECMAT_EPS_F32
-#endif
+/**
+ * @brief Clip-space handedness and depth range for projection / look-at matrices.
+ *
+ * Historic `mat4_perspective` / `mat4_look_at` / `mat4_ortho` stay OpenGL
+ * right-handed with z in [-1, 1] (`VM_CLIP_RH_NO`). Perspective FOV and
+ * rotation angles are in radians; use the `_deg` suffix for degrees.
+ */
+typedef enum {
+    VM_CLIP_RH_NO = 0,  /**< OpenGL: right-handed, clip z in [-1, 1] */
+    VM_CLIP_RH_ZO,      /**< Vulkan: right-handed, clip z in [0, 1] */
+    VM_CLIP_LH_ZO,      /**< Direct3D: left-handed, clip z in [0, 1] */
+    VM_CLIP_LH_NO       /**< Left-handed, clip z in [-1, 1] */
+} vm_clip_t;
+
+#define VM_CLIP_OPENGL  VM_CLIP_RH_NO
+#define VM_CLIP_VULKAN  VM_CLIP_RH_ZO
+#define VM_CLIP_DIRECTX VM_CLIP_LH_ZO
+
+/**
+ * @brief Memory layout for dense panels passed to `vm_gemm` and `vm_mat`.
+ */
+typedef enum {
+    VM_LAYOUT_COL_MAJOR = 0,  /**< Element (r, c) at data[r + c * ld] */
+    VM_LAYOUT_ROW_MAJOR = 1   /**< Element (r, c) at data[c + r * ld] */
+} vm_layout_t;
+
+/**
+ * @brief Optional GEMM epilogue. Flags may be OR-ed.
+ *
+ * Bias is length `N` and broadcasts over rows: `C(i, j) += bias[j]`.
+ * ReLU is `max(C, 0)` after alpha/beta/bias.
+ */
+enum {
+    VM_GEMM_OP_NONE      = 0,  /**< No epilogue */
+    VM_GEMM_OP_BIAS      = 1,  /**< Add per-column bias */
+    VM_GEMM_OP_RELU      = 2,  /**< Apply ReLU */
+    VM_GEMM_OP_BIAS_RELU = 3   /**< Bias then ReLU (`BIAS | RELU`) */
+};
+
+/**
+ * @brief Heap dense matrix used by LU / QR / SVD / Cholesky / det / inverse.
+ *
+ * `data` is column-major: element (r, c) lives at `data[r + c * rows]`.
+ */
+typedef struct {
+    int rows;          /**< Number of rows */
+    int cols;          /**< Number of columns */
+    vm_float_t *data;  /**< Column-major storage, length `rows * cols` */
+} vm_mat;
+
+/**
+ * @brief Heap sparse matrix in compressed sparse row (CSR) form.
+ *
+ * Square `n × n`. Row `i` owns `col[k]`, `val[k]` for
+ * `row_ptr[i] <= k < row_ptr[i + 1]`.
+ */
+typedef struct {
+    int n;            /**< Matrix order (`n × n`) */
+    int nnz;          /**< Number of stored non-zeros */
+    int *row_ptr;     /**< Row starts; length `n + 1`, `row_ptr[n] == nnz` */
+    int *col;         /**< Column indices; length `nnz` */
+    vm_float_t *val;  /**< Nonzero values; length `nnz` */
+} vm_spmat;
+
+/**
+ * @brief Iteration stats from `vm_cg` / `vm_bicgstab`.
+ */
+typedef struct {
+    int iters;           /**< Iterations performed */
+    vm_float_t rel_res;  /**< ||r|| / max(||b||, ε) at exit */
+    bool ok;             /**< Converged within `tol` */
+} vm_ksp_info;
+
+/**
+ * @brief Left preconditioner for the Krylov solvers.
+ *
+ * `IC0` is incomplete Cholesky with no fill. On breakdown the solver
+ * falls back to Jacobi for that call.
+ */
+typedef enum {
+    VM_KSP_PREC_NONE   = 0,  /**< No preconditioning */
+    VM_KSP_PREC_JACOBI = 1,  /**< Diagonal (Jacobi) scaling */
+    VM_KSP_PREC_SSOR   = 2,  /**< Symmetric successive over-relaxation */
+    VM_KSP_PREC_IC0    = 3   /**< Incomplete Cholesky, zero fill */
+} vm_ksp_prec_t;
+
+/**
+ * @brief Boundary condition for assembled grid operators.
+ *
+ * Dirichlet rows become the identity (rhs holds the boundary value).
+ * Homogeneous Neumann drops the missing neighbour; the 7-point
+ * Neumann Laplacian is singular (constant nullspace).
+ */
+typedef enum {
+    VM_BC_DIRICHLET = 0,  /**< Fixed-value boundary (identity rows) */
+    VM_BC_NEUMANN   = 1   /**< Homogeneous Neumann (drop missing neighbour) */
+} vm_bc_t;
+
+/**
+ * @brief Uniform Cartesian grid. `nz == 1` is a 2-D problem.
+ */
+typedef struct {
+    int nx;         /**< Cells in x */
+    int ny;         /**< Cells in y */
+    int nz;         /**< Cells in z (`1` for 2-D) */
+    vm_float_t dx;  /**< Cell size in x */
+    vm_float_t dy;  /**< Cell size in y */
+    vm_float_t dz;  /**< Cell size in z */
+} vm_grid3;
+
+/**
+ * @brief First-order ODE right-hand side `ydot = f(y)`.
+ */
+typedef void (*vm_ode_fn)(const vm_float_t *y, vm_float_t *ydot, void *ctx);
+
+/**
+ * @brief Acceleration callback `a = acc(x)` for velocity Verlet.
+ */
+typedef void (*vm_acc_fn)(const vm_float_t *x, vm_float_t *a, void *ctx);
+
+/*******************************************************************************
+ * Helpers
+ ******************************************************************************/
 
 /**
  * @brief Checks if two floats are approximately equal within tolerance.
@@ -398,6 +578,16 @@ typedef struct {
  * @return True if values are equal within the given tolerance.
  */
 #define DOUBLE_EQ(a, b, eps) (fabs((a) - (b)) < (eps))
+
+/*******************************************************************************
+ * Type Alignment
+ ******************************************************************************/
+
+#ifdef VECMAT_USE_F64
+#define VECMAT_EPSILON VECMAT_EPS_F64
+#else
+#define VECMAT_EPSILON VECMAT_EPS_F32
+#endif
 
 #ifdef VECMAT_USE_F64
 #define VECMAT_EQ(a, b, eps) DOUBLE_EQ((a), (b), (eps))
@@ -449,6 +639,9 @@ typedef struct {
  * CPU feature detection and dispatch
  ******************************************************************************/
 
+/**
+ * @brief Bit mask of compiled or detected CPU ISA features.
+ */
 typedef uint32_t vm_cpu_features_t;
 
 enum {
@@ -497,7 +690,8 @@ VEC_API vector2 vec2_perpendicular(vector2 v);
 VEC_API vector2 vec2_reflect(vector2 v, vector2 normal);
 VEC_API vector2 vec2_project(vector2 a, vector2 b);
 VEC_API vector2 vec2_tangent(vector2 v);
-VEC_API vector2 vec2_rotate(vector2 v, vm_float_t angle);
+VEC_API vector2 vec2_rotate(vector2 v, vm_float_t radians);
+VEC_API vector2 vec2_rotate_deg(vector2 v, vm_float_t degrees);
 VEC_API vector2 vec2_slide(vector2 v, vector2 normal);
 VEC_API vector2 vec2_clamp(vector2 v, vector2 min, vector2 max);
 VEC_API vector2 vec2_lerp(vector2 a, vector2 b, vm_float_t t);
@@ -510,8 +704,10 @@ VEC_API vector2 vec2_fract(vector2 v);
 VEC_API vector2 vec2_refract(vector2 incident, vector2 normal, vm_float_t eta);
 VEC_API vector2 vec2_reject(vector2 a, vector2 b);
 VEC_API vector2 vec2_splat(vm_float_t s);
-VEC_API vector2 vec2_from_angle(vm_float_t angle);
-VEC_API vector2 vec2_rotate_around(vector2 v, vector2 pivot, vm_float_t angle);
+VEC_API vector2 vec2_from_angle(vm_float_t radians);
+VEC_API vector2 vec2_from_angle_deg(vm_float_t degrees);
+VEC_API vector2 vec2_rotate_around(vector2 v, vector2 pivot, vm_float_t radians);
+VEC_API vector2 vec2_rotate_around_deg(vector2 v, vector2 pivot, vm_float_t degrees);
 VEC_API vector2 vec2_move_toward(vector2 current, vector2 target, vm_float_t max_delta);
 VEC_API vector2 vec2_limit_length(vector2 v, vm_float_t max_len);
 
@@ -528,6 +724,7 @@ VEC_API vm_float_t vec2_distance_squared(vector2 a, vector2 b);
 VEC_API vm_float_t vec2_angle(vector2 a, vector2 b);
 VEC_API vm_float_t vec2_cross_scalar(vector2 a, vector2 b);
 VEC_API vm_float_t vec2_heading(vector2 v);
+VEC_API vm_float_t vec2_heading_deg(vector2 v);
 VEC_API vm_float_t vec2_min_component(vector2 v);
 VEC_API vm_float_t vec2_max_component(vector2 v);
 VEC_API vm_float_t vec2_sum(vector2 v);
@@ -573,7 +770,8 @@ VEC_API vector3 vec3_fract(vector3 v);
 VEC_API vector3 vec3_project(vector3 a, vector3 b);
 VEC_API vector3 vec3_slide(vector3 v, vector3 normal);
 VEC_API vector3 vec3_reject(vector3 a, vector3 b);
-VEC_API vector3 vec3_rotate_axis(vector3 v, vector3 axis, vm_float_t angle);
+VEC_API vector3 vec3_rotate_axis(vector3 v, vector3 axis, vm_float_t radians);
+VEC_API vector3 vec3_rotate_axis_deg(vector3 v, vector3 axis, vm_float_t degrees);
 VEC_API vector3 vec3_splat(vm_float_t s);
 VEC_API vector3 vec3_from_vec2(vector2 v, vm_float_t z);
 VEC_API vector3 vec3_move_toward(vector3 current, vector3 target, vm_float_t max_delta);
@@ -673,7 +871,8 @@ VEC_API void vec2_cross_ptr(vector2 *res, const vector2 *a, const vector2 *b);
 VEC_API void vec2_reflect_ptr(vector2 *res, const vector2 *v, const vector2 *normal);
 VEC_API void vec2_project_ptr(vector2 *res, const vector2 *a, const vector2 *b);
 VEC_API void vec2_tangent_ptr(vector2 *res, const vector2 *v);
-VEC_API void vec2_rotate_ptr(vector2 *result, const vector2 *v, vm_float_t angle);
+VEC_API void vec2_rotate_ptr(vector2 *result, const vector2 *v, vm_float_t radians);
+VEC_API void vec2_rotate_deg_ptr(vector2 *result, const vector2 *v, vm_float_t degrees);
 VEC_API void vec2_slide_ptr(vector2 *result, const vector2 *v, const vector2 *normal);
 VEC_API void vec2_clamp_ptr(vector2 *res, const vector2 *v, const vector2 *min, const vector2 *max);
 VEC_API void vec2_lerp_ptr(vector2 *res, const vector2 *a, const vector2 *b, vm_float_t t);
@@ -685,7 +884,8 @@ VEC_API void vec2_saturate_ptr(vector2 *res, const vector2 *v);
 VEC_API void vec2_fract_ptr(vector2 *res, const vector2 *v);
 VEC_API void vec2_refract_ptr(vector2 *res, const vector2 *incident, const vector2 *normal, vm_float_t eta);
 VEC_API void vec2_reject_ptr(vector2 *res, const vector2 *a, const vector2 *b);
-VEC_API void vec2_rotate_around_ptr(vector2 *res, const vector2 *v, const vector2 *pivot, vm_float_t angle);
+VEC_API void vec2_rotate_around_ptr(vector2 *res, const vector2 *v, const vector2 *pivot, vm_float_t radians);
+VEC_API void vec2_rotate_around_deg_ptr(vector2 *res, const vector2 *v, const vector2 *pivot, vm_float_t degrees);
 VEC_API void vec2_move_toward_ptr(vector2 *res, const vector2 *current, const vector2 *target, vm_float_t max_delta);
 VEC_API void vec2_limit_length_ptr(vector2 *res, const vector2 *v, vm_float_t max_len);
 VEC_API void vec2_to_vec3_ptr(vector3 *res, const vector2 *v, vm_float_t z);
@@ -720,7 +920,8 @@ VEC_API void vec3_fract_ptr(vector3 *res, const vector3 *v);
 VEC_API void vec3_project_ptr(vector3 *res, const vector3 *a, const vector3 *b);
 VEC_API void vec3_slide_ptr(vector3 *res, const vector3 *v, const vector3 *normal);
 VEC_API void vec3_reject_ptr(vector3 *res, const vector3 *a, const vector3 *b);
-VEC_API void vec3_rotate_axis_ptr(vector3 *res, const vector3 *v, const vector3 *axis, vm_float_t angle);
+VEC_API void vec3_rotate_axis_ptr(vector3 *res, const vector3 *v, const vector3 *axis, vm_float_t radians);
+VEC_API void vec3_rotate_axis_deg_ptr(vector3 *res, const vector3 *v, const vector3 *axis, vm_float_t degrees);
 VEC_API void vec3_from_vec2_ptr(vector3 *res, const vector2 *v, vm_float_t z);
 VEC_API void vec3_xy_ptr(vector2 *res, const vector3 *v);
 VEC_API void vec3_move_toward_ptr(vector3 *res, const vector3 *current, const vector3 *target, vm_float_t max_delta);
@@ -988,7 +1189,8 @@ VEC_API matrix2 mat2_identity(void);
 VEC_API matrix2 mat2_mul(matrix2 a, matrix2 b);
 VEC_API matrix2 mat2_transpose(matrix2 m);
 VEC_API matrix2 mat2_inverse(matrix2 m);
-VEC_API matrix2 mat2_rotation_z(vm_float_t degrees);
+VEC_API matrix2 mat2_rotation_z(vm_float_t radians);
+VEC_API matrix2 mat2_rotation_z_deg(vm_float_t degrees);
 VEC_API matrix2 mat2_scale(vector2 s);
 VEC_API matrix2 mat2_from_mat3(matrix3 m);
 
@@ -1001,14 +1203,19 @@ VEC_API matrix3 mat3_identity(void);
 VEC_API matrix3 mat3_mul(matrix3 a, matrix3 b);
 VEC_API matrix3 mat3_transpose(matrix3 m);
 VEC_API matrix3 mat3_inverse(matrix3 m);
-VEC_API matrix3 mat3_rotation_x(vm_float_t degrees);
-VEC_API matrix3 mat3_rotation_y(vm_float_t degrees);
-VEC_API matrix3 mat3_rotation_z(vm_float_t degrees);
+VEC_API matrix3 mat3_rotation_x(vm_float_t radians);
+VEC_API matrix3 mat3_rotation_y(vm_float_t radians);
+VEC_API matrix3 mat3_rotation_z(vm_float_t radians);
+VEC_API matrix3 mat3_rotation_x_deg(vm_float_t degrees);
+VEC_API matrix3 mat3_rotation_y_deg(vm_float_t degrees);
+VEC_API matrix3 mat3_rotation_z_deg(vm_float_t degrees);
 VEC_API matrix3 mat3_translate(vector2 t);
 VEC_API matrix3 mat3_scale(vector2 s);
+VEC_API matrix3 mat3_normal(matrix3 m);
 VEC_API matrix3 mat3_from_mat4(matrix4 m);
 
 VEC_API vector3 mat3_mul_vec3(matrix3 m, vector3 v);
+VEC_API vector3 mat3_sym_eigen(matrix3 m, matrix3 *axes);
 VEC_API vector2 mat3_mul_vec2(matrix3 m, vector2 v);
 
 VEC_API vm_float_t mat3_determinant(matrix3 m);
@@ -1018,27 +1225,76 @@ VEC_API matrix4 mat4_identity(void);
 VEC_API matrix4 mat4_mul(matrix4 a, matrix4 b);
 VEC_API matrix4 mat4_transpose(matrix4 m);
 VEC_API matrix4 mat4_inverse(matrix4 m);
+VEC_API matrix4 mat4_inverse_affine(matrix4 m);
 VEC_API matrix4 mat4_translate(vector3 v);
 VEC_API matrix4 mat4_scale(vector3 v);
-VEC_API matrix4 mat4_rotation(vector3 axis, vm_float_t angle);
-VEC_API matrix4 mat4_rotation_x(vm_float_t degrees);
-VEC_API matrix4 mat4_rotation_y(vm_float_t degrees);
-VEC_API matrix4 mat4_rotation_z(vm_float_t degrees);
+VEC_API matrix4 mat4_normal(matrix4 m);
+VEC_API matrix4 mat4_rotation(vector3 axis, vm_float_t radians);
+VEC_API matrix4 mat4_rotation_x(vm_float_t radians);
+VEC_API matrix4 mat4_rotation_y(vm_float_t radians);
+VEC_API matrix4 mat4_rotation_z(vm_float_t radians);
+VEC_API matrix4 mat4_rotation_deg(vector3 axis, vm_float_t degrees);
+VEC_API matrix4 mat4_rotation_x_deg(vm_float_t degrees);
+VEC_API matrix4 mat4_rotation_y_deg(vm_float_t degrees);
+VEC_API matrix4 mat4_rotation_z_deg(vm_float_t degrees);
 VEC_API matrix4 mat4_trs(vector3 translation, quaternion rotation, vector3 scale);
 VEC_API matrix4 mat4_from_mat3(matrix3 m);
-VEC_API matrix4 mat4_perspective(vm_float_t fov, vm_float_t aspect, vm_float_t near, vm_float_t far);
 VEC_API matrix4 mat4_ortho(vm_float_t left, vm_float_t right, vm_float_t bottom, vm_float_t top, vm_float_t near, vm_float_t far);
 VEC_API matrix4 mat4_look_at(vector3 position, vector3 target, vector3 up);
+VEC_API matrix4 mat4_perspective(vm_float_t fov, vm_float_t aspect, vm_float_t near, vm_float_t far);
 VEC_API matrix4 mat4_perspective_fov(vm_float_t fov, vm_float_t w, vm_float_t h, vm_float_t n, vm_float_t f);
 VEC_API matrix4 mat4_perspective_infinite(vm_float_t fov_y, vm_float_t aspect, vm_float_t n);
+VEC_API matrix4 mat4_perspective_infinite_clip(vm_float_t fov_y, vm_float_t aspect, vm_float_t n, vm_clip_t clip);
+VEC_API matrix4 mat4_infinite_reverse_z(vm_float_t fov_y, vm_float_t aspect, vm_float_t n);
+VEC_API matrix4 mat4_infinite_reverse_z_clip(vm_float_t fov_y, vm_float_t aspect, vm_float_t n, vm_clip_t clip);
+VEC_API matrix4 mat4_perspective_deg(vm_float_t fov_deg, vm_float_t aspect, vm_float_t near, vm_float_t far);
+VEC_API matrix4 mat4_perspective_fov_deg(vm_float_t fov_deg, vm_float_t w, vm_float_t h, vm_float_t n, vm_float_t f);
+VEC_API matrix4 mat4_perspective_infinite_deg(vm_float_t fov_y_deg, vm_float_t aspect, vm_float_t n);
+VEC_API matrix4 mat4_perspective_infinite_clip_deg(vm_float_t fov_y_deg, vm_float_t aspect, vm_float_t n, vm_clip_t clip);
+VEC_API matrix4 mat4_infinite_reverse_z_deg(vm_float_t fov_y_deg, vm_float_t aspect, vm_float_t n);
+VEC_API matrix4 mat4_infinite_reverse_z_clip_deg(vm_float_t fov_y_deg, vm_float_t aspect, vm_float_t n, vm_clip_t clip);
 
+VEC_API matrix4 mat4_perspective_clip(vm_float_t fov_y, vm_float_t aspect, vm_float_t near, vm_float_t far, vm_clip_t clip);
+VEC_API matrix4 mat4_perspective_clip_deg(vm_float_t fov_y_deg, vm_float_t aspect, vm_float_t near, vm_float_t far, vm_clip_t clip);
+VEC_API matrix4 mat4_perspective_rh_no(vm_float_t fov_y, vm_float_t aspect, vm_float_t near, vm_float_t far);
+VEC_API matrix4 mat4_perspective_rh_zo(vm_float_t fov_y, vm_float_t aspect, vm_float_t near, vm_float_t far);
+VEC_API matrix4 mat4_perspective_lh_zo(vm_float_t fov_y, vm_float_t aspect, vm_float_t near, vm_float_t far);
+VEC_API matrix4 mat4_perspective_lh_no(vm_float_t fov_y, vm_float_t aspect, vm_float_t near, vm_float_t far);
+VEC_API matrix4 mat4_perspective_rh_no_deg(vm_float_t fov_y_deg, vm_float_t aspect, vm_float_t near, vm_float_t far);
+VEC_API matrix4 mat4_perspective_rh_zo_deg(vm_float_t fov_y_deg, vm_float_t aspect, vm_float_t near, vm_float_t far);
+VEC_API matrix4 mat4_perspective_lh_zo_deg(vm_float_t fov_y_deg, vm_float_t aspect, vm_float_t near, vm_float_t far);
+VEC_API matrix4 mat4_perspective_lh_no_deg(vm_float_t fov_y_deg, vm_float_t aspect, vm_float_t near, vm_float_t far);
+
+VEC_API matrix4 mat4_ortho_clip(vm_float_t left, vm_float_t right, vm_float_t bottom, vm_float_t top, vm_float_t near, vm_float_t far, vm_clip_t clip);
+VEC_API matrix4 mat4_ortho_rh_no(vm_float_t left, vm_float_t right, vm_float_t bottom, vm_float_t top, vm_float_t near, vm_float_t far);
+VEC_API matrix4 mat4_ortho_rh_zo(vm_float_t left, vm_float_t right, vm_float_t bottom, vm_float_t top, vm_float_t near, vm_float_t far);
+VEC_API matrix4 mat4_ortho_lh_zo(vm_float_t left, vm_float_t right, vm_float_t bottom, vm_float_t top, vm_float_t near, vm_float_t far);
+VEC_API matrix4 mat4_ortho_lh_no(vm_float_t left, vm_float_t right, vm_float_t bottom, vm_float_t top, vm_float_t near, vm_float_t far);
+
+VEC_API matrix4 mat4_look_at_clip(vector3 position, vector3 target, vector3 up, vm_clip_t clip);
+VEC_API matrix4 mat4_look_at_rh(vector3 position, vector3 target, vector3 up);
+VEC_API matrix4 mat4_look_at_lh(vector3 position, vector3 target, vector3 up);
+VEC_API matrix4 mat4_look_from_dir(vector3 position, vector3 direction, vector3 up);
+VEC_API matrix4 mat4_look_from_dir_clip(vector3 position, vector3 direction, vector3 up, vm_clip_t clip);
+VEC_API matrix4 mat4_look_from_dir_rh(vector3 position, vector3 direction, vector3 up);
+VEC_API matrix4 mat4_look_from_dir_lh(vector3 position, vector3 direction, vector3 up);
+VEC_API matrix4 mat4_viewport(vm_float_t x, vm_float_t y, vm_float_t width, vm_float_t height);
+VEC_API matrix4 mat4_viewport_depth(vm_float_t x, vm_float_t y, vm_float_t width, vm_float_t height, vm_float_t n, vm_float_t f);
+
+VEC_API vm_float_t mat4_determinant(matrix4 m);
+
+// Vector/Quaternion helpers for `matrix4`
 VEC_API vector3 mat4_extract_translation(matrix4 m);
 VEC_API vector3 mat4_extract_scale(matrix4 m);
 VEC_API vector3 mat4_mul_vec3(matrix4 m, vector3 v, vm_float_t w);
 VEC_API vector4 mat4_mul_vec4(matrix4 m, vector4 v);
 VEC_API quaternion mat4_extract_rotation(matrix4 m);
 
-VEC_API vm_float_t mat4_determinant(matrix4 m);
+// Project and Un-project world-to-window and window-to-world helpers for `matrix4`
+VEC_API vector3 vec3_world_to_window(vector3 world, matrix4 model, matrix4 projection, vector4 viewport);
+VEC_API vector3 vec3_window_to_world(vector3 window, matrix4 model, matrix4 projection, vector4 viewport);
+VEC_API vector3 vec3_world_to_window_clip(vector3 world, matrix4 model, matrix4 projection, vector4 viewport, vm_clip_t clip);
+VEC_API vector3 vec3_window_to_world_clip(vector3 window, matrix4 model, matrix4 projection, vector4 viewport, vm_clip_t clip);
 
 /*******************************************************************************
  * Floating-point matrix pointer-based performance functions
@@ -1049,7 +1305,8 @@ VEC_API void mat2_identity_ptr(matrix2 *res);
 VEC_API void mat2_mul_ptr(matrix2 *res, const matrix2 *a, const matrix2 *b);
 VEC_API void mat2_transpose_ptr(matrix2 *res, const matrix2 *m);
 VEC_API void mat2_inverse_ptr(matrix2 *res, const matrix2 *m);
-VEC_API void mat2_rotation_z_ptr(matrix2 *res, vm_float_t degrees);
+VEC_API void mat2_rotation_z_ptr(matrix2 *res, vm_float_t radians);
+VEC_API void mat2_rotation_z_deg_ptr(matrix2 *res, vm_float_t degrees);
 VEC_API void mat2_scale_ptr(matrix2 *res, const vector2 *s);
 VEC_API void mat2_from_mat3_ptr(matrix2 *res, const matrix3 *m);
 VEC_API void mat2_mul_vec2_ptr(vector2 *res, const matrix2 *m, const vector2 *v);
@@ -1059,38 +1316,71 @@ VEC_API void mat3_identity_ptr(matrix3 *res);
 VEC_API void mat3_mul_ptr(matrix3 *res, const matrix3 *a, const matrix3 *b);
 VEC_API void mat3_transpose_ptr(matrix3 *res, const matrix3 *m);
 VEC_API void mat3_inverse_ptr(matrix3 *res, const matrix3 *m);
-VEC_API void mat3_rotation_x_ptr(matrix3 *res, vm_float_t degrees);
-VEC_API void mat3_rotation_y_ptr(matrix3 *res, vm_float_t degrees);
-VEC_API void mat3_rotation_z_ptr(matrix3 *res, vm_float_t degrees);
+VEC_API void mat3_rotation_x_ptr(matrix3 *res, vm_float_t radians);
+VEC_API void mat3_rotation_y_ptr(matrix3 *res, vm_float_t radians);
+VEC_API void mat3_rotation_z_ptr(matrix3 *res, vm_float_t radians);
+VEC_API void mat3_rotation_x_deg_ptr(matrix3 *res, vm_float_t degrees);
+VEC_API void mat3_rotation_y_deg_ptr(matrix3 *res, vm_float_t degrees);
+VEC_API void mat3_rotation_z_deg_ptr(matrix3 *res, vm_float_t degrees);
 VEC_API void mat3_translate_ptr(matrix3 *res, const vector2 *t);
 VEC_API void mat3_scale_ptr(matrix3 *res, const vector2 *s);
 VEC_API void mat3_from_mat4_ptr(matrix3 *res, const matrix4 *m);
+VEC_API void mat3_normal_ptr(matrix3 *res, const matrix3 *m);
 VEC_API void mat3_mul_vec3_ptr(vector3 *res, const matrix3 *m, const vector3 *v);
 VEC_API void mat3_mul_vec2_ptr(vector2 *res, const matrix3 *m, const vector2 *v);
+VEC_API void mat3_sym_eigen_ptr(vector3 *eigenvalues, matrix3 *axes, const matrix3 *m);
 
 // matrix4 pointer-based operations
 VEC_API void mat4_identity_ptr(matrix4 *res);
 VEC_API void mat4_mul_ptr(matrix4 *res, const matrix4 *a, const matrix4 *b);
 VEC_API void mat4_transpose_ptr(matrix4 *res, const matrix4 *m);
 VEC_API void mat4_inverse_ptr(matrix4 *res, const matrix4 *m);
+VEC_API void mat4_inverse_affine_ptr(matrix4 *res, const matrix4 *m);
 VEC_API void mat4_translate_ptr(matrix4 *res, const vector3 *v);
 VEC_API void mat4_scale_ptr(matrix4 *res, const vector3 *v);
-VEC_API void mat4_rotation_ptr(matrix4 *res, const vector3 *axis, vm_float_t angle);
-VEC_API void mat4_rotation_x_ptr(matrix4 *res, vm_float_t degrees);
-VEC_API void mat4_rotation_y_ptr(matrix4 *res, vm_float_t degrees);
-VEC_API void mat4_rotation_z_ptr(matrix4 *res, vm_float_t degrees);
+VEC_API void mat4_normal_ptr(matrix4 *res, const matrix4 *m);
+VEC_API void mat4_rotation_ptr(matrix4 *res, const vector3 *axis, vm_float_t radians);
+VEC_API void mat4_rotation_x_ptr(matrix4 *res, vm_float_t radians);
+VEC_API void mat4_rotation_y_ptr(matrix4 *res, vm_float_t radians);
+VEC_API void mat4_rotation_z_ptr(matrix4 *res, vm_float_t radians);
+VEC_API void mat4_rotation_deg_ptr(matrix4 *res, const vector3 *axis, vm_float_t degrees);
+VEC_API void mat4_rotation_x_deg_ptr(matrix4 *res, vm_float_t degrees);
+VEC_API void mat4_rotation_y_deg_ptr(matrix4 *res, vm_float_t degrees);
+VEC_API void mat4_rotation_z_deg_ptr(matrix4 *res, vm_float_t degrees);
 VEC_API void mat4_trs_ptr(matrix4 *res, const vector3 *translation, const quaternion *rotation, const vector3 *scale);
 VEC_API void mat4_from_mat3_ptr(matrix4 *res, const matrix3 *m);
 VEC_API void mat4_extract_translation_ptr(vector3 *res, const matrix4 *m);
 VEC_API void mat4_extract_scale_ptr(vector3 *res, const matrix4 *m);
 VEC_API void mat4_extract_rotation_ptr(quaternion *res, const matrix4 *m);
-VEC_API void mat4_perspective_ptr(matrix4 *res, vm_float_t fov, vm_float_t aspect, vm_float_t near, vm_float_t far);
 VEC_API void mat4_ortho_ptr(matrix4 *res, vm_float_t left, vm_float_t right, vm_float_t bottom, vm_float_t top, vm_float_t near, vm_float_t far);
 VEC_API void mat4_look_at_ptr(matrix4 *res, const vector3 *position, const vector3 *target, const vector3 *up);
+VEC_API void mat4_look_from_dir_ptr(matrix4 *res, const vector3 *position, const vector3 *direction, const vector3 *up);
+VEC_API void mat4_look_from_dir_clip_ptr(matrix4 *res, const vector3 *position, const vector3 *direction, const vector3 *up, vm_clip_t clip);
+VEC_API void mat4_viewport_ptr(matrix4 *res, vm_float_t x, vm_float_t y, vm_float_t width, vm_float_t height);
+VEC_API void mat4_viewport_depth_ptr(matrix4 *res, vm_float_t x, vm_float_t y, vm_float_t width, vm_float_t height, vm_float_t n, vm_float_t f);
+VEC_API void mat4_perspective_ptr(matrix4 *res, vm_float_t fov, vm_float_t aspect, vm_float_t near, vm_float_t far);
 VEC_API void mat4_perspective_fov_ptr(matrix4 *res, vm_float_t fov, vm_float_t w, vm_float_t h, vm_float_t n, vm_float_t f);
 VEC_API void mat4_perspective_infinite_ptr(matrix4 *res, vm_float_t fov_y, vm_float_t aspect, vm_float_t n);
+VEC_API void mat4_perspective_infinite_clip_ptr(matrix4 *res, vm_float_t fov_y, vm_float_t aspect, vm_float_t n, vm_clip_t clip);
+VEC_API void mat4_infinite_reverse_z_ptr(matrix4 *res, vm_float_t fov_y, vm_float_t aspect, vm_float_t n);
+VEC_API void mat4_infinite_reverse_z_clip_ptr(matrix4 *res, vm_float_t fov_y, vm_float_t aspect, vm_float_t n, vm_clip_t clip);
+VEC_API void mat4_perspective_clip_ptr(matrix4 *res, vm_float_t fov_y, vm_float_t aspect, vm_float_t near, vm_float_t far, vm_clip_t clip);
+VEC_API void mat4_perspective_deg_ptr(matrix4 *res, vm_float_t fov_deg, vm_float_t aspect, vm_float_t near, vm_float_t far);
+VEC_API void mat4_perspective_fov_deg_ptr(matrix4 *res, vm_float_t fov_deg, vm_float_t w, vm_float_t h, vm_float_t n, vm_float_t f);
+VEC_API void mat4_perspective_infinite_deg_ptr(matrix4 *res, vm_float_t fov_y_deg, vm_float_t aspect, vm_float_t n);
+VEC_API void mat4_perspective_infinite_clip_deg_ptr(matrix4 *res, vm_float_t fov_y_deg, vm_float_t aspect, vm_float_t n, vm_clip_t clip);
+VEC_API void mat4_infinite_reverse_z_deg_ptr(matrix4 *res, vm_float_t fov_y_deg, vm_float_t aspect, vm_float_t n);
+VEC_API void mat4_infinite_reverse_z_clip_deg_ptr(matrix4 *res, vm_float_t fov_y_deg, vm_float_t aspect, vm_float_t n, vm_clip_t clip);
+VEC_API void mat4_perspective_clip_deg_ptr(matrix4 *res, vm_float_t fov_y_deg, vm_float_t aspect, vm_float_t near, vm_float_t far, vm_clip_t clip);
+VEC_API void mat4_ortho_clip_ptr(matrix4 *res, vm_float_t left, vm_float_t right, vm_float_t bottom, vm_float_t top, vm_float_t near, vm_float_t far, vm_clip_t clip);
+VEC_API void mat4_look_at_clip_ptr(matrix4 *res, const vector3 *position, const vector3 *target, const vector3 *up, vm_clip_t clip);
 VEC_API void mat4_mul_vec4_ptr(vector4 *res, const matrix4 *m, const vector4 *v);
 VEC_API void mat4_mul_vec3_ptr(vector3 *res, const matrix4 *m, const vector3 *v, vm_float_t w);
+
+VEC_API void vec3_world_to_window_ptr(vector3 *res, const vector3 *world, const matrix4 *model, const matrix4 *projection, const vector4 *viewport);
+VEC_API void vec3_window_to_world_ptr(vector3 *res, const vector3 *window, const matrix4 *model, const matrix4 *projection, const vector4 *viewport);
+VEC_API void vec3_world_to_window_clip_ptr(vector3 *res, const vector3 *world, const matrix4 *model, const matrix4 *projection, const vector4 *viewport, vm_clip_t clip);
+VEC_API void vec3_window_to_world_clip_ptr(vector3 *res, const vector3 *window, const matrix4 *model, const matrix4 *projection, const vector4 *viewport, vm_clip_t clip);
 
 /*******************************************************************************
  * Integer matrix functions
@@ -1165,15 +1455,23 @@ VEC_API quaternion quat_normalize(quaternion q);
 VEC_API quaternion quat_conjugate(quaternion q);
 VEC_API quaternion quat_inverse(quaternion q);
 VEC_API quaternion quat_from_euler(vector3 euler);
-VEC_API quaternion quat_from_axis_angle(vector3 axis, vm_float_t degrees);
+VEC_API quaternion quat_from_euler_deg(vector3 euler_deg);
+VEC_API quaternion quat_from_axis_angle(vector3 axis, vm_float_t radians);
+VEC_API quaternion quat_from_axis_angle_deg(vector3 axis, vm_float_t degrees);
 VEC_API quaternion quat_from_mat3(matrix3 m);
 VEC_API quaternion quat_from_mat4(matrix4 m);
+VEC_API quaternion quat_look(vector3 direction, vector3 up);
+VEC_API quaternion quat_look_clip(vector3 direction, vector3 up, vm_clip_t clip);
+VEC_API quaternion quat_from_to(vector3 from, vector3 to);
 VEC_API quaternion quat_slerp(quaternion a, quaternion b, vm_float_t t);
 VEC_API quaternion quat_nlerp(quaternion a, quaternion b, vm_float_t t);
+VEC_API quaternion quat_integrate(quaternion q, vector3 omega, vm_float_t dt);
 
 VEC_API vector3 quat_rotate_vec3(quaternion q, vector3 v);
 VEC_API vector3 quat_to_euler(quaternion q);
-VEC_API vector3 quat_to_axis_angle(quaternion q, vm_float_t *degrees);
+VEC_API vector3 quat_to_euler_deg(quaternion q);
+VEC_API vector3 quat_to_axis_angle(quaternion q, vm_float_t *radians);
+VEC_API vector3 quat_to_axis_angle_deg(quaternion q, vm_float_t *degrees);
 
 VEC_API matrix4 quat_to_mat4(quaternion q);
 VEC_API matrix3 quat_to_mat3(quaternion q);
@@ -1191,16 +1489,24 @@ VEC_API void quat_normalize_ptr(quaternion *res, const quaternion *q);
 VEC_API void quat_conjugate_ptr(quaternion *res, const quaternion *q);
 VEC_API void quat_inverse_ptr(quaternion *res, const quaternion *q);
 VEC_API void quat_from_euler_ptr(quaternion *res, const vector3 *euler);
-VEC_API void quat_from_axis_angle_ptr(quaternion *res, const vector3 *axis, vm_float_t degrees);
+VEC_API void quat_from_euler_deg_ptr(quaternion *res, const vector3 *euler_deg);
+VEC_API void quat_from_axis_angle_ptr(quaternion *res, const vector3 *axis, vm_float_t radians);
+VEC_API void quat_from_axis_angle_deg_ptr(quaternion *res, const vector3 *axis, vm_float_t degrees);
 VEC_API void quat_from_mat3_ptr(quaternion *res, const matrix3 *m);
 VEC_API void quat_from_mat4_ptr(quaternion *res, const matrix4 *m);
+VEC_API void quat_look_ptr(quaternion *res, const vector3 *direction, const vector3 *up);
+VEC_API void quat_look_clip_ptr(quaternion *res, const vector3 *direction, const vector3 *up, vm_clip_t clip);
+VEC_API void quat_from_to_ptr(quaternion *res, const vector3 *from, const vector3 *to);
 VEC_API void quat_slerp_ptr(quaternion *res, const quaternion *a, const quaternion *b, vm_float_t t);
 VEC_API void quat_nlerp_ptr(quaternion *res, const quaternion *a, const quaternion *b, vm_float_t t);
 VEC_API void quat_rotate_vec3_ptr(vector3 *res, const quaternion *q, const vector3 *v);
 VEC_API void quat_to_euler_ptr(vector3 *res, const quaternion *q);
-VEC_API void quat_to_axis_angle_ptr(vector3 *axis, vm_float_t *degrees, const quaternion *q);
+VEC_API void quat_to_euler_deg_ptr(vector3 *res, const quaternion *q);
+VEC_API void quat_to_axis_angle_ptr(vector3 *axis, vm_float_t *radians, const quaternion *q);
+VEC_API void quat_to_axis_angle_deg_ptr(vector3 *axis, vm_float_t *degrees, const quaternion *q);
 VEC_API void quat_to_mat4_ptr(matrix4 *res, const quaternion *q);
 VEC_API void quat_to_mat3_ptr(matrix3 *res, const quaternion *q);
+VEC_API void quat_integrate_ptr(quaternion *res, const quaternion *q, const vector3 *omega, vm_float_t dt);
 
 /*******************************************************************************
  * Conversion functions
@@ -1217,6 +1523,113 @@ VEC_API vector3i vec3i_from_rounded(const vector3 *v);
 
 VEC_API vm_float_t deg_to_rad(vm_float_t degrees);
 VEC_API vm_float_t rad_to_deg(vm_float_t radians);
+
+/*******************************************************************************
+ * Dense GEMM  (C = alpha * op(A) * op(B) + beta * C)
+ ******************************************************************************/
+
+VEC_API void vm_gemm(vm_float_t *C, int ldc, const vm_float_t *A, int lda,
+    const vm_float_t *B, int ldb, int M, int N, int K,
+    vm_float_t alpha, vm_float_t beta, bool transA, bool transB, vm_layout_t layout);
+
+VEC_API void vm_gemm_ref(vm_float_t *C, int ldc, const vm_float_t *A, int lda,
+    const vm_float_t *B, int ldb, int M, int N, int K,
+    vm_float_t alpha, vm_float_t beta, bool transA, bool transB, vm_layout_t layout);
+
+VEC_API void vm_gemm_batch(vm_float_t * const *C, int ldc, const vm_float_t * const *A,
+    int lda, const vm_float_t * const *B, int ldb, int M, int N, int K,
+    vm_float_t alpha, vm_float_t beta, bool transA, bool transB, vm_layout_t layout, int batch);
+
+VEC_API void vm_gemm_strided_batch(vm_float_t *C, int ldc, int strideC, const vm_float_t *A,
+    int lda, int strideA, const vm_float_t *B, int ldb, int strideB, int M, int N, int K,
+    vm_float_t alpha, vm_float_t beta, bool transA, bool transB, vm_layout_t layout, int batch);
+
+VEC_API void vm_gemm_ex(vm_float_t *C, int ldc, const vm_float_t *A, int lda, const vm_float_t *B,
+    int ldb, int M, int N, int K, vm_float_t alpha, vm_float_t beta, bool transA, bool transB,
+    vm_layout_t layout, int op, const vm_float_t *bias);
+
+VEC_API int vm_gemm_threads(void);
+VEC_API void vm_gemm_set_threads(int n);
+
+VEC_API void vm_im2col(vm_float_t *col, int ld_col, const vm_float_t *img,
+    int n, int c, int h, int w, int kh, int kw, int pad_h, int pad_w,
+    int stride_h, int stride_w, vm_layout_t layout);
+
+/*******************************************************************************
+ * Dense matrices  (heap `vm_mat`, det/inverse, LU / QR / SVD / Cholesky)
+ ******************************************************************************/
+
+VEC_API vm_mat vm_mat_alloc(int rows, int cols);
+VEC_API void vm_mat_free(vm_mat *m);
+VEC_API void vm_mat_zero(vm_mat *m);
+VEC_API vm_float_t vm_mat_get(const vm_mat *m, int r, int c);
+VEC_API void vm_mat_set(vm_mat *m, int r, int c, vm_float_t v);
+VEC_API bool vm_mat_copy(vm_mat *dst, const vm_mat *src);
+VEC_API vm_float_t vm_mat_det(const vm_mat *A);
+VEC_API bool vm_mat_inverse(vm_mat *out, const vm_mat *A);
+
+VEC_API bool vm_lu_factor(vm_mat *A, int *pivot, int *sign);
+VEC_API bool vm_lu_solve(const vm_mat *LU, const int *pivot, const vm_float_t *b, vm_float_t *x);
+VEC_API bool vm_qr_factor(vm_mat *A, vm_float_t *tau);
+VEC_API bool vm_qr_unpack(vm_mat *Q, vm_mat *R, const vm_mat *QR, const vm_float_t *tau);
+VEC_API bool vm_qr_solve(const vm_mat *QR, const vm_float_t *tau, const vm_float_t *b, vm_float_t *x);
+VEC_API bool vm_svd_factor(const vm_mat *A, vm_mat *U, vm_float_t *s, vm_mat *V);
+
+VEC_API bool vm_chol_factor(vm_mat *A);
+VEC_API bool vm_chol_solve(const vm_mat *L, const vm_float_t *b, vm_float_t *x);
+
+/*******************************************************************************
+ * Sparse CSR + Krylov  (Poisson / implicit viscosity / FEM)
+ ******************************************************************************/
+
+VEC_API void vm_spmat_init(vm_spmat *A);
+VEC_API void vm_spmat_free(vm_spmat *A);
+VEC_API bool vm_spmat_from_triplets(vm_spmat *A, int n, int nnz, const int *row, const int *col, const vm_float_t *val);
+VEC_API void vm_spmv(vm_float_t *y, const vm_spmat *A, const vm_float_t *x);
+VEC_API bool vm_spmat_diag(const vm_spmat *A, vm_float_t *d);
+VEC_API bool vm_cg(const vm_spmat *A, const vm_float_t *b, vm_float_t *x,
+    vm_float_t tol, int max_iter, vm_ksp_prec_t pre_cond, vm_ksp_info *info);
+VEC_API bool vm_bicgstab(const vm_spmat *A, const vm_float_t *b, vm_float_t *x,
+    vm_float_t tol, int max_iter, vm_ksp_prec_t pre_cond, vm_ksp_info *info);
+
+/*******************************************************************************
+ * Time integrators + rigid-body algebra
+ ******************************************************************************/
+
+VEC_API void vm_euler_semi(vm_float_t *x, vm_float_t *v, const vm_float_t *a, int n, vm_float_t dt);
+VEC_API void vm_verlet(vm_acc_fn acc, vm_float_t *x, vm_float_t *v, vm_float_t *a, int n, vm_float_t dt, void *ctx);
+VEC_API void vm_rk2(vm_ode_fn f, vm_float_t *y, int n, vm_float_t dt, void *ctx);
+VEC_API void vm_rk4(vm_ode_fn f, vm_float_t *y, int n, vm_float_t dt, void *ctx);
+VEC_API vm_float_t vm_cfl_dt(vm_float_t cfl, vm_float_t dx, vm_float_t speed);
+
+VEC_API bool mat3_chol(matrix3 a, matrix3 *L);
+VEC_API bool mat3_spd_solve(matrix3 a, vector3 b, vector3 *x);
+VEC_API matrix3 vm_inertia_world(matrix3 ib, quaternion q);
+VEC_API vector3 vm_omega_from_L(matrix3 I, vector3 L);
+VEC_API vm_float_t vm_rigid_energy(vm_float_t mass, vector3 v, matrix3 I, vector3 w);
+VEC_API void vm_rigid_step(vector3 *x, vector3 *v, quaternion *q, vector3 *w, vector3 F,
+    vector3 tau, vm_float_t mass, matrix3 I_body, vm_float_t dt);
+VEC_API void vm_baumgarte_correct(vector3 *x, vector3 *v, vector3 n, vm_float_t C,
+    vm_float_t beta, vm_float_t gamma, vm_float_t dt);
+
+/*******************************************************************************
+ * Regular grid operators (MAC + assembled Laplacian)
+ ******************************************************************************/
+
+VEC_API vm_grid3 vm_grid3_make(int nx, int ny, int nz, vm_float_t dx, vm_float_t dy, vm_float_t dz);
+VEC_API int vm_grid_ncells(vm_grid3 g);
+VEC_API int vm_grid_cell(vm_grid3 g, int i, int j, int k);
+VEC_API int vm_mac_nu(vm_grid3 g);
+VEC_API int vm_mac_nv(vm_grid3 g);
+VEC_API int vm_mac_nw(vm_grid3 g);
+VEC_API int vm_mac_u(vm_grid3 g, int i, int j, int k);
+VEC_API int vm_mac_v(vm_grid3 g, int i, int j, int k);
+VEC_API int vm_mac_w(vm_grid3 g, int i, int j, int k);
+
+VEC_API bool vm_grid_laplacian(vm_spmat *A, vm_grid3 g, vm_bc_t bc);
+VEC_API void vm_mac_div(vm_float_t *div, const vm_float_t *u, const vm_float_t *v, const vm_float_t *w, vm_grid3 g);
+VEC_API void vm_mac_grad(vm_float_t *gu, vm_float_t *gv, vm_float_t *gw, const vm_float_t *p, vm_grid3 g);
+VEC_API void vm_mac_curl_z(vm_float_t *cz, const vm_float_t *u, const vm_float_t *v, vm_grid3 g);
 
 /*******************************************************************************
  * Assigment functions
@@ -1269,7 +1682,8 @@ VEC_API bool quat_eq(quaternion a, quaternion b);
  ******************************************************************************/
 
 // Easing helper functions
-VEC_API vm_float_t elastic_oscillation(vm_float_t f, vm_float_t exp_mult, vm_float_t sin_mult, vm_float_t sin_offset, vm_float_t period);
+VEC_API vm_float_t elastic_oscillation(vm_float_t f, vm_float_t exp_mult,
+    vm_float_t sin_mult, vm_float_t sin_offset, vm_float_t period);
 VEC_API vm_float_t poly_ease_in(vm_float_t f, vm_float_t n);
 VEC_API vm_float_t poly_ease_out(vm_float_t f, vm_float_t n);
 VEC_API vm_float_t poly_ease_in_out(vm_float_t f, vm_float_t n);

@@ -382,18 +382,30 @@ vector2 vec2_tangent(const vector2 v)
 
 /**
  * @brief Rotates the input vector counterclockwise by the given angle (radians).
- *
- * See `vec2_rotate_ptr` instead.
+ * @see vec2_rotate_ptr`
  *
  * @param v The input vector.
- * @param angle The rotation angle in radians.
+ * @param radians The rotation angle in radians.
  * @return The rotated vector2.
  */
-vector2 vec2_rotate(const vector2 v, const vm_float_t angle)
+vector2 vec2_rotate(const vector2 v, const vm_float_t radians)
 {
     vector2 res;
-    vec2_rotate_ptr(&res, &v, angle);
+    vec2_rotate_ptr(&res, &v, radians);
     return res;
+}
+
+/**
+ * @brief Rotates a `vector2` by the given angle in degrees.
+ *
+ * @param v The vector2 to rotate.
+ * @param degrees The rotation angle in degrees.
+ *
+ * @return The rotated vector2.
+ */
+vector2 vec2_rotate_deg(const vector2 v, const vm_float_t degrees)
+{
+    return vec2_rotate(v, deg_to_rad(degrees));
 }
 
 /**
@@ -658,32 +670,58 @@ vector2 vec2_splat(const vm_float_t s)
 
 /**
  * @brief Returns the unit vector at the given angle in radians.
+ * @see vec2_from_angle_ptr
  *
- * See `vec2_from_angle_ptr` instead.
- *
- * @param angle Angle in radians.
+ * @param radians Angle in radians.
  * @return The resulting vector2.
  */
-vector2 vec2_from_angle(const vm_float_t angle)
+vector2 vec2_from_angle(const vm_float_t radians)
 {
-    return (vector2){.x = VECMAT_COS(angle), .y = VECMAT_SIN(angle)};
+    return (vector2){.x = VECMAT_COS(radians), .y = VECMAT_SIN(radians)};
+}
+
+/**
+ * @brief Creates a `vector2` from an angle given in degrees.
+ *
+ * The resulting vector has unit length and points in the direction
+ * specified by the angle. The angle is converted to radians internally
+ * before computing the cosine and sine.
+ *
+ * @param degrees The angle in degrees.
+ * @return A unit vector2 representing the given angle.
+ */
+vector2 vec2_from_angle_deg(const vm_float_t degrees)
+{
+    return vec2_from_angle(deg_to_rad(degrees));
 }
 
 /**
  * @brief Rotates v around pivot by angle radians.
- *
- * See `vec2_rotate_around_ptr` instead.
+ * @see vec2_rotate_around_ptr
  *
  * @param v Input vector.
  * @param pivot Rotation pivot.
- * @param angle Angle in radians.
+ * @param radians Angle in radians.
  * @return The resulting vector2.
  */
-vector2 vec2_rotate_around(const vector2 v, const vector2 pivot, const vm_float_t angle)
+vector2 vec2_rotate_around(const vector2 v, const vector2 pivot, const vm_float_t radians)
 {
     vector2 res;
-    vec2_rotate_around_ptr(&res, &v, &pivot, angle);
+    vec2_rotate_around_ptr(&res, &v, &pivot, radians);
     return res;
+}
+
+/**
+ * @brief Rotates a vector2 around a pivot point by the given angle in degrees.
+ *
+ * @param v The vector2 to rotate.
+ * @param pivot The vector2 to rotate around.
+ * @param degrees The rotation angle in degrees.
+ * @return The rotated vector2.
+ */
+vector2 vec2_rotate_around_deg(const vector2 v, const vector2 pivot, const vm_float_t degrees)
+{
+    return vec2_rotate_around(v, pivot, deg_to_rad(degrees));
 }
 
 /**
@@ -803,6 +841,20 @@ vm_float_t vec2_cross_scalar(const vector2 a, const vector2 b)
 vm_float_t vec2_heading(const vector2 v)
 {
     return VECMAT_ATAN2(v.y, v.x);
+}
+
+/**
+ * @brief Returns the heading angle of the vector in degrees.
+ *
+ * Computes the angle between the positive x-axis and the vector
+ * using atan2, then converts the result from radians to degrees.
+ *
+ * @param v The vector2 whose heading is to be calculated.
+ * @return The heading angle of the vector in degrees.
+ */
+vm_float_t vec2_heading_deg(const vector2 v)
+{
+    return rad_to_deg(vec2_heading(v));
 }
 
 /**

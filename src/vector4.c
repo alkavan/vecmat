@@ -115,7 +115,7 @@ vector4 vec4_w_scale(const vm_float_t w)
 /**
  * @brief Component-wise addition of two vectors.
  *
- * See `vec4_add_ptr` for the out-parameter version.
+ * @see vec4_add_ptr
  *
  * @param a First vector.
  * @param b Second vector.
@@ -131,7 +131,7 @@ vector4 vec4_add(const vector4 a, const vector4 b)
 /**
  * @brief Component-wise subtraction of two vectors.
  *
- * See `vec4_sub_ptr` for the out-parameter version.
+ * @see vec4_sub_ptr
  *
  * @param a First vector.
  * @param b Second vector.
@@ -147,7 +147,7 @@ vector4 vec4_sub(const vector4 a, const vector4 b)
 /**
  * @brief Component-wise multiplication of vector by scalar.
  *
- * See `vec4_mul_scalar_ptr` for the out-parameter version.
+ * @see vec4_mul_scalar_ptr
  *
  * @param v The vector.
  * @param s The scalar.
@@ -163,7 +163,7 @@ vector4 vec4_mul_scalar(const vector4 v, const vm_float_t s)
 /**
  * @brief Component-wise division of vector by scalar.
  *
- * See `vec4_div_scalar_ptr` for the out-parameter version.
+ * @see vec4_div_scalar_ptr
  *
  * @param v The vector.
  * @param s The scalar (non-zero).
@@ -179,7 +179,7 @@ vector4 vec4_div_scalar(const vector4 v, const vm_float_t s)
 /**
  * @brief Component-wise multiplication of two vectors.
  *
- * See `vec4_mul_ptr` for the out-parameter version.
+ * @see vec4_mul_ptr
  *
  * @param a First vector.
  * @param b Second vector.
@@ -195,7 +195,7 @@ vector4 vec4_mul(const vector4 a, const vector4 b)
 /**
  * @brief Negation of a vector.
  *
- * See `vec4_neg_ptr` for the out-parameter version.
+ * @see vec4_neg_ptr
  *
  * @param v The vector.
  * @return The negated vector.
@@ -210,7 +210,7 @@ vector4 vec4_neg(const vector4 v)
 /**
  * @brief Computes the absolute value per component of a `vector4`.
  *
- * See `vec4_abs_ptr` for the out-parameter version.
+ * @see vec4_abs_ptr
  *
  * @param v The vector.
  * @return The absolute vector4.
@@ -225,7 +225,7 @@ vector4 vec4_abs(const vector4 v)
 /**
  * @brief Normalizes a `vector4` to unit length.
  *
- * See `vec4_normalize_ptr` for the out-parameter version.
+ * @see vec4_normalize_ptr
  *
  * @param v The vector (non-zero).
  * @return The normalized vector.
@@ -240,7 +240,7 @@ vector4 vec4_normalize(const vector4 v)
 /**
  * @brief Computes the component-wise minimum of two `vector4`.
  *
- * See `vec4_min_ptr` for the out-parameter version.
+ * @see vec4_min_ptr
  *
  * @param a First vector.
  * @param b Second vector.
@@ -256,7 +256,7 @@ vector4 vec4_min(const vector4 a, const vector4 b)
 /**
  * @brief Computes the component-wise maximum of two `vector4`.
  *
- * See `vec4_max_ptr` for the out-parameter version.
+ * @see vec4_max_ptr
  *
  * @param a First vector.
  * @param b Second vector.
@@ -272,7 +272,7 @@ vector4 vec4_max(const vector4 a, const vector4 b)
 /**
  * @brief Computes the sign per component of a `vector4` (-1, 0, or 1).
  *
- * See `vec4_sign_ptr` for the out-parameter version.
+ * @see vec4_sign_ptr
  *
  * @param v The vector.
  * @return The sign vector.
@@ -287,7 +287,7 @@ vector4 vec4_sign(const vector4 v)
 /**
  * @brief Applies the floor per component to a `vector4`.
  *
- * See `vec4_floor_ptr` for the out-parameter version.
+ * @see vec4_floor_ptr
  *
  * @param v The vector.
  * @return The floored vector.
@@ -302,7 +302,7 @@ vector4 vec4_floor(const vector4 v)
 /**
  * @brief Applies ceil per component to a `vector4`.
  *
- * See `vec4_ceil_ptr` for the out-parameter version.
+ * @see vec4_ceil_ptr
  *
  * @param v The vector.
  * @return The ceiling vector.
@@ -317,7 +317,7 @@ vector4 vec4_ceil(const vector4 v)
 /**
  * @brief Applies round per component to a `vector4`.
  *
- * See `vec4_round_ptr` for the out-parameter version.
+ * @see vec4_round_ptr
  *
  * @param v The vector.
  * @return The rounded vector.
@@ -332,7 +332,7 @@ vector4 vec4_round(const vector4 v)
 /**
  * @brief Linearly interpolates between two `vector4`.
  *
- * See `vec4_lerp_ptr` for the out-parameter version.
+ * @see vec4_lerp_ptr
  *
  * @param a Start vector.
  * @param b End vector.
@@ -349,7 +349,7 @@ vector4 vec4_lerp(const vector4 a, const vector4 b, const vm_float_t t)
 /**
  * @brief Clamps a `vector4` between min and max per component.
  *
- * See `vec4_clamp_ptr` for the out-parameter version.
+ * @see vec4_clamp_ptr
  *
  * @param v The vector.
  * @param min Minimum bounds.
@@ -366,7 +366,7 @@ vector4 vec4_clamp(const vector4 v, const vector4 min, const vector4 max)
 /**
  * @brief Homogenizes a `vector4` (divides x, y, z by w).
  *
- * See `vec4_homogenize_ptr` for the out-parameter version.
+ * @see vec4_homogenize_ptr
  *
  * @param v The homogeneous vector (w != 0.0f).
  * @return The normalized cartesian vector4.

@@ -114,7 +114,7 @@ vector4i vec4i_w_scale(const vm_int_t w)
 /**
  * @brief Component-wise addition of two vectors.
  *
- * See `vec4i_add_ptr` for the out-parameter version.
+ * @see vec4i_add_ptr
  *
  * @param a First vector.
  * @param b Second vector.
@@ -130,7 +130,7 @@ vector4i vec4i_add(const vector4i a, const vector4i b)
 /**
  * @brief Component-wise subtraction of two vectors.
  *
- * See `vec4i_sub_ptr` for the out-parameter version.
+ * @see vec4i_sub_ptr
  *
  * @param a First vector.
  * @param b Second vector.
@@ -146,7 +146,7 @@ vector4i vec4i_sub(const vector4i a, const vector4i b)
 /**
  * @brief Component-wise multiplication of vector by scalar.
  *
- * See `vec4i_mul_scalar_ptr` for the out-parameter version.
+ * @see vec4i_mul_scalar_ptr
  *
  * @param v The vector.
  * @param s The scalar.
@@ -162,7 +162,7 @@ vector4i vec4i_mul_scalar(const vector4i v, const vm_int_t s)
 /**
  * @brief Component-wise division of vector by scalar.
  *
- * See `vec4i_div_scalar_ptr` for the out-parameter version.
+ * @see vec4i_div_scalar_ptr
  *
  * @param v The vector.
  * @param s The scalar (non-zero).
@@ -178,7 +178,7 @@ vector4i vec4i_div_scalar(const vector4i v, const vm_int_t s)
 /**
  * @brief Component-wise multiplication of two vectors.
  *
- * See `vec4i_mul_ptr` for the out-parameter version.
+ * @see vec4i_mul_ptr
  *
  * @param a First vector.
  * @param b Second vector.
@@ -194,7 +194,7 @@ vector4i vec4i_mul(const vector4i a, const vector4i b)
 /**
  * @brief Negation of a vector.
  *
- * See `vec4i_neg_ptr` for the out-parameter version.
+ * @see vec4i_neg_ptr
  *
  * @param v The vector.
  * @return The negated vector.
@@ -209,7 +209,7 @@ vector4i vec4i_neg(const vector4i v)
 /**
  * @brief Computes the absolute value per component of a `vector4i`.
  *
- * See `vec4i_abs_ptr` for the out-parameter version.
+ * @see vec4i_abs_ptr
  *
  * @param v The vector.
  * @return The absolute `vector4i`.
@@ -224,7 +224,7 @@ vector4i vec4i_abs(const vector4i v)
 /**
  * @brief Normalizes a `vector4i` to unit length.
  *
- * See `vec4i_normalize_ptr` for the out-parameter version.
+ * @see vec4i_normalize_ptr
  *
  * @param v The vector (non-zero).
  * @return The normalized vector.
@@ -239,7 +239,7 @@ vector4i vec4i_normalize(const vector4i v)
 /**
  * @brief Computes the component-wise minimum of two `vector4i`.
  *
- * See `vec4i_min_ptr` for the out-parameter version.
+ * @see vec4i_min_ptr
  *
  * @param a First vector.
  * @param b Second vector.
@@ -255,7 +255,7 @@ vector4i vec4i_min(const vector4i a, const vector4i b)
 /**
  * @brief Computes the component-wise maximum of two vector4i.
  *
- * See `vec4i_max_ptr` for the out-parameter version.
+ * @see vec4i_max_ptr
  *
  * @param a First vector.
  * @param b Second vector.
@@ -271,7 +271,7 @@ vector4i vec4i_max(const vector4i a, const vector4i b)
 /**
  * @brief Computes the sign per component of a `vector4i` (-1, 0, or 1).
  *
- * See `vec4i_sign_ptr` for the out-parameter version.
+ * @see vec4i_sign_ptr
  *
  * @param v The vector.
  * @return The sign vector.
@@ -286,7 +286,7 @@ vector4i vec4i_sign(const vector4i v)
 /**
  * @brief Linearly interpolates between two `vector4i`.
  *
- * See `vec4i_lerp_ptr` for the out-parameter version.
+ * @see vec4i_lerp_ptr
  *
  * @param a Start vector.
  * @param b End vector.
@@ -304,7 +304,7 @@ vector4i vec4i_lerp(const vector4i a, const vector4i b, const vm_float_t t)
  * @brief Clamps each component of the input vector to the range defined by the
  * minimum and maximum vectors.
  *
- * See `vec4i_clamp_ptr` for the out-parameter version.
+ * @see vec4i_clamp_ptr
  *
  * @param v The input vector.
  * @param min The minimum value for each component.

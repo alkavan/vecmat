@@ -292,16 +292,28 @@ void vec2_tangent_ptr(vector2 *res, const vector2 *v)
  *
  * @param result The output rotated vector.
  * @param v The input vector.
- * @param angle The rotation angle in radians.
+ * @param radians The rotation angle in radians.
  */
-void vec2_rotate_ptr(vector2 *result, const vector2 *v, const vm_float_t angle)
+void vec2_rotate_ptr(vector2 *result, const vector2 *v, const vm_float_t radians)
 {
-    const vm_float_t cs = VECMAT_COS(angle);
-    const vm_float_t sn = VECMAT_SIN(angle);
+    const vm_float_t cs = VECMAT_COS(radians);
+    const vm_float_t sn = VECMAT_SIN(radians);
     const vm_float_t x = v->x;
     const vm_float_t y = v->y;
     result->x = x * cs - y * sn;
     result->y = x * sn + y * cs;
+}
+
+/**
+ * @brief Rotates vector v by the given angle in degrees, storing the result in result.
+ *
+ * @param result Output vector.
+ * @param v Input vector.
+ * @param degrees Rotation angle in degrees.
+ */
+void vec2_rotate_deg_ptr(vector2 *result, const vector2 *v, const vm_float_t degrees)
+{
+    vec2_rotate_ptr(result, v, deg_to_rad(degrees));
 }
 
 /**
@@ -463,20 +475,37 @@ void vec2_reject_ptr(vector2 *res, const vector2 *a, const vector2 *b)
 
 /**
  * @brief Rotates v around pivot by angle radians.
+ * @see vec2_rotate_ptr
  *
  * @param res Output vector.
  * @param v Input vector.
  * @param pivot Rotation pivot.
- * @param angle Angle in radians.
+ * @param radians Angle in radians.
  */
-void vec2_rotate_around_ptr(vector2 *res, const vector2 *v, const vector2 *pivot, const vm_float_t angle)
+void vec2_rotate_around_ptr(vector2 *res, const vector2 *v, const vector2 *pivot, const vm_float_t radians)
 {
     vector2 offset;
     offset.x = v->x - pivot->x;
     offset.y = v->y - pivot->y;
-    vec2_rotate_ptr(res, &offset, angle);
+    vec2_rotate_ptr(res, &offset, radians);
     res->x += pivot->x;
     res->y += pivot->y;
+}
+
+/**
+ * @brief Rotates vector v around the given pivot point by the specified angle in degrees.
+ *
+ * This function converts the input angle from degrees to radians and then
+ * delegates to the radian-based rotation routine.
+ *
+ * @param res Output vector storing the rotated result.
+ * @param v Input vector to rotate.
+ * @param pivot Pivot point around which to rotate.
+ * @param degrees Rotation angle in degrees.
+ */
+void vec2_rotate_around_deg_ptr(vector2 *res, const vector2 *v, const vector2 *pivot, const vm_float_t degrees)
+{
+    vec2_rotate_around_ptr(res, v, pivot, deg_to_rad(degrees));
 }
 
 /**

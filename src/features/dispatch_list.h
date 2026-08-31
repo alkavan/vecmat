@@ -71,6 +71,9 @@
     X(quat_mul_ptr,                                                                          \
       (quaternion *res, const quaternion *a, const quaternion *b), (res, a, b))              \
     X(quat_normalize_ptr,                                                                    \
-      (quaternion *res, const quaternion *q), (res, q))
+      (quaternion *res, const quaternion *q), (res, q))                                      \
+    X(vm_gemm_ukernel,                                                                       \
+      (vm_float_t *acc, const vm_float_t *Ap, const vm_float_t *Bp, int K),                  \
+      (acc, Ap, Bp, K))
 
-#endif /* VECMAT_DISPATCH_LIST_H */
+#endif // VECMAT_DISPATCH_LIST_H
