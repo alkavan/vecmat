@@ -11,14 +11,16 @@
 void mat4_mul_ptr_avx512(matrix4 *res, const matrix4 *a, const matrix4 *b)
 {
     matrix4 tmp;
-    for (int i = 0; i < 4; i++) {
-        __m256d row = _mm256_setzero_pd();
-        for (int k = 0; k < 4; k++) {
-            const __m256d aik = _mm256_set1_pd(a->v[i * 4 + k]);
-            const __m256d bk = _mm256_loadu_pd(&b->v[k * 4]);
-            row = _mm256_fmadd_pd(aik, bk, row);
-        }
-        _mm256_storeu_pd(&tmp.v[i * 4], row);
+    const __m256d a0 = _mm256_loadu_pd(&a->v[0]);
+    const __m256d a1 = _mm256_loadu_pd(&a->v[4]);
+    const __m256d a2 = _mm256_loadu_pd(&a->v[8]);
+    const __m256d a3 = _mm256_loadu_pd(&a->v[12]);
+    for (int c = 0; c < 4; c++) {
+        __m256d col = _mm256_mul_pd(a0, _mm256_set1_pd(b->v[c * 4 + 0]));
+        col = _mm256_fmadd_pd(a1, _mm256_set1_pd(b->v[c * 4 + 1]), col);
+        col = _mm256_fmadd_pd(a2, _mm256_set1_pd(b->v[c * 4 + 2]), col);
+        col = _mm256_fmadd_pd(a3, _mm256_set1_pd(b->v[c * 4 + 3]), col);
+        _mm256_storeu_pd(&tmp.v[c * 4], col);
     }
     memcpy(res->v, tmp.v, sizeof(tmp.v));
 }
@@ -77,32 +79,32 @@ void mat4_mul_ptr_avx512(matrix4 *res, const matrix4 *a, const matrix4 *b)
     const __m512 A = _mm512_loadu_ps(a->v);
     const __m512 B = _mm512_loadu_ps(b->v);
 
-    /* acc_row_i += A[i,k] * B[k,:]  for k = 0..3, all four rows at once */
+    /* C.col[j] += A.col[k] * B[k,j]  for k = 0..3, all four columns at once */
     __m512 acc = _mm512_mul_ps(
         _mm512_permutexvar_ps(_mm512_setr_epi32(
-            0, 0, 0, 0, 4, 4, 4, 4, 8, 8, 8, 8, 12, 12, 12, 12), A),
+            0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3), A),
         _mm512_permutexvar_ps(_mm512_setr_epi32(
-            0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3), B));
+            0, 0, 0, 0, 4, 4, 4, 4, 8, 8, 8, 8, 12, 12, 12, 12), B));
 
     acc = _mm512_fmadd_ps(
         _mm512_permutexvar_ps(_mm512_setr_epi32(
-            1, 1, 1, 1, 5, 5, 5, 5, 9, 9, 9, 9, 13, 13, 13, 13), A),
+            4, 5, 6, 7, 4, 5, 6, 7, 4, 5, 6, 7, 4, 5, 6, 7), A),
         _mm512_permutexvar_ps(_mm512_setr_epi32(
-            4, 5, 6, 7, 4, 5, 6, 7, 4, 5, 6, 7, 4, 5, 6, 7), B),
+            1, 1, 1, 1, 5, 5, 5, 5, 9, 9, 9, 9, 13, 13, 13, 13), B),
         acc);
 
     acc = _mm512_fmadd_ps(
         _mm512_permutexvar_ps(_mm512_setr_epi32(
-            2, 2, 2, 2, 6, 6, 6, 6, 10, 10, 10, 10, 14, 14, 14, 14), A),
+            8, 9, 10, 11, 8, 9, 10, 11, 8, 9, 10, 11, 8, 9, 10, 11), A),
         _mm512_permutexvar_ps(_mm512_setr_epi32(
-            8, 9, 10, 11, 8, 9, 10, 11, 8, 9, 10, 11, 8, 9, 10, 11), B),
+            2, 2, 2, 2, 6, 6, 6, 6, 10, 10, 10, 10, 14, 14, 14, 14), B),
         acc);
 
     acc = _mm512_fmadd_ps(
         _mm512_permutexvar_ps(_mm512_setr_epi32(
-            3, 3, 3, 3, 7, 7, 7, 7, 11, 11, 11, 11, 15, 15, 15, 15), A),
+            12, 13, 14, 15, 12, 13, 14, 15, 12, 13, 14, 15, 12, 13, 14, 15), A),
         _mm512_permutexvar_ps(_mm512_setr_epi32(
-            12, 13, 14, 15, 12, 13, 14, 15, 12, 13, 14, 15, 12, 13, 14, 15), B),
+            3, 3, 3, 3, 7, 7, 7, 7, 11, 11, 11, 11, 15, 15, 15, 15), B),
         acc);
 
     matrix4 tmp;

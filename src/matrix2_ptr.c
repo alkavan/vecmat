@@ -17,7 +17,7 @@ void mat2_identity_ptr(matrix2 *res)
 }
 
 /**
- * @brief Multiplies two 2x2 matrices (a * b) using explicit loops and stores the result in res.
+ * @brief Multiplies two 2x2 matrices (a * b) in column-major / column-vector convention.
  *
  * @param res Pointer to the output matrix2.
  * @param a Pointer to the first matrix.
@@ -25,14 +25,13 @@ void mat2_identity_ptr(matrix2 *res)
  */
 void mat2_mul_ptr(matrix2 *res, const matrix2 *a, const matrix2 *b)
 {
-    for (int i = 0; i < 2; i++) {
-        for (int j = 0; j < 2; j++) {
-            res->v[i * 2 + j] = 0.0f;
-            for (int k = 0; k < 2; k++) {
-                res->v[i * 2 + j] += a->v[i * 2 + k] * b->v[k * 2 + j];
-            }
-        }
-    }
+    const matrix2 tmp = {
+        .m11 = a->m11 * b->m11 + a->m12 * b->m21,
+        .m21 = a->m21 * b->m11 + a->m22 * b->m21,
+        .m12 = a->m11 * b->m12 + a->m12 * b->m22,
+        .m22 = a->m21 * b->m12 + a->m22 * b->m22
+    };
+    *res = tmp;
 }
 
 /**

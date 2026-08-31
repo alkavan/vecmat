@@ -34,14 +34,18 @@ void mat4_identity_ptr(matrix4 *res)
  */
 VECMAT_SCALAR_API void mat4_mul_ptr_scalar(matrix4 *res, const matrix4 *a, const matrix4 *b)
 {
-    for (int i = 0; i < 4; i++) {
-        for (int j = 0; j < 4; j++) {
-            res->v[i * 4 + j] = 0.0f;
+    /* Column-major: C's column j is A times B's column j (matches mul_vec). */
+    matrix4 tmp;
+    for (int c = 0; c < 4; c++) {
+        for (int r = 0; r < 4; r++) {
+            vm_float_t s = 0.0f;
             for (int k = 0; k < 4; k++) {
-                res->v[i * 4 + j] += a->v[i * 4 + k] * b->v[k * 4 + j];
+                s += a->v[k * 4 + r] * b->v[c * 4 + k];
             }
+            tmp.v[c * 4 + r] = s;
         }
     }
+    *res = tmp;
 }
 
 /**

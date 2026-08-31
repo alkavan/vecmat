@@ -23,7 +23,7 @@ void mat3_identity_ptr(matrix3 *res)
 }
 
 /**
- * @brief Multiplies two 3x3 matrices (a * b) and stores the result in res.
+ * @brief Multiplies two 3x3 matrices (a * b) in column-major / column-vector convention.
  *
  * Accumulates into a temporary matrix.
  *
@@ -33,14 +33,19 @@ void mat3_identity_ptr(matrix3 *res)
  */
 void mat3_mul_ptr(matrix3 *res, const matrix3 *a, const matrix3 *b)
 {
-    matrix3 temp = {0};
-    for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < 3; j++) {
-            for (int k = 0; k < 3; k++) {
-                temp.v[i * 3 + j] += a->v[i * 3 + k] * b->v[k * 3 + j];
-            }
-        }
-    }
+    matrix3 temp;
+    temp.m11 = a->m11 * b->m11 + a->m12 * b->m21 + a->m13 * b->m31;
+    temp.m12 = a->m11 * b->m12 + a->m12 * b->m22 + a->m13 * b->m32;
+    temp.m13 = a->m11 * b->m13 + a->m12 * b->m23 + a->m13 * b->m33;
+
+    temp.m21 = a->m21 * b->m11 + a->m22 * b->m21 + a->m23 * b->m31;
+    temp.m22 = a->m21 * b->m12 + a->m22 * b->m22 + a->m23 * b->m32;
+    temp.m23 = a->m21 * b->m13 + a->m22 * b->m23 + a->m23 * b->m33;
+
+    temp.m31 = a->m31 * b->m11 + a->m32 * b->m21 + a->m33 * b->m31;
+    temp.m32 = a->m31 * b->m12 + a->m32 * b->m22 + a->m33 * b->m32;
+    temp.m33 = a->m31 * b->m13 + a->m32 * b->m23 + a->m33 * b->m33;
+
     *res = temp;
 }
 

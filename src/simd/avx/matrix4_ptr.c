@@ -11,14 +11,16 @@
 void mat4_mul_ptr_avx(matrix4 *res, const matrix4 *a, const matrix4 *b)
 {
     matrix4 tmp;
-    for (int i = 0; i < 4; i++) {
-        __m256d row = _mm256_setzero_pd();
-        for (int k = 0; k < 4; k++) {
-            const __m256d aik = _mm256_set1_pd(a->v[i * 4 + k]);
-            const __m256d bk = _mm256_loadu_pd(&b->v[k * 4]);
-            row = _mm256_add_pd(row, _mm256_mul_pd(aik, bk));
-        }
-        _mm256_storeu_pd(&tmp.v[i * 4], row);
+    const __m256d a0 = _mm256_loadu_pd(&a->v[0]);
+    const __m256d a1 = _mm256_loadu_pd(&a->v[4]);
+    const __m256d a2 = _mm256_loadu_pd(&a->v[8]);
+    const __m256d a3 = _mm256_loadu_pd(&a->v[12]);
+    for (int c = 0; c < 4; c++) {
+        __m256d col = _mm256_mul_pd(a0, _mm256_set1_pd(b->v[c * 4 + 0]));
+        col = _mm256_add_pd(col, _mm256_mul_pd(a1, _mm256_set1_pd(b->v[c * 4 + 1])));
+        col = _mm256_add_pd(col, _mm256_mul_pd(a2, _mm256_set1_pd(b->v[c * 4 + 2])));
+        col = _mm256_add_pd(col, _mm256_mul_pd(a3, _mm256_set1_pd(b->v[c * 4 + 3])));
+        _mm256_storeu_pd(&tmp.v[c * 4], col);
     }
     memcpy(res->v, tmp.v, sizeof(tmp.v));
 }
@@ -75,14 +77,16 @@ void mat4_mul_vec3_ptr_avx(vector3 *res, const matrix4 *m, const vector3 *v, con
 void mat4_mul_ptr_avx(matrix4 *res, const matrix4 *a, const matrix4 *b)
 {
     matrix4 tmp;
-    for (int i = 0; i < 4; i++) {
-        __m128 row = _mm_setzero_ps();
-        for (int k = 0; k < 4; k++) {
-            const __m128 aik = _mm_set1_ps(a->v[i * 4 + k]);
-            const __m128 bk = _mm_loadu_ps(&b->v[k * 4]);
-            row = _mm_add_ps(row, _mm_mul_ps(aik, bk));
-        }
-        _mm_storeu_ps(&tmp.v[i * 4], row);
+    const __m128 a0 = _mm_loadu_ps(&a->v[0]);
+    const __m128 a1 = _mm_loadu_ps(&a->v[4]);
+    const __m128 a2 = _mm_loadu_ps(&a->v[8]);
+    const __m128 a3 = _mm_loadu_ps(&a->v[12]);
+    for (int c = 0; c < 4; c++) {
+        __m128 col = _mm_mul_ps(a0, _mm_set1_ps(b->v[c * 4 + 0]));
+        col = _mm_add_ps(col, _mm_mul_ps(a1, _mm_set1_ps(b->v[c * 4 + 1])));
+        col = _mm_add_ps(col, _mm_mul_ps(a2, _mm_set1_ps(b->v[c * 4 + 2])));
+        col = _mm_add_ps(col, _mm_mul_ps(a3, _mm_set1_ps(b->v[c * 4 + 3])));
+        _mm_storeu_ps(&tmp.v[c * 4], col);
     }
     memcpy(res->v, tmp.v, sizeof(tmp.v));
 }
