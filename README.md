@@ -333,13 +333,13 @@ You can write a function to multiply two matrix3 instances.
 Using the array access makes it easier to implement with nested loops:
 ```c
 void multiply(matrix3 *result, const matrix3 *a, const matrix3 *b) {
-    for (int i = 0; i < 3; i++) {  // Rows of result
-        for (int j = 0; j < 3; j++) {  // Columns of result
+    for (int c = 0; c < 3; c++) {      /* columns of result / of B */
+        for (int r = 0; r < 3; r++) {  /* rows of result / of A */
             float sum = 0.0f;
             for (int k = 0; k < 3; k++) {
-                sum += a.v[i * 3 + k] * b.v[k * 3 + j];  // Row-major indexing
+                sum += a->v[k * 3 + r] * b->v[c * 3 + k];  /* column-major */
             }
-            result->v[i + j*3] = sum;
+            result->v[c * 3 + r] = sum;
         }
     }
 }
