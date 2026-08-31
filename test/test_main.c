@@ -23,5 +23,6 @@ struct benchmark_node* benchmark_head = NULL;
 
 int main(int argc, char *argv[])
 {
+    printf("Vecmat %s — A simple math and linear algebra library.\n", VECMAT_VERSION);
     return run_tests();
 }
