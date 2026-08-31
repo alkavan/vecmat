@@ -8,9 +8,9 @@
 # repository's include/ and src/ trees.
 
 DOXYFILE_ENCODING      = UTF-8
-PROJECT_NAME           = "vecmat"
-PROJECT_NUMBER         = 0.2.0
-PROJECT_BRIEF          = "C math and linear algebra library for 2D/3D graphics, physics, and science"
+PROJECT_NAME           = "Vecmat"
+PROJECT_NUMBER         = 0.2.2
+PROJECT_BRIEF          = "C math and linear algebra library for 2D/3D graphics, physics, and science."
 PROJECT_LOGO           =
 OUTPUT_DIRECTORY       = .
 CREATE_SUBDIRS         = NO
@@ -158,7 +158,7 @@ DISABLE_INDEX          = NO
 GENERATE_TREEVIEW      = YES
 FULL_SIDEBAR           = NO
 ENUM_VALUES_PER_LINE   = 4
-TREEVIEW_WIDTH         = 250
+TREEVIEW_WIDTH         = 345
 EXT_LINKS_IN_WINDOW    = NO
 FORMULA_FONTSIZE       = 10
 FORMULA_TRANSPARENT    = YES

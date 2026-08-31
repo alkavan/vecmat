@@ -1,8 +1,8 @@
 # Vecmat
-A simple math and linear algebra library in C for 2d/3d graphics,
+A simple math and linear algebra library in C for 2D/3D graphics,
 machine learning, physics, and science.
 
-**This project is a heartfelt ❤ love letter ️to the C programming language** —
+**Vecmat is a heartfelt ❤ love letter ️to the C programming language** —
 with emphasis the elegance, simplicity and readability of the language, even for
 scenarios where other languages might seem more suited. Performance is important
 but second to usability and elegance.
@@ -50,6 +50,15 @@ Elegance, simplicity, and readability matter more than squeezing every cycle.
 - Default: `float` and `int32_t`.
 - Optional: `double` (`VECMAT_USE_F64`), and int width 8 / 16 / 32.
 
+## Documentation
+
+* [Online Documentation](https://docs.tekfed.org/vecmat/latest/)
+
+### Generate local docs using `doxygen`
+```bash
+cd doc && doxygen Doxyfile
+```
+
 ### History
 This library started as a quick replacement to the `mathc` library by Felipe
 Ferreira da Silva but evolved into somewhat larger scope. While Felipe's library
@@ -61,7 +70,6 @@ I decided to build my own library with the main goal of common API, easy to use,
 and self-explanatory interfaces. While `mathc` put performance first making the
 API uncomfortable, `vecmat` puts usage and API first; that means that all
 default interfaces are copy and type names are expected.
-
 
 ## SIMD and MMA
 
