@@ -9,7 +9,7 @@
 
 DOXYFILE_ENCODING      = UTF-8
 PROJECT_NAME           = "Vecmat"
-PROJECT_NUMBER         = 0.2.3
+PROJECT_NUMBER         = 0.2.4
 PROJECT_BRIEF          = "C math and linear algebra library for 2D/3D graphics, physics, and science."
 PROJECT_LOGO           =
 OUTPUT_DIRECTORY       = .
