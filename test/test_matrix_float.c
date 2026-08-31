@@ -15,7 +15,17 @@ TEST_CASE(mat2_mul_test, "[matrix2]") {
     const matrix2 a = {.m11 = 1.0f, .m21 = 2.0f, .m12 = 3.0f, .m22 = 4.0f};
     const matrix2 b = {.m11 = 5.0f, .m21 = 6.0f, .m12 = 7.0f, .m22 = 8.0f};
     const matrix2 res = mat2_mul(a, b);
-    REQUIRE(mat2_eq(res, (matrix2){.m11 = 19.0f, .m21 = 22.0f, .m12 = 43.0f, .m22 = 50.0f}));
+    REQUIRE(mat2_eq(res, (matrix2){.m11 = 23.0f, .m21 = 34.0f, .m12 = 31.0f, .m22 = 46.0f}));
+}
+
+TEST_CASE(mat2_mul_associative_test, "[matrix2]") {
+    const matrix2 a = {.m11 = 1.0f, .m21 = 2.0f, .m12 = 3.0f, .m22 = 4.0f};
+    const matrix2 b = {.m11 = 5.0f, .m21 = 6.0f, .m12 = 7.0f, .m22 = 8.0f};
+    const vector2 v = {.x = 1.0f, .y = 0.0f};
+    const vector2 left = mat2_mul_vec2(mat2_mul(a, b), v);
+    const vector2 right = mat2_mul_vec2(a, mat2_mul_vec2(b, v));
+    REQUIRE(vec2_eq(left, right));
+    REQUIRE(vec2_eq(left, (vector2){.x = 23.0f, .y = 34.0f}));
 }
 
 TEST_CASE(mat2_transpose_test, "[matrix2]") {
@@ -76,10 +86,28 @@ TEST_CASE(mat3_mul_test, "[matrix3]") {
     };
     const matrix3 res = mat3_mul(a, b);
     REQUIRE(mat3_eq(res, (matrix3){
-        .m11 = 30,  .m21 = 24,  .m31 = 18,
-        .m12 = 84,  .m22 = 69,  .m32 = 54,
-        .m13 = 138, .m23 = 114, .m33 = 90
+        .m11 = 90,  .m21 = 114, .m31 = 138,
+        .m12 = 54,  .m22 = 69,  .m32 = 84,
+        .m13 = 18,  .m23 = 24,  .m33 = 30
         }));
+}
+
+TEST_CASE(mat3_mul_associative_test, "[matrix3]") {
+    const matrix3 a = {
+        .m11 = 1, .m21 = 2, .m31 = 3,
+        .m12 = 4, .m22 = 5, .m32 = 6,
+        .m13 = 7, .m23 = 8, .m33 = 9
+    };
+    const matrix3 b = {
+        .m11 = 9, .m21 = 8, .m31 = 7,
+        .m12 = 6, .m22 = 5, .m32 = 4,
+        .m13 = 3, .m23 = 2, .m33 = 1
+    };
+    const vector3 v = {.x = 1.0f, .y = 0.0f, .z = 0.0f};
+    const vector3 left = mat3_mul_vec3(mat3_mul(a, b), v);
+    const vector3 right = mat3_mul_vec3(a, mat3_mul_vec3(b, v));
+    REQUIRE(vec3_eq(left, right));
+    REQUIRE(vec3_eq(left, (vector3){.x = 90.0f, .y = 114.0f, .z = 138.0f}));
 }
 
 TEST_CASE(mat3_transpose_test, "[matrix3]") {
@@ -184,6 +212,35 @@ TEST_CASE(mat4_mul_test, "[matrix4]") {
     const matrix4 b = mat4_identity();
     const matrix4 res = mat4_mul(a, b);
     REQUIRE(mat4_eq(res, mat4_identity()));
+
+    const matrix4 a2 = {
+        .m11 = 1.0f, .m21 = 2.0f, .m31 = 0.0f, .m41 = 0.0f,
+        .m12 = 3.0f, .m22 = 4.0f, .m32 = 0.0f, .m42 = 0.0f,
+        .m13 = 0.0f, .m23 = 0.0f, .m33 = 1.0f, .m43 = 0.0f,
+        .m14 = 0.0f, .m24 = 0.0f, .m34 = 0.0f, .m44 = 1.0f
+    };
+    const matrix4 b2 = {
+        .m11 = 5.0f, .m21 = 6.0f, .m31 = 0.0f, .m41 = 0.0f,
+        .m12 = 7.0f, .m22 = 8.0f, .m32 = 0.0f, .m42 = 0.0f,
+        .m13 = 0.0f, .m23 = 0.0f, .m33 = 1.0f, .m43 = 0.0f,
+        .m14 = 0.0f, .m24 = 0.0f, .m34 = 0.0f, .m44 = 1.0f
+    };
+    REQUIRE(mat4_eq(mat4_mul(a2, b2), (matrix4){
+        .m11 = 23.0f, .m21 = 34.0f, .m31 = 0.0f, .m41 = 0.0f,
+        .m12 = 31.0f, .m22 = 46.0f, .m32 = 0.0f, .m42 = 0.0f,
+        .m13 = 0.0f,  .m23 = 0.0f,  .m33 = 1.0f, .m43 = 0.0f,
+        .m14 = 0.0f,  .m24 = 0.0f,  .m34 = 0.0f, .m44 = 1.0f
+    }));
+}
+
+TEST_CASE(mat4_mul_associative_test, "[matrix4]") {
+    const matrix4 r = mat4_rotation_z(90.0f);
+    const matrix4 t = mat4_translate((vector3){.x = 1.0f, .y = 2.0f, .z = 3.0f});
+    const vector4 v = {.x = 1.0f, .y = 0.0f, .z = 0.0f, .w = 1.0f};
+    const vector4 left = mat4_mul_vec4(mat4_mul(t, r), v);
+    const vector4 right = mat4_mul_vec4(t, mat4_mul_vec4(r, v));
+    REQUIRE(vec4_near(left, right, EPSILON));
+    REQUIRE(vec4_near(left, (vector4){.x = 1.0f, .y = 3.0f, .z = 3.0f, .w = 1.0f}, EPSILON));
 }
 
 TEST_CASE(mat4_transpose_test, "[matrix4]") {

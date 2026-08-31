@@ -97,19 +97,18 @@ TEST_CASE(test_common_matrix_multiply_affine, "[common][matrix3,matrix4][multipl
     const matrix3 b = { .v = {9,8,7, 6,5,4, 3,2,1} };
     matrix3 result;
 
-    // Multiply
-    for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < 3; j++) {
+    /* Column-major GEMM: C[col*3 + row] = sum_k A[k*3 + row] * B[col*3 + k] */
+    for (int c = 0; c < 3; c++) {
+        for (int r = 0; r < 3; r++) {
             float sum = 0.0f;
             for (int k = 0; k < 3; k++) {
-                sum += a.v[i * 3 + k] * b.v[k * 3 + j];
+                sum += a.v[k * 3 + r] * b.v[c * 3 + k];
             }
-            result.v[i * 3 + j] = sum;
+            result.v[c * 3 + r] = sum;
         }
     }
-    // Expected result for multiplication (computed manually)
-    REQUIRE(VECMAT_EQ(result.v[0], 30.0f, EPSILON));  // i=0,j=0: 1*9 + 2*6 + 3*3
-    REQUIRE(VECMAT_EQ(result.v[4], 69.0f, EPSILON));  // i=1,j=1: 4*8 + 5*5 + 6*2
+    REQUIRE(VECMAT_EQ(result.v[0], 90.0f, EPSILON));  /* (AB) col0 row0 */
+    REQUIRE(VECMAT_EQ(result.v[4], 69.0f, EPSILON));  /* (AB) col1 row1 */
 
     // Affine matrix
     const vector3 trans = {.x = 10.0f, .y = 20.0f, .z = 30.0f};
