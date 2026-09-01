@@ -13,24 +13,21 @@ DOXYFILE = 'Doxyfile-mcss'
 
 MAIN_PROJECT_URL = 'https://github.com/alkavan/vecmat'
 
-# Default m.css dark theme. Stylesheet path is resolved against doxygen.py
-# (…/m.css/documentation/../css/…).
-
-# Dark Theme
+# Custom "Dark Fire" theme (doc/m-theme-dark-fire.css).
+# Variable sheet is local; m.css layout/components resolve against doxygen.py
+# (…/m.css/documentation/../css/…). See https://mcss.mosra.cz/css/themes/#make-your-own
 STYLESHEETS = [
     'https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600',
-    '../css/m-dark+documentation.compiled.css',
+    'm-theme-dark-fire.css',
+    '../css/m-grid.css',
+    '../css/m-components.css',
+    '../css/m-layout.css',
+    'pygments-dark-fire.css',
+    '../css/pygments-console.css',
+    '../css/m-documentation.css',
 ]
-THEME_COLOR = '#c0392b'
+THEME_COLOR = '#e25822'
 FAVICON = 'favicon-dark.png'
-
-# Light Theme
-#STYLESHEETS = [
-#    'https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600',
-#    '../css/m-light+documentation.compiled.css',
-#]
-#THEME_COLOR = '#cb4b16'
-#FAVICON = 'favicon-light.png'
 
 LINKS_NAVBAR1 = [
     ('Pages', 'pages', []),

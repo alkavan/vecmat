@@ -199,9 +199,11 @@ what a small research code can ship.
 
 * [Online Documentation](https://docs.tekfed.org/vecmat/latest/)
 
-API pages use the [m.css Doxygen theme](https://mcss.mosra.cz/documentation/doxygen/).
-`doc/conf.py` and `doc/Doxyfile-mcss` drive that pipeline. The stock Doxygen
-HTML theme is still available from the same `Doxyfile`.
+API pages use the [m.css Doxygen theme](https://mcss.mosra.cz/documentation/doxygen/)
+with a custom **Dark Fire** palette (`doc/m-theme-dark-fire.css`, orange/red
+embers, spark yellow, steel-blue info). `doc/conf.py` and `doc/Doxyfile-mcss`
+drive that pipeline. The stock Doxygen HTML theme is still available from the
+same `Doxyfile`.
 
 ### Generate local docs with m.css
 ```bash

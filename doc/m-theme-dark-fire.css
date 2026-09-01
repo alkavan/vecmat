@@ -1,0 +1,147 @@
+
+/*
+    Vecmat "Dark Fire" m.css theme.
+
+    Built as a custom :root variable sheet per
+    https://mcss.mosra.cz/css/themes/#make-your-own
+
+    Palette: charcoal ember backgrounds, orange/red flame accents,
+    spark yellow highlights, steel-blue used sparingly for info/comments.
+*/
+
+:root {
+  /* Text properties */
+  --font: 'Source Sans Pro', sans-serif;
+  --code-font: 'Source Code Pro', monospace;
+  --font-size: 16px;
+  --code-font-size: 0.9em; /* *not* rem, so it follows surrounding font size */
+  --line-height: normal;
+  --paragraph-indent: 1.5rem;
+  --paragraph-align: justify;
+  --link-decoration: underline;
+  --link-decoration-nav: none;
+  --link-decoration-heading: none;
+  --nav-brand-case: uppercase;
+  --nav-menu-case: none;
+  --nav-heading-case: uppercase;
+  --nav-categories-case: lowercase;
+  --landing-header-case: lowercase;
+  --heading-font-weight: 600;
+
+  /* Shapes */
+  --border-radius: 0.25rem;
+
+  /* Basics — burnt wood / cooling coal */
+  --background-color: #201410;
+  --color: #f3e6d8;
+  --line-color: #6b3220;
+  --link-color: #ff6b2c;
+  --link-active-color: #ffd166;
+  --mark-color: #1c100e;
+  --mark-background-color: #ffd166;
+  --code-color: #f6eade;
+  --code-inverted-color: rgba(246, 234, 222, 0.33);
+  --console-color: var(--code-color);
+  --console-inverted-color: var(--code-inverted-color);
+  --code-background-color: #160c0a;
+  --code-note-background-color: rgba(22, 12, 10, 0.55);
+  --console-background-color: #0e0908;
+  --button-background-color: #1c100e;
+
+  /* Header — darker coal with an ember underline */
+  --header-border-width: 0 0 0.25rem 0;
+  --header-color: #fff6ea;
+  --header-breadcrumb-color: #8a7368;
+  --header-background-color: #1c100e;
+  --header-background-color-landing: rgba(28, 16, 14, 0.82);
+  --header-background-color-jumbo: rgba(28, 16, 14, 0.28);
+  --header-link-color: #fff6ea;
+  --header-link-active-color: #ffd166;
+  --header-link-current-color: #ff6b2c;
+  --header-link-active-background-color: #2e1a14;
+  --header-link-active-background-color-semi: rgba(46, 26, 20, 0.55);
+
+  /* Footer */
+  --footer-font-size: 0.85rem;
+  --footer-color: #cbb8a8;
+  --footer-background-color: #3a2018;
+  --footer-link-color: #ffb347;
+  --footer-link-active-color: #ffd166;
+
+  /* Cover image */
+  --cover-image-background-color: #0e0908;
+
+  /* Search (used only by m-documentation.css) */
+  --search-overlay-color: var(--header-background-color-landing);
+  --search-background-color: var(--header-background-color);
+
+  /* Article */
+  --article-header-color: #fff1e0;
+  --article-footer-color: #cbb8a8;
+  --article-heading-color: #ffb347;
+  --article-heading-active-color: #ffd166;
+
+  /* Right navigation panel */
+  --navpanel-link-color: #fff6ea;
+  --navpanel-link-active-color: #ffd166;
+
+  /* Plots */
+  --plot-background-color: #4a2a1c;
+  --plot-error-color: #fff6ea;
+
+  /* Colored components */
+  --default-color: #f3e6d8;
+  --default-link-active-color: #ffd166;
+  --default-filled-color: #f3e6d8;
+  --default-filled-background-color: #4a2a1c;
+  --default-filled-link-color: #ff8a4a;
+  --default-filled-link-active-color: #ffd166;
+
+  /* Primary = flame orange */
+  --primary-color: #ff8a4a;
+  --primary-link-active-color: #ffd166;
+  --primary-filled-color: #1c100e;
+  --primary-filled-background-color: #ff6b2c;
+  --primary-filled-link-color: #7a1f18;
+  --primary-filled-link-active-color: #1c100e;
+
+  --success-color: #6bcf6b;
+  --success-link-active-color: #b8ecc0;
+  --success-filled-color: #b8ecc0;
+  --success-filled-background-color: #1f4a28;
+  --success-filled-link-color: #6bcf6b;
+  --success-filled-link-active-color: #b8ecc0;
+
+  /* Warning = spark yellow */
+  --warning-color: #ffd166;
+  --warning-link-active-color: #fff0b3;
+  --warning-filled-color: #1c100e;
+  --warning-filled-background-color: #8a6a12;
+  --warning-filled-link-color: #ffd166;
+  --warning-filled-link-active-color: #fff0b3;
+
+  /* Danger = coal red */
+  --danger-color: #e25822;
+  --danger-link-active-color: #ff9a7a;
+  --danger-filled-color: #ffb199;
+  --danger-filled-background-color: #7a1f18;
+  --danger-filled-link-color: #ff6b2c;
+  --danger-filled-link-active-color: #ffd166;
+
+  /* Info = steel / gas-flame blue (the cool accent) */
+  --info-color: #5ba4d9;
+  --info-link-active-color: #7ec2e8;
+  --info-filled-color: #d2ebf8;
+  --info-filled-background-color: #1e3a4d;
+  --info-filled-link-color: #7ec2e8;
+  --info-filled-link-active-color: #d2ebf8;
+
+  --dim-color: #8a7368;
+  --dim-link-color: #cbb8a8;
+  --dim-link-active-color: #8a7368;
+  --dim-filled-color: #8a7368;
+  --dim-filled-background-color: #2a1a16;
+  --dim-filled-link-color: #cbb8a8;
+  --dim-filled-link-active-color: #8a7368;
+  --dim-button-active-color: #cbb8a8;
+}
