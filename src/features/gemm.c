@@ -19,6 +19,7 @@
 #if defined(_WIN32)
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include <malloc.h>
 #else
 #include <unistd.h>
 #endif
@@ -831,7 +832,7 @@ static vm_float_t *vm_gemm_alloc_pack(const size_t need)
         bytes = 32u;
     }
     bytes = (bytes + 31u) & ~(size_t)31u;
-#if defined(_MSC_VER)
+#if defined(_WIN32)
     return (vm_float_t *)_aligned_malloc(bytes, 32);
 #else
     return (vm_float_t *)aligned_alloc(32, bytes);
@@ -845,7 +846,7 @@ static vm_float_t *vm_gemm_alloc_pack(const size_t need)
  */
 static void vm_gemm_free_pack(vm_float_t *p)
 {
-#if defined(_MSC_VER)
+#if defined(_WIN32)
     _aligned_free(p);
 #else
     free(p);
