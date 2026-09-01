@@ -106,6 +106,8 @@ WARN_LOGFILE           =
 # Ingest public headers and all implementation / SIMD sources.
 INPUT                  = ../include \
                          ../src \
+                         ../test/except.h \
+                         ../test/unitest.h \
                          ../README.md
 INPUT_ENCODING         = UTF-8
 FILE_PATTERNS          = *.c \

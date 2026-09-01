@@ -382,7 +382,7 @@ vector2 vec2_tangent(const vector2 v)
 
 /**
  * @brief Rotates the input vector counterclockwise by the given angle (radians).
- * @see vec2_rotate_ptr`
+ * @see vec2_rotate_ptr
  *
  * @param v The input vector.
  * @param radians The rotation angle in radians.

@@ -135,17 +135,12 @@ static int vm_gemm_pick_threads(const int batch, const int M, const int N, const
  * @brief One parallel-for chunk: invoke `fn(begin, end, ctx)`.
  *
  * Filled by `vm_gemm_parallel_for` and passed to worker entry points.
- *
- * @param begin First index (inclusive).
- * @param end   Last index (exclusive).
- * @param fn    Callback for this subrange.
- * @param ctx   Opaque pointer forwarded to `fn`.
  */
 typedef struct {
-    int begin;
-    int end;
-    void (*fn)(int begin, int end, void *ctx);
-    void *ctx;
+    int begin; /**< First index (inclusive). */
+    int end;   /**< Last index (exclusive). */
+    void (*fn)(int begin, int end, void *ctx); /**< Callback for this subrange. */
+    void *ctx; /**< Opaque pointer forwarded to `fn`. */
 } vm_gemm_job;
 
 #if defined(VECMAT_HAS_THREADS) && defined(_WIN32) && defined(_MSC_VER)

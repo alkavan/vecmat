@@ -288,8 +288,8 @@ void mat3_mul_vec2_ptr(vector2 *res, const matrix3 *m, const vector2 *v)
 /**
  * @brief Performs one Jacobi rotation step for symmetric matrix eigenvalue decomposition.
  *
- * Rotates the matrix @a to eliminate the off-diagonal element at (p,q) using a Givens rotation
- * if its magnitude exceeds the given tolerance. The accumulated eigenvectors in @v are updated
+ * Rotates the matrix `a` to eliminate the off-diagonal element at (p,q) using a Givens rotation
+ * if its magnitude exceeds the given tolerance. The accumulated eigenvectors in `v` are updated
  * with the same rotation.
  *
  * @param a Pointer to the symmetric matrix being diagonalized (modified in-place).

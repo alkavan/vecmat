@@ -1,4 +1,4 @@
-# small to Vecmat
+# Contributing to Vecmat
 
 We don't have any complicated rules for contributing yet.  
 We expect people to comply with the project [Philosophy](https://github.com/alkavan/vecmat/blob/master/README.md#Philosophy)
