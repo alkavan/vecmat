@@ -4,6 +4,8 @@
 
 #include <vecmat.h>
 #include "features/cpu.h"
+#undef VECMAT_ABI_H
+#include <vecmat_abi.h>
 
 /**
  * @brief Sets the quaternion to the identity quaternion (x=0, y=0, z=0, w=1).

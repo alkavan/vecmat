@@ -6,6 +6,16 @@
 #include <vecmat.h>
 
 /**
+ * @brief Reports the `vm_float_t` width baked into this library build.
+ *
+ * @return 32 or 64.
+ */
+int vm_compiled_float_bits(void)
+{
+    return VECMAT_FLOAT_BITS;
+}
+
+/**
  * @brief Converts degrees to radians.
  *
  * @param degrees Angle in degrees.

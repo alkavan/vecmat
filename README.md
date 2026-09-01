@@ -357,6 +357,17 @@ cc -DVECMAT_USE_F64 -DVECMAT_USE_INT16 ...
 The library and every translation unit that includes `vecmat.h` must use the same
 set of macros, or the types will not match at link time.
 
+Float APIs are exported with a precision suffix so an f32 object cannot silently
+link against an f64 library (and vice versa). Call sites still use `vec2_add`;
+the linker symbol is `vec2_add32` or `vec2_add64`. Integer-only APIs and
+`vm_cpu_*` stay unsuffixed. Artifacts are named `libvecmat_f32` or
+`libvecmat_f64` (`vecmat_f32` / `vecmat_f64` on Windows). CMake target names
+(`vecmat::vecmat`, `vecmat::vecmat_static`) are unchanged.
+
+`vm_compiled_float_bits()` returns the width baked into the library. Compare it
+to `VECMAT_FLOAT_BITS` from the header, or call `vm_abi_mismatch()` (non-zero
+on a header/library mismatch). That tripwire stays unsuffixed on purpose.
+
 ## Contributing
 
 We don't have any complicated rules for contributing (for now), we only expect

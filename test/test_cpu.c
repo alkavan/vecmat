@@ -10,6 +10,18 @@
 #include <pthread.h>
 #endif
 
+TEST_CASE(abi_float_bits_match_header, "[abi]") {
+    REQUIRE(vm_compiled_float_bits() == VECMAT_FLOAT_BITS);
+    REQUIRE(vm_abi_mismatch() == 0);
+#if defined(VECMAT_USE_F64)
+    REQUIRE(VECMAT_FLOAT_BITS == 64);
+    REQUIRE(vm_compiled_float_bits() == 64);
+#else
+    REQUIRE(VECMAT_FLOAT_BITS == 32);
+    REQUIRE(vm_compiled_float_bits() == 32);
+#endif
+}
+
 TEST_CASE(cpu_features_test, "[cpu]") {
     vm_cpu_init();
 

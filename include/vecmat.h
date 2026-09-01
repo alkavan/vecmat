@@ -84,9 +84,16 @@ static const double VM_RAD_TO_DEG_F64 = 57.295779513082320876798154814105;
 
 #ifdef VECMAT_USE_F64
 typedef double vm_float_t;
+#define VECMAT_FLOAT_BITS 64
 #else
 typedef float vm_float_t;
+#define VECMAT_FLOAT_BITS 32
 #endif
+
+#define VECMAT_ABI_SUFFIX VECMAT_FLOAT_BITS
+#define VECMAT_PASTE2(a, b) a##b
+#define VECMAT_PASTE(a, b) VECMAT_PASTE2(a, b)
+#define VECMAT_MANGLE(n) VECMAT_PASTE(n, VECMAT_ABI_SUFFIX)
 
 #ifdef VECMAT_USE_F64
 static const vm_float_t VM_DEG_TO_RAD = VM_DEG_TO_RAD_F64;
@@ -658,6 +665,30 @@ VEC_API vm_cpu_features_t vm_cpu_runtime_features(void);
 VEC_API vm_cpu_features_t vm_cpu_selected_features(void);
 VEC_API const char *vm_cpu_name(vm_cpu_features_t features);
 VEC_API void vm_cpu_init(void);
+
+/**
+ * @brief Width of `vm_float_t` the linked library was compiled with.
+ *
+ * Compare with `VECMAT_FLOAT_BITS` from this header (see `vm_abi_mismatch`).
+ * This symbol is intentionally unsuffixed so an f32 application can still
+ * call it when linked against an f64 library (and vice versa).
+ */
+VEC_API int vm_compiled_float_bits(void);
+
+/**
+ * @brief Non-zero if this translation unit's `VECMAT_FLOAT_BITS` does not
+ *        match the linked library.
+ */
+static inline int vm_abi_mismatch(void)
+{
+    return vm_compiled_float_bits() != VECMAT_FLOAT_BITS;
+}
+
+/*
+ * Rewrite public float-ABI identifiers to name32 / name64. Call sites keep
+ * using the unsuffixed names. Integer-only APIs and vm_cpu_* stay as-is.
+ */
+#include "vecmat_abi.h"
 
 /*******************************************************************************
  * Floating-point vector functions

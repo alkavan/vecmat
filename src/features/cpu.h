@@ -6,6 +6,7 @@
 #define VECMAT_CPU_H
 
 #include <vecmat.h>
+#include "dispatch_unmangle.h"
 #include "dispatch_list.h"
 
 /*

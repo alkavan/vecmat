@@ -5,6 +5,8 @@
 #include <string.h>
 #include <vecmat.h>
 #include "features/cpu.h"
+#undef VECMAT_ABI_H
+#include <vecmat_abi.h>
 
 /**
  * @brief Sets the matrix to the identity matrix.

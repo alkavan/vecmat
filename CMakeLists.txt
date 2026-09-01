@@ -136,16 +136,23 @@ set(VECMAT_SOURCES
 add_library(vecmat_shared SHARED ${VECMAT_SOURCES})
 add_library(vecmat_static STATIC ${VECMAT_SOURCES})
 
+if(VECMAT_USE_F64)
+    set(_vecmat_output_name vecmat_f64)
+else()
+    set(_vecmat_output_name vecmat_f32)
+endif()
+
 set_target_properties(vecmat_shared PROPERTIES
-        OUTPUT_NAME vecmat
+        OUTPUT_NAME ${_vecmat_output_name}
         EXPORT_NAME vecmat         # exported as vecmat::vecmat
         VERSION ${PROJECT_VERSION}
         SOVERSION ${PROJECT_VERSION_MAJOR}
 )
 set_target_properties(vecmat_static PROPERTIES
-        OUTPUT_NAME vecmat
+        OUTPUT_NAME ${_vecmat_output_name}
         EXPORT_NAME vecmat_static  # exported as vecmat::vecmat_static
 )
+unset(_vecmat_output_name)
 
 # Namespaced aliases for in-tree / FetchContent consumers
 add_library(vecmat::vecmat ALIAS vecmat_shared)

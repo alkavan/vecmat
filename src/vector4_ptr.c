@@ -4,6 +4,8 @@
 
 #include <vecmat.h>
 #include "features/cpu.h"
+#undef VECMAT_ABI_H
+#include <vecmat_abi.h>
 
 /**
  * @brief Performs component-wise addition of two vector4.
