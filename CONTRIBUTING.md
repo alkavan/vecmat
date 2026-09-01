@@ -1,4 +1,4 @@
-# Contributing to Vecmat
+# small to Vecmat
 
 We don't have any complicated rules for contributing yet.  
 We expect people to comply with the project [Philosophy](https://github.com/alkavan/vecmat/blob/master/README.md#Philosophy)
@@ -21,7 +21,7 @@ Use of AI is neither prohibited nor encouraged. You may use AI only if you follo
 
 ### AI Disclosure
 If you add AI-generated material to a contribution or derivative work, say so clearly in the pull request, and only in
-rare situations in commit message or comments. *We encourage personal responsible on the matter.* 
+rare situations in commit message or comments. *We encourage personal responsibility on the matter.* 
 
 ### AI Training
 If you train an AI system on this code for making your contributions (embeddings, etc.),
