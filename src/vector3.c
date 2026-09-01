@@ -602,6 +602,7 @@ vector3 vec3_reject(const vector3 a, const vector3 b)
 
 /**
  * @brief Rotates v around axis by angle radians.
+ *
  * @see vec3_rotate_axis_ptr
  *
  * @param v Input vector.

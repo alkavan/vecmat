@@ -382,6 +382,7 @@ vector2 vec2_tangent(const vector2 v)
 
 /**
  * @brief Rotates the input vector counterclockwise by the given angle (radians).
+ *
  * @see vec2_rotate_ptr
  *
  * @param v The input vector.
@@ -670,6 +671,7 @@ vector2 vec2_splat(const vm_float_t s)
 
 /**
  * @brief Returns the unit vector at the given angle in radians.
+ *
  * @see vec2_from_angle_ptr
  *
  * @param radians Angle in radians.
@@ -697,6 +699,7 @@ vector2 vec2_from_angle_deg(const vm_float_t degrees)
 
 /**
  * @brief Rotates v around pivot by angle radians.
+ *
  * @see vec2_rotate_around_ptr
  *
  * @param v Input vector.

@@ -127,6 +127,7 @@ void quat_from_euler_ptr(quaternion *res, const vector3 *euler)
 
 /**
  * @brief Converts Euler angles in degrees to a quaternion.
+ *
  * @see quat_from_euler_ptr
  *
  * @param res Pointer to the quaternion to store the result.

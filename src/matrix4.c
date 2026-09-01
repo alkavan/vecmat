@@ -66,6 +66,7 @@ matrix4 mat4_inverse(const matrix4 m)
 
 /**
  * @brief Inverse of an affine matrix `[R t; 0 1]`.
+ *
  * @see mat4_inverse_affine_ptr
  *
  * @param m Affine 4×4 matrix.
@@ -1048,6 +1049,7 @@ matrix4 mat4_infinite_reverse_z_clip_deg(const vm_float_t fov_y_deg, const vm_fl
 
 /**
  * @brief Projects a world space point to window coordinates.
+ *
  * @see vec3_world_to_window_ptr
  *
  * @param world World space position to project.

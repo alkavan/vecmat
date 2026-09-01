@@ -475,6 +475,7 @@ void vec2_reject_ptr(vector2 *res, const vector2 *a, const vector2 *b)
 
 /**
  * @brief Rotates v around pivot by angle radians.
+ *
  * @see vec2_rotate_ptr
  *
  * @param res Output vector.

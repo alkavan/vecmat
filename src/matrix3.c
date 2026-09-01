@@ -167,6 +167,7 @@ matrix3 mat3_rotation_x_deg(const vm_float_t degrees)
 
 /**
  * @brief Constructs a 3x3 rotation matrix around the Y axis.
+ *
  * @see `mat3_rotation_y_ptr`
  *
  * @param radians The rotation angle in radians.

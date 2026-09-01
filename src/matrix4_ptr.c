@@ -1011,6 +1011,7 @@ void mat4_perspective_infinite_clip_ptr(matrix4 *res, const vm_float_t fov_y,
 
 /**
  * @brief Infinite perspective matrix from FOV in degrees and clip space.
+ *
  * @see mat4_perspective_infinite_clip_ptr
  *
  * @param res       Output 4×4 matrix.
@@ -1028,6 +1029,7 @@ void mat4_perspective_infinite_clip_deg_ptr(matrix4 *res, const vm_float_t fov_y
 
 /**
  * @brief Infinite reverse-Z perspective matrix (RH, [0, 1] depth).
+ *
  * @see mat4_infinite_reverse_z_clip_ptr
  *
  * @param res    Output 4×4 matrix.

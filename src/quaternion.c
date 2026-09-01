@@ -6,6 +6,7 @@
 
 /**
  * @brief Constructs the identity quaternion.
+ *
  * @see quat_identity_ptr
  *
  * @return The identity quaternion.
@@ -19,6 +20,7 @@ quaternion quat_identity(void)
 
 /**
  * @brief Multiplies two quaternions (a * b).
+ *
  * @see quat_mul_ptr
  *
  * @param a The first quaternion.
@@ -34,6 +36,7 @@ quaternion quat_mul(const quaternion a, const quaternion b)
 
 /**
  * @brief Normalizes a quaternion.
+ *
  * @see quat_normalize_ptr
  *
  * @param q The input quaternion.
@@ -48,6 +51,7 @@ quaternion quat_normalize(const quaternion q)
 
 /**
  * @brief Constructs a quaternion from Euler angles.
+ *
  * @see quat_from_euler_ptr
  *
  * @param euler Euler angles in radians.
@@ -62,6 +66,7 @@ quaternion quat_from_euler(const vector3 euler)
 
 /**
  * @brief Constructs a quaternion from Euler angles in degrees.
+ *
  * @see quat_from_euler_deg_ptr
  *
  * @param euler_deg Euler angles in degrees.
@@ -76,6 +81,7 @@ quaternion quat_from_euler_deg(const vector3 euler_deg)
 
 /**
  * @brief Converts a quaternion to a 4x4 rotation matrix.
+ *
  * @see quat_to_mat4_ptr
  *
  * @param q The input quaternion.
@@ -90,6 +96,7 @@ matrix4 quat_to_mat4(const quaternion q)
 
 /**
  * @brief Returns the conjugate of a quaternion.
+ *
  * @see quat_conjugate_ptr
  *
  * @param q Input quaternion.
@@ -104,6 +111,7 @@ quaternion quat_conjugate(const quaternion q)
 
 /**
  * @brief Returns the inverse of a quaternion.
+ *
  * @see quat_inverse_ptr
  *
  * @param q Input quaternion.
@@ -118,6 +126,7 @@ quaternion quat_inverse(const quaternion q)
 
 /**
  * @brief Constructs a quaternion from a rotation axis and angle.
+ *
  * @see quat_from_axis_angle_ptr
  *
  * @param axis The rotation axis. Must be normalized.
@@ -133,6 +142,7 @@ quaternion quat_from_axis_angle(const vector3 axis, const vm_float_t radians)
 
 /**
  * @brief Constructs a quaternion from an axis and an angle in degrees.
+ *
  * @see quat_from_axis_angle_deg_ptr
  *
  * @param axis The rotation axis.
@@ -148,6 +158,7 @@ quaternion quat_from_axis_angle_deg(const vector3 axis, const vm_float_t degrees
 
 /**
  * @brief Builds a quaternion from a 3x3 rotation matrix.
+ *
  * @see quat_from_mat3_ptr
  *
  * @param m Input matrix.
@@ -162,6 +173,7 @@ quaternion quat_from_mat3(const matrix3 m)
 
 /**
  * @brief Builds a quaternion from the rotation of a 4x4 matrix.
+ *
  * @see quat_from_mat4_ptr
  *
  * @param m Input matrix.
@@ -176,6 +188,7 @@ quaternion quat_from_mat4(const matrix4 m)
 
 /**
  * @brief Spherical-linearly interpolates from a to b by t.
+ *
  * @see quat_slerp_ptr
  *
  * @param a First input quaternion.
@@ -192,6 +205,7 @@ quaternion quat_slerp(const quaternion a, const quaternion b, const vm_float_t t
 
 /**
  * @brief Normalized-linearly interpolates from a to b by t.
+ *
  * @see quat_nlerp_ptr
  *
  * @param a First input quaternion.
@@ -208,6 +222,7 @@ quaternion quat_nlerp(const quaternion a, const quaternion b, const vm_float_t t
 
 /**
  * @brief Rotates a vector3 by a quaternion.
+ *
  * @see quat_rotate_vec3_ptr
  *
  * @param q Input quaternion.
@@ -223,6 +238,7 @@ vector3 quat_rotate_vec3(const quaternion q, const vector3 v)
 
 /**
  * @brief Converts a quaternion to Euler angles in degrees (XYZ).
+ *
  * @see quat_to_euler_ptr
  *
  * @param q Input quaternion.
@@ -237,6 +253,7 @@ vector3 quat_to_euler(const quaternion q)
 
 /**
  * @brief Converts a quaternion to Euler angles in degrees.
+ *
  * @see quat_to_euler_deg_ptr
  *
  * @param q The quaternion to convert.
@@ -251,6 +268,7 @@ vector3 quat_to_euler_deg(const quaternion q)
 
 /**
  * @brief Converts a quaternion to axis-angle representation.
+ *
  * @see quat_to_axis_angle_ptr
  *
  * @param q The input quaternion.
@@ -266,6 +284,7 @@ vector3 quat_to_axis_angle(const quaternion q, vm_float_t *radians)
 
 /**
  * @brief Converts a quaternion to axis-angle representation in degrees.
+ *
  * @see quat_to_axis_angle_deg_ptr
  *
  * @param q Input quaternion.
@@ -281,6 +300,7 @@ vector3 quat_to_axis_angle_deg(const quaternion q, vm_float_t *degrees)
 
 /**
  * @brief Converts a quaternion to a 3x3 rotation matrix.
+ *
  * @see quat_to_mat3_ptr
  *
  * @param q Input quaternion.
