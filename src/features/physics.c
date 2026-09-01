@@ -273,7 +273,7 @@ matrix3 vm_inertia_world(const matrix3 ib, const quaternion q)
  * @param L Angular momentum.
  * @return Angular velocity, or the zero vector if the solve fails.
  */
-vector3 vm_omega_from_L(const matrix3 I, const vector3 L)
+vector3 vm_omega_from_angmom(const matrix3 I, const vector3 L)
 {
     vector3 w = { 0 };
     if (!mat3_spd_solve(I, L, &w)) {

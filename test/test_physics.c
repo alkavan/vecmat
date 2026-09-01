@@ -281,7 +281,7 @@ TEST_CASE(vm_omega_from_L_matches, "[physics]") {
     };
     const vector3 w0 = { .x = 1, .y = 2, .z = 3 };
     const vector3 L = mat3_mul_vec3(I, w0);
-    const vector3 w = vm_omega_from_L(I, L);
+    const vector3 w = vm_omega_from_angmom(I, L);
     REQUIRE(vec3_near(w, w0, EPSILON * VM_F(20.0)));
 }
 

@@ -1605,7 +1605,7 @@ VEC_API vm_float_t vm_cfl_dt(vm_float_t cfl, vm_float_t dx, vm_float_t speed);
 VEC_API bool mat3_chol(matrix3 a, matrix3 *L);
 VEC_API bool mat3_spd_solve(matrix3 a, vector3 b, vector3 *x);
 VEC_API matrix3 vm_inertia_world(matrix3 ib, quaternion q);
-VEC_API vector3 vm_omega_from_L(matrix3 I, vector3 L);
+VEC_API vector3 vm_omega_from_angmom(matrix3 I, vector3 L);
 VEC_API vm_float_t vm_rigid_energy(vm_float_t mass, vector3 v, matrix3 I, vector3 w);
 VEC_API void vm_rigid_step(vector3 *x, vector3 *v, quaternion *q, vector3 *w, vector3 F,
     vector3 tau, vm_float_t mass, matrix3 I_body, vm_float_t dt);
