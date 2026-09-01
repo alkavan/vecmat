@@ -504,11 +504,11 @@ TEST_CASE(vm_gemm_batch_threaded_matches_ref, "[gemm]") {
     vm_gemm_set_threads(2);
     REQUIRE(vm_gemm_threads() == 2);
 
-    const int M = 16, N = 16, K = 16, batch = 4;
-    vm_float_t A[4][16 * 16];
-    vm_float_t B[16 * 16];
-    vm_float_t C[4][16 * 16];
-    vm_float_t C_ref[4][16 * 16];
+    const int M = 32, N = 32, K = 32, batch = 4;
+    vm_float_t A[4][32 * 32];
+    vm_float_t B[32 * 32];
+    vm_float_t C[4][32 * 32];
+    vm_float_t C_ref[4][32 * 32];
     vm_float_t *Cp[4];
     const vm_float_t *Ap[4];
     const vm_float_t *Bp[4];

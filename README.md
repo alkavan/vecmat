@@ -125,16 +125,29 @@ Use `*_deg` or `VM_DEG(...)` when the angle is in degrees:
 
 #### GEMM (General Matrix–Matrix Multiplication — BLAS Standard)
 
-- `vm_gemm` is a blocked, packed `C = α op(A) op(B) + β C` for arbitrary dense panels (row- or column-major, optional
-  transposes). Tiles are packed into an 8×8-friendly layout on a reusable heap workspace; the inner kernel is dispatched
-  to AVX / AVX2 / AVX-512F / SVE / SVE2 (scalar otherwise). `vm_gemm_ref` is the triple-loop reference used by tests.
-- `vm_gemm_ex` adds an optional fused bias (`C(i,j) += bias[j]`) and/or ReLU epilogue.
-- `vm_gemm_batch` / `vm_gemm_strided_batch` pack a shared `B` once when every problem uses the same weights
-  (`B[p]` identical, or `strideB == 0`). The batch is threaded with pthreads / Win32 by default (not OpenMP);
-  `vm_gemm_set_threads(n)` or `VECMAT_GEMM_THREADS` caps the workers (`1` disables, `0` is hardware auto).
-  Tiny batches stay serial so a single small GEMM does not pay spawn cost.
-- `vm_im2col` writes an NCHW image to a GEMM-ready panel for convolution. fp16 / bf16 are not in this release.
+BLAS-style dense multiply:
 
+`C = alpha * op(A) * op(B) + beta * C`
+
+where `op(X)` is `X` or `X` transposed. Row-major and column-major layouts are supported.
+
+- **`vm_gemm`** — Main routine for ordinary dense panels.
+- **`vm_gemm_ref`** — Simple triple-loop reference (tests / fallback).
+- **`vm_gemm_ex`** — Same as `vm_gemm`, plus optional bias (`C(i,j) += bias[j]`) and/or ReLU.
+- **`vm_gemm_batch`** / **`vm_gemm_strided_batch`** — Many same-shaped problems at once (pointer list, or fixed strides
+  in one buffer).
+
+If every problem shares the same `B` (identical pointers, or `strideB == 0`), that matrix is packed once and reused —
+the usual “shared weights, many inputs” case.
+
+Large batches can use a small worker pool (not OpenMP). Cap or disable it with `vm_gemm_set_threads(n)` or
+`VECMAT_GEMM_THREADS` (`1` = serial, `0` = auto). Tiny jobs stay serial so thread setup does not dominate; workers are
+reused across calls.
+
+**`vm_im2col`** unfolds an NCHW image into a GEMM-ready panel for convolution.
+
+Internally, large multiplies use blocking/packing; with runtime dispatch the inner kernel may use AVX / AVX2 / AVX-512 /
+SVE / SVE2, otherwise scalar. fp16 / bf16 are not in this release.
 #### Dense Linear Algebra
 
 - Heap `vm_mat` (M×N, column-major) for general dense work beyond the fixed 2×2 / 3×3 / 4×4 types.

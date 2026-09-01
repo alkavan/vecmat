@@ -4,6 +4,7 @@
 
 #include <errno.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <vecmat.h>
 #include "cpu.h"
@@ -30,12 +31,23 @@
 #endif
 #endif
 
-enum { VM_GEMM_MAX_THREADS = 16 };
+enum {
+    VM_GEMM_MAX_THREADS = 16,
+    /* Serial below this many mul-adds; pthread_create is tens of microseconds. */
+    VM_GEMM_THREAD_MIN_FLOPS = 131072,
+    /* Do not split a batch thinner than this many problems per worker. */
+    VM_GEMM_THREAD_MIN_PER_WORKER = 2,
+    /* Stack pointer arrays for strided batch when batch is at most this. */
+    VM_GEMM_STRIDE_STACK = 32
+};
 
 /**
  * @brief GEMM thread budget: `0` = auto, `1` = serial, `N` = cap at N.
  */
 static int vm_gemm_thread_limit;
+
+/** Cached `VECMAT_GEMM_THREADS` (`0` = unset / invalid). */
+static int vm_gemm_env_threads;
 
 /**
  * @brief Cap or force the GEMM worker-thread budget.
@@ -83,16 +95,21 @@ int vm_gemm_threads(void)
     if (vm_gemm_thread_limit > 0) {
         return vm_gemm_thread_limit;
     }
-    const char *env = getenv("VECMAT_GEMM_THREADS");
-    if (env && env[0] != '\0') {
-        char *end = NULL;
-        errno = 0;
-        const long n = strtol(env, &end, 10);
-        if (errno != 0 || end == env || *end != '\0' || n <= 0 || n > VEC_INT_MAX) {
-            /* ignore / fall through to default */
-        } else {
-            return (int)n;
+    if (vm_gemm_env_threads == 0) {
+        const char *env = getenv("VECMAT_GEMM_THREADS");
+        int parsed = -1; /* -1 = absent / invalid → hardware default */
+        if (env && env[0] != '\0') {
+            char *end = NULL;
+            errno = 0;
+            const long n = strtol(env, &end, 10);
+            if (errno == 0 && end != env && *end == '\0' && n > 0 && n <= VEC_INT_MAX) {
+                parsed = (int)n;
+            }
         }
+        vm_gemm_env_threads = parsed;
+    }
+    if (vm_gemm_env_threads > 0) {
+        return vm_gemm_env_threads;
     }
     return vm_gemm_hw_threads();
 }
@@ -100,7 +117,8 @@ int vm_gemm_threads(void)
 /**
  * @brief Choose how many workers to use for a batched GEMM.
  *
- * Returns 1 for a single problem or tiny total FLOPs. Otherwise takes
+ * Returns 1 for a single problem, insufficient items per worker, or
+ * tiny total FLOPs (spawn cost dominates). Otherwise takes
  * `vm_gemm_threads()`, clamped to `[1, batch]` and `VM_GEMM_MAX_THREADS`.
  *
  * @param batch Number of independent GEMMs.
@@ -115,7 +133,7 @@ static int vm_gemm_pick_threads(const int batch, const int M, const int N, const
         return 1;
     }
     const long long flops = (long long)M * (long long)N * (long long)K * (long long)batch;
-    if (flops < 4096) {
+    if (flops < (long long)VM_GEMM_THREAD_MIN_FLOPS) {
         return 1;
     }
     int t = vm_gemm_threads();
@@ -127,6 +145,15 @@ static int vm_gemm_pick_threads(const int batch, const int M, const int N, const
     }
     if (t > VM_GEMM_MAX_THREADS) {
         t = VM_GEMM_MAX_THREADS;
+    }
+    if (t > 1 && batch < t * VM_GEMM_THREAD_MIN_PER_WORKER) {
+        t = batch / VM_GEMM_THREAD_MIN_PER_WORKER;
+    }
+    while (t > 1 && flops / (long long)t < (long long)(VM_GEMM_THREAD_MIN_FLOPS / 4)) {
+        t--;
+    }
+    if (t < 1) {
+        t = 1;
     }
     return t;
 }
@@ -143,42 +170,200 @@ typedef struct {
     void *ctx; /**< Opaque pointer forwarded to `fn`. */
 } vm_gemm_job;
 
-#if defined(VECMAT_HAS_THREADS) && defined(_WIN32) && defined(_MSC_VER)
+#if defined(VECMAT_HAS_THREADS)
+
 /**
- * @brief Win32 worker entry for a GEMM parallel-for job.
+ * @brief Persistent GEMM worker pool (create once, wait on condvars).
  *
- * @param arg Pointer to a `vm_gemm_job`.
+ * Slot 0 is reserved for the caller thread. Workers 1..MAX-1 sleep until a
+ * generation is posted, run their slot, then signal completion.
+ */
+static vm_gemm_job vm_gemm_pool_jobs[VM_GEMM_MAX_THREADS];
+static int vm_gemm_pool_parts;
+static int vm_gemm_pool_finished;
+static unsigned vm_gemm_pool_gen;
+static int vm_gemm_pool_ready;
+static int vm_gemm_pool_nworkers;
+
+#if defined(_WIN32) && defined(_MSC_VER)
+static SRWLOCK vm_gemm_pool_lock = SRWLOCK_INIT;
+static CONDITION_VARIABLE vm_gemm_pool_work = CONDITION_VARIABLE_INIT;
+static CONDITION_VARIABLE vm_gemm_pool_idle = CONDITION_VARIABLE_INIT;
+static HANDLE vm_gemm_pool_handles[VM_GEMM_MAX_THREADS];
+
+/**
+ * @brief Win32 pool worker: wait for a generation, run slot `idx`.
+ *
+ * @param arg Worker index as `INT_PTR` (1 .. MAX-1).
  * @return 0.
  */
-static DWORD WINAPI vm_gemm_job_win(LPVOID arg)
+static DWORD WINAPI vm_gemm_pool_worker_win(LPVOID arg)
 {
-    const vm_gemm_job *j = (const vm_gemm_job *)arg;
-    j->fn(j->begin, j->end, j->ctx);
-    return 0;
+    const int idx = (int)(INT_PTR)arg;
+    unsigned seen = 0;
+    for (;;) {
+        AcquireSRWLockExclusive(&vm_gemm_pool_lock);
+        while (vm_gemm_pool_gen == seen) {
+            SleepConditionVariableSRW(&vm_gemm_pool_work, &vm_gemm_pool_lock, INFINITE, 0);
+        }
+        seen = vm_gemm_pool_gen;
+        const vm_gemm_job job = vm_gemm_pool_jobs[idx];
+        const int active = (idx < vm_gemm_pool_parts);
+        ReleaseSRWLockExclusive(&vm_gemm_pool_lock);
+        if (active && job.fn) {
+            job.fn(job.begin, job.end, job.ctx);
+        }
+        AcquireSRWLockExclusive(&vm_gemm_pool_lock);
+        vm_gemm_pool_finished++;
+        WakeConditionVariable(&vm_gemm_pool_idle);
+        ReleaseSRWLockExclusive(&vm_gemm_pool_lock);
+    }
 }
-#elif defined(VECMAT_HAS_THREADS)
+
 /**
- * @brief pthreads worker entry for a GEMM parallel-for job.
+ * @brief Start Win32 pool workers on first use.
+ */
+static void vm_gemm_pool_init(void)
+{
+    if (vm_gemm_pool_ready) {
+        return;
+    }
+    AcquireSRWLockExclusive(&vm_gemm_pool_lock);
+    if (!vm_gemm_pool_ready) {
+        int started = 0;
+        for (int i = 0; i < VM_GEMM_MAX_THREADS - 1; ++i) {
+            HANDLE h = CreateThread(NULL, 0, vm_gemm_pool_worker_win,
+                                    (LPVOID)(INT_PTR)(i + 1), 0, NULL);
+            if (h) {
+                vm_gemm_pool_handles[started++] = h;
+            }
+        }
+        vm_gemm_pool_nworkers = started;
+        vm_gemm_pool_ready = 1;
+    }
+    ReleaseSRWLockExclusive(&vm_gemm_pool_lock);
+}
+
+#else /* pthreads */
+
+static pthread_mutex_t vm_gemm_pool_lock = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t vm_gemm_pool_work = PTHREAD_COND_INITIALIZER;
+static pthread_cond_t vm_gemm_pool_idle = PTHREAD_COND_INITIALIZER;
+static pthread_t vm_gemm_pool_ids[VM_GEMM_MAX_THREADS];
+
+/**
+ * @brief pthreads pool worker: wait for a generation, run slot `idx`.
  *
- * @param arg Pointer to a `vm_gemm_job`.
+ * @param arg Worker index as `intptr_t` (1 .. MAX-1).
  * @return NULL.
  */
-static void *vm_gemm_job_pthread(void *arg)
+static void *vm_gemm_pool_worker_pthread(void *arg)
 {
-    const vm_gemm_job *j = (const vm_gemm_job *)arg;
-    j->fn(j->begin, j->end, j->ctx);
-    return NULL;
+    const int idx = (int)(intptr_t)arg;
+    unsigned seen = 0;
+    for (;;) {
+        pthread_mutex_lock(&vm_gemm_pool_lock);
+        while (vm_gemm_pool_gen == seen) {
+            pthread_cond_wait(&vm_gemm_pool_work, &vm_gemm_pool_lock);
+        }
+        seen = vm_gemm_pool_gen;
+        const vm_gemm_job job = vm_gemm_pool_jobs[idx];
+        const int active = (idx < vm_gemm_pool_parts);
+        pthread_mutex_unlock(&vm_gemm_pool_lock);
+        if (active && job.fn) {
+            job.fn(job.begin, job.end, job.ctx);
+        }
+        pthread_mutex_lock(&vm_gemm_pool_lock);
+        vm_gemm_pool_finished++;
+        pthread_cond_signal(&vm_gemm_pool_idle);
+        pthread_mutex_unlock(&vm_gemm_pool_lock);
+    }
 }
-#endif
 
+/**
+ * @brief Start pthreads pool workers on first use.
+ */
+static void vm_gemm_pool_init(void)
+{
+    if (vm_gemm_pool_ready) {
+        return;
+    }
+    pthread_mutex_lock(&vm_gemm_pool_lock);
+    if (!vm_gemm_pool_ready) {
+        vm_gemm_pool_nworkers = VM_GEMM_MAX_THREADS - 1;
+        int started = 0;
+        for (int i = 0; i < vm_gemm_pool_nworkers; ++i) {
+            if (pthread_create(&vm_gemm_pool_ids[i], NULL, vm_gemm_pool_worker_pthread,
+                               (void *)(intptr_t)(i + 1)) == 0) {
+                started++;
+            }
+        }
+        vm_gemm_pool_nworkers = started;
+        vm_gemm_pool_ready = 1;
+    }
+    pthread_mutex_unlock(&vm_gemm_pool_lock);
+}
+
+#endif /* pthreads vs Win32 */
+
+/**
+ * @brief Publish slots and wake sleeping pool workers.
+ *
+ * The caller runs slot 0 itself after this returns. Workers whose index
+ * is >= `parts` still observe the generation (so they do not stay stuck
+ * on a stale `seen`) and count as finished without calling `fn`.
+ *
+ * @param parts Number of job slots filled in `vm_gemm_pool_jobs`.
+ */
+static void vm_gemm_pool_post(const int parts)
+{
+    vm_gemm_pool_init();
+#if defined(_WIN32) && defined(_MSC_VER)
+    AcquireSRWLockExclusive(&vm_gemm_pool_lock);
+    vm_gemm_pool_parts = parts;
+    vm_gemm_pool_finished = 0;
+    vm_gemm_pool_gen++;
+    WakeAllConditionVariable(&vm_gemm_pool_work);
+    ReleaseSRWLockExclusive(&vm_gemm_pool_lock);
+#else
+    pthread_mutex_lock(&vm_gemm_pool_lock);
+    vm_gemm_pool_parts = parts;
+    vm_gemm_pool_finished = 0;
+    vm_gemm_pool_gen++;
+    pthread_cond_broadcast(&vm_gemm_pool_work);
+    pthread_mutex_unlock(&vm_gemm_pool_lock);
+#endif
+}
+
+/**
+ * @brief Block until every pool worker has consumed the current generation.
+ */
+static void vm_gemm_pool_wait(void)
+{
+#if defined(_WIN32) && defined(_MSC_VER)
+    AcquireSRWLockExclusive(&vm_gemm_pool_lock);
+    while (vm_gemm_pool_finished < vm_gemm_pool_nworkers) {
+        SleepConditionVariableSRW(&vm_gemm_pool_idle, &vm_gemm_pool_lock, INFINITE, 0);
+    }
+    ReleaseSRWLockExclusive(&vm_gemm_pool_lock);
+#else
+    pthread_mutex_lock(&vm_gemm_pool_lock);
+    while (vm_gemm_pool_finished < vm_gemm_pool_nworkers) {
+        pthread_cond_wait(&vm_gemm_pool_idle, &vm_gemm_pool_lock);
+    }
+    pthread_mutex_unlock(&vm_gemm_pool_lock);
+#endif
+}
+
+#endif /* VECMAT_HAS_THREADS */
 
 /**
  * @brief Run `fn(begin, end, ctx)` over `[0, n)` using up to `threads` workers.
  *
  * Splits the range into roughly equal chunks (capped by `n` and
  * `VM_GEMM_MAX_THREADS`). Runs serial when threading is off, `threads <= 1`,
- * or the range is tiny. The caller thread handles the first chunk; on worker
- * create failure, remaining work is finished on the caller.
+ * or the range is tiny. Persistent pool workers handle extra chunks; the
+ * caller thread always runs the first chunk.
  *
  * @param n       Iteration count (no-op if <= 0).
  * @param fn      Callback for a half-open subrange `[begin, end)`.
@@ -186,7 +371,7 @@ static void *vm_gemm_job_pthread(void *arg)
  * @param threads Requested worker count (clamped; <= 1 forces serial).
  */
 static void vm_gemm_parallel_for(const int n, void (*fn)(int begin, int end, void *ctx),
-                                void *ctx, const int threads)
+                                 void *ctx, const int threads)
 {
     if (n <= 0) {
         return;
@@ -207,7 +392,6 @@ static void vm_gemm_parallel_for(const int n, void (*fn)(int begin, int end, voi
         t = VM_GEMM_MAX_THREADS;
     }
 
-    vm_gemm_job jobs[VM_GEMM_MAX_THREADS];
     const int chunk = (n + t - 1) / t;
     int parts = 0;
     for (int i = 0; i < t; ++i) {
@@ -219,10 +403,10 @@ static void vm_gemm_parallel_for(const int n, void (*fn)(int begin, int end, voi
         if (end > n) {
             end = n;
         }
-        jobs[parts].begin = begin;
-        jobs[parts].end = end;
-        jobs[parts].fn = fn;
-        jobs[parts].ctx = ctx;
+        vm_gemm_pool_jobs[parts].begin = begin;
+        vm_gemm_pool_jobs[parts].end = end;
+        vm_gemm_pool_jobs[parts].fn = fn;
+        vm_gemm_pool_jobs[parts].ctx = ctx;
         parts++;
     }
     if (parts <= 1) {
@@ -230,47 +414,12 @@ static void vm_gemm_parallel_for(const int n, void (*fn)(int begin, int end, voi
         return;
     }
 
-#if defined(_WIN32) && defined(_MSC_VER)
-    HANDLE handles[VM_GEMM_MAX_THREADS];
-    int launched = 0;
-    int fail_from = -1;
-    for (int i = 1; i < parts; ++i) {
-        handles[launched] = CreateThread(NULL, 0, vm_gemm_job_win, &jobs[i], 0, NULL);
-        if (!handles[launched]) {
-            fail_from = i;
-            break;
-        }
-        launched++;
+    vm_gemm_pool_post(parts);
+    fn(vm_gemm_pool_jobs[0].begin, vm_gemm_pool_jobs[0].end, ctx);
+    vm_gemm_pool_wait();
+    for (int i = vm_gemm_pool_nworkers + 1; i < parts; ++i) {
+        fn(vm_gemm_pool_jobs[i].begin, vm_gemm_pool_jobs[i].end, ctx);
     }
-    fn(jobs[0].begin, jobs[0].end, ctx);
-    if (launched > 0) {
-        WaitForMultipleObjects((DWORD)launched, handles, TRUE, INFINITE);
-        for (int i = 0; i < launched; ++i) {
-            CloseHandle(handles[i]);
-        }
-    }
-    if (fail_from > 0) {
-        fn(jobs[fail_from].begin, n, ctx);
-    }
-#else
-    pthread_t thread_ids[VM_GEMM_MAX_THREADS];
-    int launched = 0;
-    int fail_from = -1;
-    for (int i = 1; i < parts; ++i) {
-        if (pthread_create(&thread_ids[launched], NULL, vm_gemm_job_pthread, &jobs[i]) != 0) {
-            fail_from = i;
-            break;
-        }
-        launched++;
-    }
-    fn(jobs[0].begin, jobs[0].end, ctx);
-    for (int i = 0; i < launched; ++i) {
-        pthread_join(thread_ids[i], NULL);
-    }
-    if (fail_from > 0) {
-        fn(jobs[fail_from].begin, n, ctx);
-    }
-#endif
 #endif
 }
 
@@ -442,20 +591,32 @@ VECMAT_SCALAR_API void vm_gemm_ukernel_scalar(vm_float_t *acc,
 }
 
 /**
- * @brief Invoke the best available micro-kernel for a packed MR×NR tile.
+ * @brief Ensure runtime CPU feature detection has run (no-op without dispatch).
  *
- * Uses runtime CPU dispatch when built with `VECMAT_RUNTIME_DISPATCH`;
- * otherwise calls the scalar kernel.
+ * When built with `VECMAT_RUNTIME_DISPATCH`, calls `vm_cpu_init()` so the
+ * selected GEMM micro-kernel is ready. Otherwise does nothing.
+ */
+static void vm_gemm_ensure_dispatch(void)
+{
+#ifdef VECMAT_RUNTIME_DISPATCH
+    vm_cpu_init();
+#endif
+}
+
+/**
+ * @brief Invoke the GEMM micro-kernel for a packed MR×NR tile.
+ *
+ * With `VECMAT_RUNTIME_DISPATCH`, calls the CPU-selected kernel
+ * (`vm_gemm_ukernel_`); otherwise calls `vm_gemm_ukernel_scalar`.
  *
  * @param acc Accumulator tile (MR×NR), updated in place.
- * @param Ap  Packed A micro-panel.
- * @param Bp  Packed B micro-panel.
+ * @param Ap  Packed A micro-panel (MR values per k, MR-padded).
+ * @param Bp  Packed B micro-panel (NR values per k, NR-padded).
  * @param K   Inner-dimension length for this tile.
  */
 static void vm_gemm_ukernel_call(vm_float_t *acc, const vm_float_t *Ap, const vm_float_t *Bp, const int K)
 {
 #ifdef VECMAT_RUNTIME_DISPATCH
-    vm_cpu_init();
     vm_gemm_ukernel_(acc, Ap, Bp, K);
 #else
     vm_gemm_ukernel_scalar(acc, Ap, Bp, K);
@@ -483,6 +644,26 @@ static void vm_gemm_pack_a(vm_float_t *Ap,
                            const int ib, const int kb,
                            const bool transA, const vm_layout_t layout)
 {
+    /* op(A)(i,k) is contiguous in i for col-major A or row-major A^T. */
+    const int contig_i = (!transA && layout != VM_LAYOUT_ROW_MAJOR)
+                      || (transA && layout == VM_LAYOUT_ROW_MAJOR);
+    if (contig_i) {
+        for (int ir = 0; ir < ib; ir += VM_GEMM_MR) {
+            const int mr = vm_gemm_min(VM_GEMM_MR, ib - ir);
+            for (int k = 0; k < kb; ++k) {
+                const vm_float_t *src = A + (i0 + ir) + (k0 + k) * lda;
+                int i = 0;
+                for (; i < mr; ++i) {
+                    *Ap++ = src[i];
+                }
+                for (; i < VM_GEMM_MR; ++i) {
+                    *Ap++ = VM_F(0.0);
+                }
+            }
+        }
+        return;
+    }
+
     for (int ir = 0; ir < ib; ir += VM_GEMM_MR) {
         const int mr = vm_gemm_min(VM_GEMM_MR, ib - ir);
         for (int k = 0; k < kb; ++k) {
@@ -518,6 +699,25 @@ static void vm_gemm_pack_b(vm_float_t *Bp,
                            const int kb, const int jb,
                            const bool transB, const vm_layout_t layout)
 {
+    /* op(B)(k,j) is contiguous in j for row-major B or col-major B^T. */
+    const int contig_j = (!transB && layout == VM_LAYOUT_ROW_MAJOR)
+                      || (transB && layout != VM_LAYOUT_ROW_MAJOR);
+    if (contig_j) {
+        for (int jr = 0; jr < jb; jr += VM_GEMM_NR) {
+            const int nr = vm_gemm_min(VM_GEMM_NR, jb - jr);
+            for (int k = 0; k < kb; ++k) {
+                const vm_float_t *src = B + (j0 + jr) + (k0 + k) * ldb;
+                int j = 0;
+                for (; j < nr; ++j) {
+                    *Bp++ = src[j];
+                }
+                for (; j < VM_GEMM_NR; ++j) {
+                    *Bp++ = VM_F(0.0);
+                }
+            }
+        }
+        return;
+    }
     for (int jr = 0; jr < jb; jr += VM_GEMM_NR) {
         const int nr = vm_gemm_min(VM_GEMM_NR, jb - jr);
         for (int k = 0; k < kb; ++k) {
@@ -535,8 +735,9 @@ static void vm_gemm_pack_b(vm_float_t *Bp,
 /**
  * @brief Write a micro-kernel tile into C with alpha/beta and optional epilogue.
  *
- * Computes `C = alpha * acc + beta * C`, then on the last K panel may add
- * per-column `bias` and/or apply ReLU when `op` requests them.
+ * Computes `C = alpha * acc + beta * C`. When `op != VM_GEMM_OP_NONE`, also
+ * adds per-column `bias` and/or applies ReLU as requested. Callers pass
+ * `VM_GEMM_OP_NONE` on non-final K panels so the epilogue runs only once.
  *
  * @param C      Output matrix.
  * @param ldc    Leading dimension of C.
@@ -548,7 +749,7 @@ static void vm_gemm_pack_b(vm_float_t *Bp,
  * @param alpha  Scale for the accumulator.
  * @param beta   Scale for existing C (0 skips the read).
  * @param layout Row-major or column-major storage of C.
- * @param op     Epilogue flags (`VM_GEMM_OP_*`); ignored unless this is last K.
+ * @param op     Epilogue flags (`VM_GEMM_OP_*`); `VM_GEMM_OP_NONE` skips bias/ReLU.
  * @param bias   Optional length-N bias vector (used with `VM_GEMM_OP_BIAS`).
  */
 static void vm_gemm_store_tile(vm_float_t *C, const int ldc,
@@ -616,7 +817,46 @@ typedef struct {
 static VM_TLS vm_gemm_ws vm_gemm_tls;
 
 /**
+ * @brief Allocate a 32-byte-aligned pack buffer for at least `need` elements.
+ *
+ * Rounds the byte size up to a multiple of 32 (minimum 32 bytes).
+ *
+ * @param need Required element count.
+ * @return Aligned buffer pointer, or NULL on allocation failure.
+ */
+static vm_float_t *vm_gemm_alloc_pack(const size_t need)
+{
+    size_t bytes = need * sizeof(vm_float_t);
+    if (bytes < 32u) {
+        bytes = 32u;
+    }
+    bytes = (bytes + 31u) & ~(size_t)31u;
+#if defined(_MSC_VER)
+    return (vm_float_t *)_aligned_malloc(bytes, 32);
+#else
+    return (vm_float_t *)aligned_alloc(32, bytes);
+#endif
+}
+
+/**
+ * @brief Free a pack buffer from `vm_gemm_alloc_pack`.
+ *
+ * @param p Buffer pointer returned by `vm_gemm_alloc_pack` (or NULL).
+ */
+static void vm_gemm_free_pack(vm_float_t *p)
+{
+#if defined(_MSC_VER)
+    _aligned_free(p);
+#else
+    free(p);
+#endif
+}
+
+/**
  * @brief Grow a pack buffer so it holds at least `need` elements.
+ *
+ * Reuses `*buf` when `*cap >= need`; otherwise allocates a new aligned
+ * buffer, frees the old one, and updates `*buf` / `*cap`.
  *
  * @param buf  In/out pointer to the buffer (may be reallocated).
  * @param cap  In/out capacity in elements.
@@ -628,10 +868,11 @@ static vm_float_t *vm_gemm_ws_fit(vm_float_t **buf, size_t *cap, const size_t ne
     if (*cap >= need) {
         return *buf;
     }
-    vm_float_t *n = (vm_float_t *)realloc(*buf, need * sizeof(vm_float_t));
+    vm_float_t *n = vm_gemm_alloc_pack(need);
     if (!n) {
         return NULL;
     }
+    vm_gemm_free_pack(*buf);
     *buf = n;
     *cap = need;
     return n;
@@ -665,7 +906,8 @@ static size_t vm_gemm_pack_b_elems(const int jb, const int kb)
  * @brief Multiply A panels against a pre-packed B panel and store into C.
  *
  * Walks M in MC blocks, packs each A slab, runs the MR×NR micro-kernel, and
- * writes tiles. Epilogue ops run only when `last_k` is set.
+ * writes tiles. Epilogue ops run only when `last_k` is set. On thread-local
+ * A-pack allocation failure, returns without updating C (no fallback).
  *
  * @param C          Output matrix.
  * @param ldc        Leading dimension of C.
@@ -759,6 +1001,7 @@ static void vm_gemm_ex_body(vm_float_t *C, const int ldc,
                             const vm_layout_t layout,
                             const int op, const vm_float_t *bias)
 {
+    vm_gemm_ensure_dispatch();
     if (!C || M <= 0 || N <= 0) {
         return;
     }
@@ -780,12 +1023,33 @@ static void vm_gemm_ex_body(vm_float_t *C, const int ldc,
         return;
     }
 
+    /* One MR×NR tile: pack once per K-panel, accumulate, store once. */
+    if (M <= VM_GEMM_MR && N <= VM_GEMM_NR) {
+        vm_float_t *Ap = vm_gemm_ws_fit(&vm_gemm_tls.Ap, &vm_gemm_tls.cap_a,
+                                        vm_gemm_pack_a_elems(M, vm_gemm_min(VM_GEMM_KC, K)));
+        vm_float_t *Bp = vm_gemm_ws_fit(&vm_gemm_tls.Bp, &vm_gemm_tls.cap_b,
+                                        vm_gemm_pack_b_elems(N, vm_gemm_min(VM_GEMM_KC, K)));
+        if (Ap && Bp) {
+            vm_float_t acc[VM_GEMM_MR * VM_GEMM_NR];
+            for (int t = 0; t < VM_GEMM_MR * VM_GEMM_NR; ++t) {
+                acc[t] = VM_F(0.0);
+            }
+            for (int kc = 0; kc < K; kc += VM_GEMM_KC) {
+                const int kb = vm_gemm_min(VM_GEMM_KC, K - kc);
+                vm_gemm_pack_a(Ap, A, lda, 0, kc, M, kb, transA, layout);
+                vm_gemm_pack_b(Bp, B, ldb, kc, 0, kb, N, transB, layout);
+                vm_gemm_ukernel_call(acc, Ap, Bp, kb);
+            }
+            vm_gemm_store_tile(C, ldc, acc, 0, 0, M, N, alpha, beta, layout, op, bias);
+            return;
+        }
+    }
+
     vm_float_t *Ap = vm_gemm_ws_fit(&vm_gemm_tls.Ap, &vm_gemm_tls.cap_a,
-                                    vm_gemm_pack_a_elems(vm_gemm_min(VM_GEMM_MC, M),
-                                                        vm_gemm_min(VM_GEMM_KC, K)));
+        vm_gemm_pack_a_elems(vm_gemm_min(VM_GEMM_MC, M),vm_gemm_min(VM_GEMM_KC, K)));
     vm_float_t *Bp = vm_gemm_ws_fit(&vm_gemm_tls.Bp, &vm_gemm_tls.cap_b,
-                                    vm_gemm_pack_b_elems(vm_gemm_min(VM_GEMM_NC, N),
-                                                        vm_gemm_min(VM_GEMM_KC, K)));
+        vm_gemm_pack_b_elems(vm_gemm_min(VM_GEMM_NC, N),vm_gemm_min(VM_GEMM_KC, K)));
+
     if (!Ap || !Bp) {
         vm_gemm_ref(C, ldc, A, lda, B, ldb, M, N, K, alpha, beta, transA, transB, layout);
         return;
@@ -878,9 +1142,10 @@ void vm_gemm(vm_float_t *C, const int ldc,
 /**
  * @brief Batched GEMM with one shared B, packing B once per KC/NC panel.
  *
- * Heap-allocates the shared B pack so OpenMP workers can read it concurrently.
- * Each batch item still packs its own A via thread-local workspace.
- * On pack allocation failure, falls back to per-item `vm_gemm`.
+ * Heap-allocates a B pack for this batch index range. Each KC×NC panel of the
+ * shared B is packed once, then applied to every item in `[begin, end)`.
+ * Each item still packs its own A via thread-local workspace. On pack
+ * allocation failure, falls back to per-item `vm_gemm`.
  *
  * @param C      Array of `batch` output matrix pointers.
  * @param ldc    Leading dimension shared by every C[p].
@@ -1019,6 +1284,7 @@ void vm_gemm_batch(vm_float_t * const *C, const int ldc,
     if (!C || batch <= 0) {
         return;
     }
+    vm_gemm_ensure_dispatch();
 
     int shared_b = (B != NULL && B[0] != NULL);
     for (int p = 1; shared_b && p < batch; ++p) {
@@ -1077,6 +1343,20 @@ void vm_gemm_strided_batch(vm_float_t *C, const int ldc, const int strideC,
         return;
     }
 
+    if (batch <= VM_GEMM_STRIDE_STACK) {
+        vm_float_t *Cp_s[VM_GEMM_STRIDE_STACK];
+        const vm_float_t *Ap_s[VM_GEMM_STRIDE_STACK];
+        const vm_float_t *Bp_s[VM_GEMM_STRIDE_STACK];
+        for (int p = 0; p < batch; ++p) {
+            Cp_s[p] = C + (size_t)p * (size_t)strideC;
+            Ap_s[p] = A ? A + (size_t)p * (size_t)strideA : NULL;
+            Bp_s[p] = B ? B + (size_t)p * (size_t)strideB : NULL;
+        }
+        vm_gemm_batch(Cp_s, ldc, Ap_s, lda, Bp_s, ldb, M, N, K,
+                      alpha, beta, transA, transB, layout, batch);
+        return;
+    }
+
     vm_float_t **Cp = (vm_float_t **)malloc((size_t)batch * sizeof(vm_float_t *));
     const vm_float_t **Ap = (const vm_float_t **)malloc((size_t)batch * sizeof(vm_float_t *));
     const vm_float_t **Bp = (const vm_float_t **)malloc((size_t)batch * sizeof(vm_float_t *));
@@ -1109,7 +1389,8 @@ void vm_gemm_strided_batch(vm_float_t *C, const int ldc, const int strideC,
  *
  * `img` is N×C×H×W packed as `((n*C+c)*H+y)*W+x`. Output has `C*kH*kW` rows
  * and `N*outH*outW` columns (zero-filled off-image taps). `outH`/`outW` use
- * standard floor division with the given pads and strides.
+ * standard floor division with the given pads and strides; non-positive
+ * `stride_h` / `stride_w` are treated as 1.
  *
  * @param col      Destination matrix for unfolded patches.
  * @param ld_col    Leading dimension of `col` under `layout`.

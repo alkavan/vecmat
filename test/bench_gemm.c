@@ -202,6 +202,7 @@ BENCHMARK(vm_gemm_row_major_32, "iterations: 2000 [gemm,32x32,row-major]")
 
 BENCHMARK(vm_gemm_batch_8x16, "iterations: 8000 [gemm,batch,8x8x16]")
 {
+    vm_gemm_set_threads(1);
     const int iterations = 8000;
     const int M = 8, N = 8, K = 16, batch = 8;
     vm_float_t *A = vm_bench_gemm_alloc(batch * M * K);
@@ -232,6 +233,7 @@ BENCHMARK(vm_gemm_batch_8x16, "iterations: 8000 [gemm,batch,8x8x16]")
 
 BENCHMARK(vm_gemm_strided_batch_8x16, "iterations: 8000 [gemm,strided-batch,8x8x16]")
 {
+    vm_gemm_set_threads(1);
     const int iterations = 8000;
     const int M = 8, N = 8, K = 16, batch = 8;
     const int strideA = M * K;
