@@ -1,16 +1,22 @@
-# Doxyfile for vecmat
-#
-# Generate HTML API docs from the public header and implementation sources:
-#
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026 Igal Alkon
+# SPDX-FileCopyrightText: Copyright (c) 2026 ALKONTEK <git@alkontek.com>
+# SPDX-License-Identifier: BSD-3-Clause
+
+# Stock HTML:
 #   cd doc && doxygen Doxyfile
-#
+# m.css HTML (preferred):
+#   python3 -m venv .venv && source .venv/bin/activate
+#   python3 -m pip install jinja2 Pygments
+#   git clone --depth 1 https://github.com/mosra/m.css /tmp/m.css
+#   python3 /tmp/m.css/documentation/doxygen.py conf.py
+
 # INPUT paths are relative to this file (doc/), so they point at the
 # repository's include/ and src/ trees.
 
 DOXYFILE_ENCODING      = UTF-8
 PROJECT_NAME           = "Vecmat"
 PROJECT_NUMBER         = 0.2.5
-PROJECT_BRIEF          = "C math and linear algebra library for 2D/3D graphics, physics, and science."
+PROJECT_BRIEF          = "Version 0.2.5"
 PROJECT_LOGO           =
 OUTPUT_DIRECTORY       = .
 CREATE_SUBDIRS         = NO

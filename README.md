@@ -199,7 +199,21 @@ what a small research code can ship.
 
 * [Online Documentation](https://docs.tekfed.org/vecmat/latest/)
 
-### Generate local docs using `doxygen`
+API pages use the [m.css Doxygen theme](https://mcss.mosra.cz/documentation/doxygen/).
+`doc/conf.py` and `doc/Doxyfile-mcss` drive that pipeline. The stock Doxygen
+HTML theme is still available from the same `Doxyfile`.
+
+### Generate local docs with m.css
+```bash
+python3 -m venv .venv && source .venv/bin/activate
+python3 -m pip install jinja2 Pygments
+git clone --depth 1 https://github.com/mosra/m.css /tmp/m.css
+python3 /tmp/m.css/documentation/doxygen.py doc/conf.py
+```
+HTML lands in `doc/html/`. Doxygen writes XML to `doc/xml/` first; both
+directories are git-ignored.
+
+### Stock Doxygen HTML
 ```bash
 cd doc && doxygen Doxyfile
 ```
