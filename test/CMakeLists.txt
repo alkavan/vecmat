@@ -27,7 +27,11 @@ add_executable(vecmat_tests
         test_extended.c
         test_physics.c
 )
-target_link_libraries(vecmat_tests PRIVATE vecmat_static m)
+if(MSVC)
+    target_link_libraries(vecmat_tests PRIVATE vecmat_static)
+else()
+    target_link_libraries(vecmat_tests PRIVATE vecmat_static m)
+endif()
 
 find_package(Threads)
 if(Threads_FOUND)
@@ -46,4 +50,8 @@ add_executable(vecmat_benchmarks
         bench_quaternion.c
         bench_gemm.c
 )
-target_link_libraries(vecmat_benchmarks PRIVATE vecmat_static m)
+if(MSVC)
+    target_link_libraries(vecmat_benchmarks PRIVATE vecmat_static)
+else()
+    target_link_libraries(vecmat_benchmarks PRIVATE vecmat_static m)
+endif()

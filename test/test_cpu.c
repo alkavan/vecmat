@@ -7,7 +7,11 @@
 #include "unitest.h"
 
 #if defined(VECMAT_TEST_THREADS)
+#if defined(_WIN32) && defined(_MSC_VER)
+#include <windows.h>
+#else
 #include <pthread.h>
+#endif
 #endif
 
 TEST_CASE(cpu_features_test, "[cpu]") {
@@ -59,7 +63,11 @@ TEST_CASE(cpu_init_is_idempotent, "[cpu]") {
 }
 
 #if defined(VECMAT_TEST_THREADS)
+#if defined(_WIN32) && defined(_MSC_VER)
+static DWORD WINAPI vm_cpu_init_thread(LPVOID arg)
+#else
 static void *vm_cpu_init_thread(void *arg)
+#endif
 {
     (void)arg;
     vm_cpu_init();
@@ -71,11 +79,29 @@ static void *vm_cpu_init_thread(void *arg)
                    VECMAT_EQ(res.y, 5.0f, EPSILON) &&
                    VECMAT_EQ(res.z, 5.0f, EPSILON) &&
                    VECMAT_EQ(res.w, 5.0f, EPSILON);
+#if defined(_WIN32) && defined(_MSC_VER)
+    return (DWORD)ok;
+#else
     return (void *)(intptr_t)ok;
+#endif
 }
 
 TEST_CASE(cpu_init_concurrent, "[cpu]") {
     enum { N = 8 };
+#if defined(_WIN32) && defined(_MSC_VER)
+    HANDLE threads[N];
+    for (int i = 0; i < N; ++i) {
+        threads[i] = CreateThread(NULL, 0, vm_cpu_init_thread, NULL, 0, NULL);
+        REQUIRE(threads[i] != NULL);
+    }
+    for (int i = 0; i < N; ++i) {
+        REQUIRE(WaitForSingleObject(threads[i], INFINITE) == WAIT_OBJECT_0);
+        DWORD ok = 0;
+        REQUIRE(GetExitCodeThread(threads[i], &ok));
+        REQUIRE(ok == 1);
+        CloseHandle(threads[i]);
+    }
+#else
     pthread_t threads[N];
     for (int i = 0; i < N; ++i) {
         REQUIRE(pthread_create(&threads[i], NULL, vm_cpu_init_thread, NULL) == 0);
@@ -85,5 +111,6 @@ TEST_CASE(cpu_init_concurrent, "[cpu]") {
         REQUIRE(pthread_join(threads[i], &ok) == 0);
         REQUIRE((intptr_t)ok == 1);
     }
+#endif
 }
 #endif

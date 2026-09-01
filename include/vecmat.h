@@ -6,6 +6,9 @@
 #define VECMAT_H
 
 #include <math.h>
+#if defined(_MSC_VER)
+#include <float.h>
+#endif
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -61,11 +64,17 @@ static const double VM_RAD_TO_DEG_F64 = 57.295779513082320876798154814105;
 #define VECMAT_EPS_F64 1e-12
 
 // Max/Min conversions
+#if defined(_MSC_VER)
+#define VECMAT_FLT_MAX FLT_MAX
+#define VECMAT_DBL_MAX DBL_MAX
+#define VECMAT_FLT_MIN FLT_MIN
+#define VECMAT_DBL_MIN DBL_MIN
+#else
 #define VECMAT_FLT_MAX __FLT_MAX__
 #define VECMAT_DBL_MAX __DBL_MAX__
-
 #define VECMAT_FLT_MIN __FLT_MIN__
 #define VECMAT_DBL_MIN __DBL_MIN__
+#endif
 
 // Vector/Matrix common size Conversions
 #define VECMAT_VEC2_SIZE 2
@@ -89,11 +98,22 @@ typedef float vm_float_t;
 #endif
 
 #ifdef VECMAT_USE_F64
+/* MSVC C does not treat a `static const double` as a constant expression. */
+#if defined(_MSC_VER)
+static const vm_float_t VM_DEG_TO_RAD = 0.017453292519943295769236907684886;
+static const vm_float_t VM_RAD_TO_DEG = 57.295779513082320876798154814105;
+#else
 static const vm_float_t VM_DEG_TO_RAD = VM_DEG_TO_RAD_F64;
 static const vm_float_t VM_RAD_TO_DEG = VM_RAD_TO_DEG_F64;
+#endif
+#else
+#if defined(_MSC_VER)
+static const vm_float_t VM_DEG_TO_RAD = 0.017453292519943295769236907684886f;
+static const vm_float_t VM_RAD_TO_DEG = 57.295779513082320876798154814105f;
 #else
 static const vm_float_t VM_DEG_TO_RAD = VM_DEG_TO_RAD_F32;
 static const vm_float_t VM_RAD_TO_DEG = VM_RAD_TO_DEG_F32;
+#endif
 #endif
 
 #ifdef VECMAT_USE_F64

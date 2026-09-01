@@ -22,7 +22,7 @@ permissions:
 
 jobs:
   build:
-    name: ${{ matrix.os }}-${{ matrix.arch }}-${{ matrix.precision }}
+    name: ${{ matrix.os }}-${{ matrix.arch }}-${{ matrix.precision }}${{ matrix.toolchain == 'msvc' && '-msvc' || '' }}
     runs-on: ${{ matrix.runner }}
     defaults:
       run:
@@ -38,6 +38,7 @@ jobs:
             precision: f32
             f64: 'OFF'
             run_tests: true
+            run_benchmarks: true
             runner: ubuntu-24.04
             shell: bash
             msystem: ''
@@ -48,6 +49,7 @@ jobs:
             precision: f64
             f64: 'ON'
             run_tests: true
+            run_benchmarks: true
             runner: ubuntu-24.04
             shell: bash
             msystem: ''
@@ -58,7 +60,8 @@ jobs:
             arch: aarch64
             precision: f32
             f64: 'OFF'
-            run_tests: false
+            run_tests: true
+            run_benchmarks: false
             runner: ubuntu-24.04-arm
             shell: bash
             msystem: ''
@@ -68,7 +71,8 @@ jobs:
             arch: aarch64
             precision: f64
             f64: 'ON'
-            run_tests: false
+            run_tests: true
+            run_benchmarks: false
             runner: ubuntu-24.04-arm
             shell: bash
             msystem: ''
@@ -80,6 +84,7 @@ jobs:
             precision: f32
             f64: 'OFF'
             run_tests: true
+            run_benchmarks: false
             runner: windows-latest
             shell: 'msys2 {0}'
             msystem: MINGW64
@@ -90,6 +95,7 @@ jobs:
             precision: f64
             f64: 'ON'
             run_tests: true
+            run_benchmarks: false
             runner: windows-latest
             shell: 'msys2 {0}'
             msystem: MINGW64
@@ -100,7 +106,8 @@ jobs:
             arch: aarch64
             precision: f32
             f64: 'OFF'
-            run_tests: false
+            run_tests: true
+            run_benchmarks: false
             runner: windows-11-arm
             shell: 'msys2 {0}'
             msystem: CLANGARM64
@@ -110,18 +117,69 @@ jobs:
             arch: aarch64
             precision: f64
             f64: 'ON'
-            run_tests: false
+            run_tests: true
+            run_benchmarks: false
             runner: windows-11-arm
             shell: 'msys2 {0}'
             msystem: CLANGARM64
             msys_packages: mingw-w64-clang-aarch64-clang mingw-w64-clang-aarch64-cmake mingw-w64-clang-aarch64-ninja zip
+
+          # Windows x86_64 MSVC (cl from the image; windows-latest is VS 2026).
+          - os: windows
+            arch: x86_64
+            precision: f32
+            f64: 'OFF'
+            run_tests: true
+            run_benchmarks: false
+            runner: windows-latest
+            shell: pwsh
+            toolchain: msvc
+            msystem: ''
+            msys_packages: ''
+
+          - os: windows
+            arch: x86_64
+            precision: f64
+            f64: 'ON'
+            run_tests: true
+            run_benchmarks: false
+            runner: windows-latest
+            shell: pwsh
+            toolchain: msvc
+            msystem: ''
+            msys_packages: ''
+
+          # Windows aarch64 MSVC (cl on windows-11-arm). Distinct from ClangARM64.
+          - os: windows
+            arch: aarch64
+            precision: f32
+            f64: 'OFF'
+            run_tests: true
+            run_benchmarks: false
+            runner: windows-11-arm
+            shell: pwsh
+            toolchain: msvc
+            msystem: ''
+            msys_packages: ''
+
+          - os: windows
+            arch: aarch64
+            precision: f64
+            f64: 'ON'
+            run_tests: true
+            run_benchmarks: false
+            runner: windows-11-arm
+            shell: pwsh
+            toolchain: msvc
+            msystem: ''
+            msys_packages: ''
 
     steps:
       - name: Checkout
         uses: actions/checkout@v5
 
       - name: Set up MSYS2
-        if: matrix.os == 'windows'
+        if: matrix.os == 'windows' && matrix.toolchain != 'msvc'
         uses: msys2/setup-msys2@v2
         with:
           msystem: ${{ matrix.msystem }}
@@ -134,46 +192,85 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ninja-build cmake build-essential
 
+      # One line so the same step is valid in bash and pwsh (no bash "\").
       - name: Configure
+        if: matrix.toolchain != 'msvc'
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DVECMAT_USE_F64=${{ matrix.f64 }} -DVECMAT_BUILD_TESTS=${{ matrix.run_tests }} -DVECMAT_INSTALL=ON -DVECMAT_RUNTIME_DISPATCH=ON
+
+      # Self-contained: vswhere (shipped with VS) picks the CMake generator for
+      # whatever Visual Studio the image has (2022 or 2026). No extra actions.
+      - name: Configure (MSVC)
+        if: matrix.toolchain == 'msvc'
         run: |
-          cmake -S . -B build -G Ninja \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DVECMAT_USE_F64=${{ matrix.f64 }} \
-            -DVECMAT_BUILD_TESTS=${{ matrix.run_tests }} \
-            -DVECMAT_INSTALL=ON \
-            -DVECMAT_RUNTIME_DISPATCH=ON
+          $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
+          if (-not (Test-Path $vswhere)) { throw "vswhere.exe not found" }
+          $year = (& $vswhere -latest -products * -property catalog_productLineVersion | Select-Object -First 1).Trim()
+          $gen = switch ($year) {
+            { $_ -in @('17', '2022') } { 'Visual Studio 17 2022' }
+            { $_ -in @('18', '2026') } { 'Visual Studio 18 2026' }
+            default { throw "No CMake generator mapped for Visual Studio '$year'" }
+          }
+          $arch = if ('${{ matrix.arch }}' -eq 'aarch64') { 'ARM64' } else { 'x64' }
+          Write-Host "CMake generator: $gen -A $arch"
+          cmake -S . -B build -G $gen -A $arch -DVECMAT_USE_F64=${{ matrix.f64 }} -DVECMAT_BUILD_TESTS=${{ matrix.run_tests }} -DVECMAT_INSTALL=ON -DVECMAT_RUNTIME_DISPATCH=ON
 
       - name: Build shared and static
+        if: matrix.toolchain != 'msvc'
         run: cmake --build build --parallel --target vecmat_shared vecmat_static
 
+      - name: Build shared and static (MSVC)
+        if: matrix.toolchain == 'msvc'
+        run: cmake --build build --config Release --parallel --target vecmat_shared vecmat_static
+
       - name: Build tests and benchmarks
-        if: matrix.run_tests
+        if: matrix.run_tests && matrix.toolchain != 'msvc'
         run: cmake --build build --parallel --target vecmat_tests vecmat_benchmarks
 
+      - name: Build tests and benchmarks (MSVC)
+        if: matrix.run_tests && matrix.toolchain == 'msvc'
+        run: cmake --build build --config Release --parallel --target vecmat_tests vecmat_benchmarks
+
       - name: Run tests
-        if: matrix.run_tests
+        if: matrix.run_tests && matrix.toolchain != 'msvc'
         run: ./build/test/vecmat_tests
 
+      - name: Run tests (MSVC)
+        if: matrix.run_tests && matrix.toolchain == 'msvc'
+        run: ./build/test/Release/vecmat_tests.exe
+
       - name: Run benchmarks
-        if: matrix.run_tests
+        if: matrix.run_benchmarks && matrix.toolchain != 'msvc'
         run: ./build/test/vecmat_benchmarks
+
+      - name: Run benchmarks (MSVC)
+        if: matrix.run_benchmarks && matrix.toolchain == 'msvc'
+        run: ./build/test/Release/vecmat_benchmarks.exe
 
       # Version-line branches (v0.2.x, v0.3.x, …) build and test only.
       # Install trees and GitHub Releases are produced from v* tags.
       - name: Package install tree
         if: startsWith(github.ref, 'refs/tags/v')
+        shell: bash
         run: |
           set -euo pipefail
           PRECISION_SUFFIX=""
           if [ "${{ matrix.precision }}" != "f32" ]; then
             PRECISION_SUFFIX="-${{ matrix.precision }}"
           fi
-          NAME="vecmat-${GITHUB_REF_NAME}-${{ matrix.os }}-${{ matrix.arch }}${PRECISION_SUFFIX}"
-          cmake --install build --prefix "${NAME}"
+          TOOLCHAIN_SUFFIX=""
+          if [ "${{ matrix.toolchain }}" = "msvc" ]; then
+            TOOLCHAIN_SUFFIX="-msvc"
+          fi
+          NAME="vecmat-${GITHUB_REF_NAME}-${{ matrix.os }}-${{ matrix.arch }}${PRECISION_SUFFIX}${TOOLCHAIN_SUFFIX}"
+          cmake --install build --prefix "${NAME}" --config Release
           cp LICENSE README.md SPECIAL "${NAME}/"
           mkdir -p dist
           if [ "${{ matrix.os }}" = "windows" ]; then
-            zip -r "dist/${NAME}.zip" "${NAME}"
+            if command -v zip >/dev/null 2>&1; then
+              zip -r "dist/${NAME}.zip" "${NAME}"
+            else
+              tar.exe -a -cf "dist/${NAME}.zip" "${NAME}"
+            fi
           else
             tar -czf "dist/${NAME}.tar.gz" "${NAME}"
           fi
@@ -183,7 +280,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v')
         uses: actions/upload-artifact@v6
         with:
-          name: vecmat-${{ github.ref_name }}-${{ matrix.os }}-${{ matrix.arch }}${{ matrix.precision == 'f32' && '' || format('-{0}', matrix.precision) }}
+          name: vecmat-${{ github.ref_name }}-${{ matrix.os }}-${{ matrix.arch }}${{ matrix.precision == 'f32' && '' || format('-{0}', matrix.precision) }}${{ matrix.toolchain == 'msvc' && '-msvc' || '' }}
           path: |
             dist/*.tar.gz
             dist/*.zip

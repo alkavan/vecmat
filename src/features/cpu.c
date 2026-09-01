@@ -173,7 +173,27 @@ static int vm_cpu_probe_avx512f(void)
 static int vm_cpu_probe_sve(void)
 {
 #if defined(VECMAT_ARCH_AARCH64) && defined(__linux__)
-    return (getauxval(AT_HWCAP) & HWCAP_SVE) != 0;
+    if ((getauxval(AT_HWCAP) & HWCAP_SVE) == 0)
+        return 0;
+    /*
+     * Kernels load a whole vec4/mat4-column in one predicate
+     * (`svwhilelt(..., 4)`). That needs VL >= 16 B for F32 and
+     * VL >= 32 B for F64. 128-bit SVE (common on Neoverse N2)
+     * must not be selected for the F64 build.
+     */
+    {
+        unsigned long vl_bytes;
+        __asm__ volatile(".arch_extension sve\n\trdvl %0, #8"
+                         : "=r"(vl_bytes));
+#if defined(VECMAT_USE_F64)
+        if (vl_bytes < 32ul)
+            return 0;
+#else
+        if (vl_bytes < 16ul)
+            return 0;
+#endif
+    }
+    return 1;
 #else
     return 0;
 #endif

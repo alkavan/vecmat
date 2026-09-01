@@ -84,11 +84,8 @@ void vec4_normalize_ptr_sve2(vector4 *res, const vector4 *v)
         *res = *v;
         return;
     }
-    const svfloat64_t s = svdup_n_f64(len2);
-    svfloat64_t e = svrsqrte_f64(s);
-    e = svmul_f64_z(pg, e, svrsqrts_f64(s, svmul_f64_z(pg, e, e)));
-    e = svmul_f64_z(pg, e, svrsqrts_f64(s, svmul_f64_z(pg, e, e)));
-    svst1_f64(pg, res->v, svmul_f64_z(pg, x, e));
+    const double inv = 1.0 / VECMAT_SQRT(len2);
+    svst1_f64(pg, res->v, svmul_n_f64_z(pg, x, inv));
 }
 
 void vec4_min_ptr_sve2(vector4 *res, const vector4 *a, const vector4 *b)
@@ -310,10 +307,8 @@ void vec4_normalize_ptr_sve2(vector4 *res, const vector4 *v)
         *res = *v;
         return;
     }
-    const svfloat32_t s = svdup_n_f32(len2);
-    svfloat32_t e = svrsqrte_f32(s);
-    e = svmul_f32_z(pg, e, svrsqrts_f32(s, svmul_f32_z(pg, e, e)));
-    svst1_f32(pg, res->v, svmul_f32_z(pg, x, e));
+    const float inv = 1.0f / VECMAT_SQRT(len2);
+    svst1_f32(pg, res->v, svmul_n_f32_z(pg, x, inv));
 }
 
 void vec4_min_ptr_sve2(vector4 *res, const vector4 *a, const vector4 *b)
