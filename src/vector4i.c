@@ -370,7 +370,7 @@ vector3i vec4i_to_vec3i(const vector4i v)
 /**
  * @brief Divides two vectors component-wise.
  *
- * See `vec4i_div_ptr` instead.
+ * @see vec4i_div_ptr
  *
  * @param a First input vector.
  * @param b Second input vector.
@@ -386,7 +386,7 @@ vector4i vec4i_div(const vector4i a, const vector4i b)
 /**
  * @brief Adds a scalar to each component.
  *
- * See `vec4i_add_scalar_ptr` instead.
+ * @see vec4i_add_scalar_ptr
  *
  * @param v Input vector.
  * @param s Scalar value.
@@ -402,7 +402,7 @@ vector4i vec4i_add_scalar(const vector4i v, const vm_int_t s)
 /**
  * @brief Subtracts a scalar from each component.
  *
- * See `vec4i_sub_scalar_ptr` instead.
+ * @see vec4i_sub_scalar_ptr
  *
  * @param v Input vector.
  * @param s Scalar value.
@@ -418,7 +418,7 @@ vector4i vec4i_sub_scalar(const vector4i v, const vm_int_t s)
 /**
  * @brief Component-wise floor modulo of a by b.
  *
- * See `vec4i_mod_ptr` instead.
+ * @see vec4i_mod_ptr
  *
  * @param a First input vector.
  * @param b Second input vector.
@@ -434,7 +434,7 @@ vector4i vec4i_mod(const vector4i a, const vector4i b)
 /**
  * @brief Component-wise floored division of a by b.
  *
- * See `vec4i_div_floor_ptr` instead.
+ * @see vec4i_div_floor_ptr
  *
  * @param a First input vector.
  * @param b Second input vector.
@@ -450,7 +450,7 @@ vector4i vec4i_div_floor(const vector4i a, const vector4i b)
 /**
  * @brief Wraps each component of v into [0, period).
  *
- * See `vec4i_wrap_ptr` instead.
+ * @see vec4i_wrap_ptr
  *
  * @param v Input vector.
  * @param period Wrap period per component.
@@ -466,7 +466,7 @@ vector4i vec4i_wrap(const vector4i v, const vector4i period)
 /**
  * @brief Returns a vector with every component set to s.
  *
- * See `vec4i_splat_ptr` instead.
+ * @see vec4i_splat_ptr
  *
  * @param s Scalar value.
  * @return The resulting vector4i.

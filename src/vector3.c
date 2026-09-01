@@ -444,7 +444,7 @@ vm_float_t vec3_length(const vector3 v)
 /**
  * @brief Scales the vector by a scalar.
  *
- * See `vec3_scale_ptr` instead.
+ * @see vec3_scale_ptr
  *
  * @param v Input vector.
  * @param s Scalar value.
@@ -460,7 +460,7 @@ vector3 vec3_scale(const vector3 v, const vm_float_t s)
 /**
  * @brief Divides two vectors component-wise.
  *
- * See `vec3_div_ptr` instead.
+ * @see vec3_div_ptr
  *
  * @param a First input vector.
  * @param b Second input vector.
@@ -476,7 +476,7 @@ vector3 vec3_div(const vector3 a, const vector3 b)
 /**
  * @brief Adds a scalar to each component.
  *
- * See `vec3_add_scalar_ptr` instead.
+ * @see vec3_add_scalar_ptr
  *
  * @param v Input vector.
  * @param s Scalar value.
@@ -492,7 +492,7 @@ vector3 vec3_add_scalar(const vector3 v, const vm_float_t s)
 /**
  * @brief Subtracts a scalar from each component.
  *
- * See `vec3_sub_scalar_ptr` instead.
+ * @see vec3_sub_scalar_ptr
  *
  * @param v Input vector.
  * @param s Scalar value.
@@ -508,7 +508,7 @@ vector3 vec3_sub_scalar(const vector3 v, const vm_float_t s)
 /**
  * @brief Clamps each component to the scalar range [min, max].
  *
- * See `vec3_clamp_scalar_ptr` instead.
+ * @see vec3_clamp_scalar_ptr
  *
  * @param v Input vector.
  * @param min Lower bound.
@@ -525,7 +525,7 @@ vector3 vec3_clamp_scalar(const vector3 v, const vm_float_t min, const vm_float_
 /**
  * @brief Clamps each component to the range [0, 1].
  *
- * See `vec3_saturate_ptr` instead.
+ * @see vec3_saturate_ptr
  *
  * @param v Input vector.
  * @return The resulting vector3.
@@ -540,7 +540,7 @@ vector3 vec3_saturate(const vector3 v)
 /**
  * @brief Returns the fractional part of each component.
  *
- * See `vec3_fract_ptr` instead.
+ * @see vec3_fract_ptr
  *
  * @param v Input vector.
  * @return The resulting vector3.
@@ -555,7 +555,7 @@ vector3 vec3_fract(const vector3 v)
 /**
  * @brief Projects a onto b.
  *
- * See `vec3_project_ptr` instead.
+ * @see vec3_project_ptr
  *
  * @param a First input vector.
  * @param b Second input vector.
@@ -571,7 +571,7 @@ vector3 vec3_project(const vector3 a, const vector3 b)
 /**
  * @brief Removes the component of v along normal.
  *
- * See `vec3_slide_ptr` instead.
+ * @see vec3_slide_ptr
  *
  * @param v Input vector.
  * @param normal Surface normal.
@@ -587,7 +587,7 @@ vector3 vec3_slide(const vector3 v, const vector3 normal)
 /**
  * @brief Returns the component of a orthogonal to b.
  *
- * See `vec3_reject_ptr` instead.
+ * @see vec3_reject_ptr
  *
  * @param a First input vector.
  * @param b Second input vector.
@@ -636,7 +636,7 @@ vector3 vec3_rotate_axis_deg(const vector3 v, const vector3 axis, const vm_float
 /**
  * @brief Returns a vector with every component set to s.
  *
- * See `vec3_splat_ptr` instead.
+ * @see vec3_splat_ptr
  *
  * @param s Scalar value.
  * @return The resulting vector3.
@@ -649,7 +649,7 @@ vector3 vec3_splat(const vm_float_t s)
 /**
  * @brief Builds a vector3 from a vector2 and z.
  *
- * See `vec3_from_vec2_ptr` instead.
+ * @see vec3_from_vec2_ptr
  *
  * @param v Input vector.
  * @param z Z component.
@@ -665,7 +665,7 @@ vector3 vec3_from_vec2(const vector2 v, const vm_float_t z)
 /**
  * @brief Moves current toward target by at most max_delta.
  *
- * See `vec3_move_toward_ptr` instead.
+ * @see vec3_move_toward_ptr
  *
  * @param current Current position.
  * @param target Target position.
@@ -682,7 +682,7 @@ vector3 vec3_move_toward(const vector3 current, const vector3 target, const vm_f
 /**
  * @brief Clamps the vector length to max_len.
  *
- * See `vec3_limit_length_ptr` instead.
+ * @see vec3_limit_length_ptr
  *
  * @param v Input vector.
  * @param max_len Maximum length.
@@ -698,7 +698,7 @@ vector3 vec3_limit_length(const vector3 v, const vm_float_t max_len)
 /**
  * @brief Returns the x and y components as a 2D vector.
  *
- * See `vec3_xy_ptr` instead.
+ * @see vec3_xy_ptr
  *
  * @param v Input vector.
  * @return The resulting vector2.

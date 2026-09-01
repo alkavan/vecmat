@@ -365,7 +365,7 @@ vm_float_t vec3i_angle(const vector3i a, const vector3i b)
 /**
  * @brief Divides two vectors component-wise.
  *
- * See `vec3i_div_ptr` instead.
+ * @see vec3i_div_ptr
  *
  * @param a First input vector.
  * @param b Second input vector.
@@ -381,7 +381,7 @@ vector3i vec3i_div(const vector3i a, const vector3i b)
 /**
  * @brief Adds a scalar to each component.
  *
- * See `vec3i_add_scalar_ptr` instead.
+ * @see vec3i_add_scalar_ptr
  *
  * @param v Input vector.
  * @param s Scalar value.
@@ -397,7 +397,7 @@ vector3i vec3i_add_scalar(const vector3i v, const vm_int_t s)
 /**
  * @brief Subtracts a scalar from each component.
  *
- * See `vec3i_sub_scalar_ptr` instead.
+ * @see vec3i_sub_scalar_ptr
  *
  * @param v Input vector.
  * @param s Scalar value.
@@ -413,7 +413,7 @@ vector3i vec3i_sub_scalar(const vector3i v, const vm_int_t s)
 /**
  * @brief Component-wise floor modulo of a by b.
  *
- * See `vec3i_mod_ptr` instead.
+ * @see vec3i_mod_ptr
  *
  * @param a First input vector.
  * @param b Second input vector.
@@ -429,7 +429,7 @@ vector3i vec3i_mod(const vector3i a, const vector3i b)
 /**
  * @brief Component-wise floored division of a by b.
  *
- * See `vec3i_div_floor_ptr` instead.
+ * @see vec3i_div_floor_ptr
  *
  * @param a First input vector.
  * @param b Second input vector.
@@ -445,7 +445,7 @@ vector3i vec3i_div_floor(const vector3i a, const vector3i b)
 /**
  * @brief Wraps each component of v into [0, period).
  *
- * See `vec3i_wrap_ptr` instead.
+ * @see vec3i_wrap_ptr
  *
  * @param v Input vector.
  * @param period Wrap period per component.
@@ -461,7 +461,7 @@ vector3i vec3i_wrap(const vector3i v, const vector3i period)
 /**
  * @brief Returns a vector with every component set to s.
  *
- * See `vec3i_splat_ptr` instead.
+ * @see vec3i_splat_ptr
  *
  * @param s Scalar value.
  * @return The resulting vector3i.
@@ -474,7 +474,7 @@ vector3i vec3i_splat(const vm_int_t s)
 /**
  * @brief Builds a vector3i from a vector2i and z.
  *
- * See `vec3i_from_vec2i_ptr` instead.
+ * @see vec3i_from_vec2i_ptr
  *
  * @param v Input vector.
  * @param z Z component.
@@ -490,7 +490,7 @@ vector3i vec3i_from_vec2i(const vector2i v, const vm_int_t z)
 /**
  * @brief Returns the x and y components as a 2D vector.
  *
- * See `vec3i_xy_ptr` instead.
+ * @see vec3i_xy_ptr
  *
  * @param v Input vector.
  * @return The resulting vector2i.
@@ -505,7 +505,7 @@ vector2i vec3i_xy(const vector3i v)
 /**
  * @brief Converts to a unit-length vector3.
  *
- * See `vec3i_normalize_to_vec3_ptr` instead.
+ * @see vec3i_normalize_to_vec3_ptr
  *
  * @param v Input vector.
  * @return The resulting vector3.

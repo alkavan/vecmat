@@ -7,7 +7,7 @@
 /**
  * @brief Constructs the 4x4 identity matrix.
  *
- * See `mat4i_identity_ptr` instead.
+ * @see mat4i_identity_ptr
  *
  * @return The identity matrix4i.
  */
@@ -21,7 +21,7 @@ matrix4i mat4i_identity(void)
 /**
  * @brief Multiplies two 4x4 integer matrices.
  *
- * See `mat4i_mul_ptr` instead.
+ * @see mat4i_mul_ptr
  *
  * @param a The first matrix.
  * @param b The second matrix.
@@ -37,7 +37,7 @@ matrix4i mat4i_mul(const matrix4i a, const matrix4i b)
 /**
  * @brief Computes the transpose of a 4x4 integer matrix.
  *
- * See `mat4i_transpose_ptr` instead.
+ * @see mat4i_transpose_ptr
  *
  * @param m The input matrix.
  * @return The transposed matrix.
@@ -52,7 +52,7 @@ matrix4i mat4i_transpose(const matrix4i m)
 /**
  * @brief Computes the inverse of a 4x4 integer matrix.
  *
- * See `mat4i_inverse_ptr` instead.
+ * @see mat4i_inverse_ptr
  *
  * @param m The input matrix.
  * @return The inverse matrix.
@@ -90,7 +90,7 @@ vm_int_t mat4i_determinant(const matrix4i m)
 /**
  * @brief Multiplies a 4x4 integer matrix by a vector4i.
  *
- * See `mat4i_mul_vec4i_ptr` instead.
+ * @see mat4i_mul_vec4i_ptr
  *
  * @param m Input matrix.
  * @param v Input vector.
@@ -106,7 +106,7 @@ vector4i mat4i_mul_vec4i(const matrix4i m, const vector4i v)
 /**
  * @brief Transforms a vector3i by a 4x4 integer matrix using homogeneous w.
  *
- * See `mat4i_mul_vec3i_ptr` instead.
+ * @see mat4i_mul_vec3i_ptr
  *
  * @param m Input matrix.
  * @param v Input vector.

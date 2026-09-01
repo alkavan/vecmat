@@ -430,7 +430,7 @@ vector3 vec4_to_vec3(const vector4 v)
 /**
  * @brief Divides two vectors component-wise.
  *
- * See `vec4_div_ptr` instead.
+ * @see vec4_div_ptr
  *
  * @param a First input vector.
  * @param b Second input vector.
@@ -446,7 +446,7 @@ vector4 vec4_div(const vector4 a, const vector4 b)
 /**
  * @brief Adds a scalar to each component.
  *
- * See `vec4_add_scalar_ptr` instead.
+ * @see vec4_add_scalar_ptr
  *
  * @param v Input vector.
  * @param s Scalar value.
@@ -462,7 +462,7 @@ vector4 vec4_add_scalar(const vector4 v, const vm_float_t s)
 /**
  * @brief Subtracts a scalar from each component.
  *
- * See `vec4_sub_scalar_ptr` instead.
+ * @see vec4_sub_scalar_ptr
  *
  * @param v Input vector.
  * @param s Scalar value.
@@ -478,7 +478,7 @@ vector4 vec4_sub_scalar(const vector4 v, const vm_float_t s)
 /**
  * @brief Clamps each component to the scalar range [min, max].
  *
- * See `vec4_clamp_scalar_ptr` instead.
+ * @see vec4_clamp_scalar_ptr
  *
  * @param v Input vector.
  * @param min Lower bound.
@@ -495,7 +495,7 @@ vector4 vec4_clamp_scalar(const vector4 v, const vm_float_t min, const vm_float_
 /**
  * @brief Clamps each component to the range [0, 1].
  *
- * See `vec4_saturate_ptr` instead.
+ * @see vec4_saturate_ptr
  *
  * @param v Input vector.
  * @return The resulting vector4.
@@ -510,7 +510,7 @@ vector4 vec4_saturate(const vector4 v)
 /**
  * @brief Returns the fractional part of each component.
  *
- * See `vec4_fract_ptr` instead.
+ * @see vec4_fract_ptr
  *
  * @param v Input vector.
  * @return The resulting vector4.
@@ -525,7 +525,7 @@ vector4 vec4_fract(const vector4 v)
 /**
  * @brief Projects a onto b.
  *
- * See `vec4_project_ptr` instead.
+ * @see vec4_project_ptr
  *
  * @param a First input vector.
  * @param b Second input vector.
@@ -541,7 +541,7 @@ vector4 vec4_project(const vector4 a, const vector4 b)
 /**
  * @brief Returns the component of a orthogonal to b.
  *
- * See `vec4_reject_ptr` instead.
+ * @see vec4_reject_ptr
  *
  * @param a First input vector.
  * @param b Second input vector.
@@ -557,7 +557,7 @@ vector4 vec4_reject(const vector4 a, const vector4 b)
 /**
  * @brief Removes the component of v along normal.
  *
- * See `vec4_slide_ptr` instead.
+ * @see vec4_slide_ptr
  *
  * @param v Input vector.
  * @param normal Surface normal.
@@ -573,7 +573,7 @@ vector4 vec4_slide(const vector4 v, const vector4 normal)
 /**
  * @brief Returns a vector with every component set to s.
  *
- * See `vec4_splat_ptr` instead.
+ * @see vec4_splat_ptr
  *
  * @param s Scalar value.
  * @return The resulting vector4.

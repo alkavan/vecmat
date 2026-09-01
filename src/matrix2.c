@@ -7,7 +7,7 @@
 /**
  * @brief Constructs the 2x2 identity matrix.
  *
- * See `mat2_identity_ptr` instead.
+ * @see mat2_identity_ptr
  *
  * @return The identity matrix2.
  */
@@ -21,7 +21,7 @@ matrix2 mat2_identity(void)
 /**
  * @brief Multiplies two 2x2 matrices (a * b).
  *
- * See `mat2_mul_ptr` instead.
+ * @see mat2_mul_ptr
  *
  * @param a The first matrix.
  * @param b The second matrix.
@@ -37,7 +37,7 @@ matrix2 mat2_mul(const matrix2 a, const matrix2 b)
 /**
  * @brief Computes the transpose of a 2x2 matrix.
  *
- * See `mat2_transpose_ptr` instead.
+ * @see mat2_transpose_ptr
  *
  * @param m The input matrix.
  * @return The transposed matrix2.
@@ -52,7 +52,7 @@ matrix2 mat2_transpose(const matrix2 m)
 /**
   * @brief Computes the inverse of a 2x2 matrix.
   *
-  * See `mat2_inverse_ptr` instead.
+  * @see mat2_inverse_ptr
   *
   * @param m The input matrix.
   * @return The inverse matrix2.
@@ -67,7 +67,7 @@ matrix2 mat2_inverse(const matrix2 m)
 /**
  * @brief Constructs a 2x2 rotation matrix around the Z axis.
  *
- * See `mat2_rotation_z_ptr` instead.
+ * @see mat2_rotation_z_ptr
  *
  * @param radians Rotation angle in radians.
  * @return The rotation matrix2.
@@ -104,7 +104,7 @@ vm_float_t mat2_determinant(const matrix2 m)
 /**
  * @brief Multiplies a 2x2 matrix by a vector2.
  *
- * See `mat2_mul_vec2_ptr` instead.
+ * @see mat2_mul_vec2_ptr
  *
  * @param m Input matrix.
  * @param v Input vector.
@@ -120,7 +120,7 @@ vector2 mat2_mul_vec2(const matrix2 m, const vector2 v)
 /**
  * @brief Builds a 2x2 scaling matrix from a vector2.
  *
- * See `mat2_scale_ptr` instead.
+ * @see mat2_scale_ptr
  *
  * @param s Scale vector.
  * @return The resulting matrix2.
@@ -135,7 +135,7 @@ matrix2 mat2_scale(const vector2 s)
 /**
  * @brief Copies the upper-left 2x2 of a matrix3.
  *
- * See `mat2_from_mat3_ptr` instead.
+ * @see mat2_from_mat3_ptr
  *
  * @param m Input matrix.
  * @return The resulting matrix2.

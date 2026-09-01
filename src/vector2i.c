@@ -71,7 +71,7 @@ vector2i vec2i_y_scale(const vm_int_t y)
 /**
  * @brief Adds two vectors component-wise.
  *
- * See `vec2i_add_ptr` instead.
+ * @see vec2i_add_ptr
  *
  * @param a The first vector.
  * @param b The second vector.
@@ -87,7 +87,7 @@ vector2i vec2i_add(const vector2i a, const vector2i b)
 /**
  * @brief Subtracts the second vector from the first component-wise.
  *
- * See `vec2i_sub_ptr` instead.
+ * @see vec2i_sub_ptr
  *
  * @param a The first vector.
  * @param b The second vector.
@@ -103,7 +103,7 @@ vector2i vec2i_sub(const vector2i a, const vector2i b)
 /**
  * @brief Multiplies a vector by a scalar component-wise.
  *
- * See `vec2i_mul_scalar_ptr` instead.
+ * @see vec2i_mul_scalar_ptr
  *
  * @param v The input vector.
  * @param s The scalar multiplier.
@@ -120,7 +120,7 @@ vector2i vec2i_mul_scalar(const vector2i v, const vm_int_t s)
  * @brief Divides a vector by a scalar component-wise (float division,
  * truncated to int).
  *
- * See `vec2i_div_scalar_ptr` instead.
+ * @see vec2i_div_scalar_ptr
  *
  * @param v The input vector.
  * @param s The scalar divisor (sets to zero vector if zero).
@@ -136,7 +136,7 @@ vector2i vec2i_div_scalar(const vector2i v, const vm_int_t s)
 /**
  * @brief Multiplies two vectors component-wise (Hadamard product).
  *
- * See `vec2i_mul_ptr` instead.
+ * @see vec2i_mul_ptr
  *
  * @param a The first vector.
  * @param b The second vector.
@@ -152,7 +152,7 @@ vector2i vec2i_mul(const vector2i a, const vector2i b)
 /**
  * @brief Negates the vector (multiplies each component by -1).
  *
- * See `vec2i_neg_ptr` instead.
+ * @see vec2i_neg_ptr
  *
  * @param v The input vector.
  * @return The negated vector2i.
@@ -167,7 +167,7 @@ vector2i vec2i_neg(const vector2i v)
 /**
  * @brief Returns the absolute values of each component.
  *
- * See `vec2i_abs_ptr` instead.
+ * @see vec2i_abs_ptr
  *
  * @param v The input vector.
  * @return The absolute value vector2i.
@@ -182,7 +182,7 @@ vector2i vec2i_abs(const vector2i v)
 /**
  * @brief Normalizes the vector to approximate unit length (float length, truncated to int).
  *
- * See `vec2i_normalize_ptr` instead.
+ * @see vec2i_normalize_ptr
  *
  * @param v The input vector.
  * @return The normalized vector2i (unchanged if zero length).
@@ -197,7 +197,7 @@ vector2i vec2i_normalize(const vector2i v)
 /**
  * @brief Returns the component-wise minimum of two vectors.
  *
- * See `vec2i_min_ptr` instead.
+ * @see vec2i_min_ptr
  *
  * @param a The first vector.
  * @param b The second vector.
@@ -213,7 +213,7 @@ vector2i vec2i_min(const vector2i a, const vector2i b)
 /**
  * @brief Returns the component-wise maximum of two vectors.
  *
- * See `vec2i_max_ptr` instead.
+ * @see vec2i_max_ptr
  *
  * @param a The first vector.
  * @param b The second vector.
@@ -229,7 +229,7 @@ vector2i vec2i_max(const vector2i a, const vector2i b)
 /**
  * @brief Returns the sign of each component (+1, -1, or 0).
  *
- * See `vec2i_sign_ptr` instead.
+ * @see vec2i_sign_ptr
  *
  * @param v The input vector.
  * @return The sign vector2i.
@@ -244,7 +244,7 @@ vector2i vec2i_sign(const vector2i v)
 /**
  * @brief Returns the perpendicular vector (90 degrees counterclockwise).
  *
- * See `vec2i_perpendicular_ptr` instead.
+ * @see vec2i_perpendicular_ptr
  *
  * @param v The input vector.
  * @return The perpendicular vector2i.
@@ -259,7 +259,7 @@ vector2i vec2i_perpendicular(const vector2i v)
 /**
  * @brief Computes the 2D cross-product as a vector.
  *
- * See `vec2i_cross_ptr` instead.
+ * @see vec2i_cross_ptr
  *
  * @param a The first vector.
  * @param b The second vector.
@@ -346,7 +346,7 @@ vm_float_t vec2i_aspect_ratio(const vector2i v)
 /**
  * @brief Linearly interpolates from a to b by t.
  *
- * See `vec2i_lerp_ptr` instead.
+ * @see vec2i_lerp_ptr
  *
  * @param a First input vector.
  * @param b Second input vector.
@@ -363,7 +363,7 @@ vector2i vec2i_lerp(const vector2i a, const vector2i b, const vm_float_t t)
 /**
  * @brief Clamps each component between min and max.
  *
- * See `vec2i_clamp_ptr` instead.
+ * @see vec2i_clamp_ptr
  *
  * @param v Input vector.
  * @param min Lower bound.
@@ -380,7 +380,7 @@ vector2i vec2i_clamp(const vector2i v, const vector2i min, const vector2i max)
 /**
  * @brief Divides two vectors component-wise.
  *
- * See `vec2i_div_ptr` instead.
+ * @see vec2i_div_ptr
  *
  * @param a First input vector.
  * @param b Second input vector.
@@ -396,7 +396,7 @@ vector2i vec2i_div(const vector2i a, const vector2i b)
 /**
  * @brief Adds a scalar to each component.
  *
- * See `vec2i_add_scalar_ptr` instead.
+ * @see vec2i_add_scalar_ptr
  *
  * @param v Input vector.
  * @param s Scalar value.
@@ -412,7 +412,7 @@ vector2i vec2i_add_scalar(const vector2i v, const vm_int_t s)
 /**
  * @brief Subtracts a scalar from each component.
  *
- * See `vec2i_sub_scalar_ptr` instead.
+ * @see vec2i_sub_scalar_ptr
  *
  * @param v Input vector.
  * @param s Scalar value.
@@ -428,7 +428,7 @@ vector2i vec2i_sub_scalar(const vector2i v, const vm_int_t s)
 /**
  * @brief Component-wise floor modulo of a by b.
  *
- * See `vec2i_mod_ptr` instead.
+ * @see vec2i_mod_ptr
  *
  * @param a First input vector.
  * @param b Second input vector.
@@ -444,7 +444,7 @@ vector2i vec2i_mod(const vector2i a, const vector2i b)
 /**
  * @brief Component-wise floored division of a by b.
  *
- * See `vec2i_div_floor_ptr` instead.
+ * @see vec2i_div_floor_ptr
  *
  * @param a First input vector.
  * @param b Second input vector.
@@ -460,7 +460,7 @@ vector2i vec2i_div_floor(const vector2i a, const vector2i b)
 /**
  * @brief Wraps each component of v into [0, period).
  *
- * See `vec2i_wrap_ptr` instead.
+ * @see vec2i_wrap_ptr
  *
  * @param v Input vector.
  * @param period Wrap period per component.
@@ -476,7 +476,7 @@ vector2i vec2i_wrap(const vector2i v, const vector2i period)
 /**
  * @brief Returns a vector with every component set to s.
  *
- * See `vec2i_splat_ptr` instead.
+ * @see vec2i_splat_ptr
  *
  * @param s Scalar value.
  * @return The resulting vector2i.
@@ -489,7 +489,7 @@ vector2i vec2i_splat(const vm_int_t s)
 /**
  * @brief Converts a vector2i to a vector3i using z.
  *
- * See `vec2i_to_vec3i_ptr` instead.
+ * @see vec2i_to_vec3i_ptr
  *
  * @param v Input vector.
  * @param z Z component.
@@ -505,7 +505,7 @@ vector3i vec2i_to_vec3i(const vector2i v, const vm_int_t z)
 /**
  * @brief Converts to a unit-length vector2.
  *
- * See `vec2i_normalize_to_vec2_ptr` instead.
+ * @see vec2i_normalize_to_vec2_ptr
  *
  * @param v Input vector.
  * @return The resulting vector2.

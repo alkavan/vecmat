@@ -71,7 +71,7 @@ vector2 vec2_y_scale(const vm_float_t y)
 /**
  * @brief Scales a vector by a scalar component-wise.
  *
- * See `vec2_scale_ptr` instead.
+ * @see vec2_scale_ptr
  *
  * @param v The input vector.
  * @param s The scalar multiplier.
@@ -87,7 +87,7 @@ vector2 vec2_scale(const vector2 v, const vm_float_t s)
 /**
  * @brief Adds two vectors component-wise.
  *
- * See `vec2_add_ptr` instead.
+ * @see vec2_add_ptr
  *
  * @param a The first vector.
  * @param b The second vector.
@@ -103,7 +103,7 @@ vector2 vec2_add(const vector2 a, const vector2 b)
 /**
  * @brief Subtracts the second vector from the first component-wise.
  *
- * See `vec2_sub_ptr` instead.
+ * @see vec2_sub_ptr
  *
  * @param a The first vector.
  * @param b The second vector.
@@ -119,7 +119,7 @@ vector2 vec2_sub(const vector2 a, const vector2 b)
 /**
  * @brief Multiplies a vector by a scalar component-wise.
  *
- * See `vec2_mul_scalar_ptr` instead.
+ * @see vec2_mul_scalar_ptr
  *
  * @param v The input vector.
  * @param s The scalar multiplier.
@@ -135,7 +135,7 @@ vector2 vec2_mul_scalar(const vector2 v, const vm_float_t s)
 /**
  * @brief Divides a vector by a scalar component-wise.
  *
- * See `vec2_div_scalar_ptr` instead.
+ * @see vec2_div_scalar_ptr
  *
  * @param v The input vector.
  * @param s The scalar divisor (non-zero).
@@ -151,7 +151,7 @@ vector2 vec2_div_scalar(const vector2 v, const vm_float_t s)
 /**
  * @brief Multiplies two vectors component-wise (Hadamard product).
  *
- * See `vec2_mul_ptr` instead.
+ * @see vec2_mul_ptr
  *
  * @param a The first vector.
  * @param b The second vector.
@@ -167,7 +167,7 @@ vector2 vec2_mul(const vector2 a, const vector2 b)
 /**
  * @brief Negates the vector (multiplies each component by -1.0f).
  *
- * See `vec2_neg_ptr` instead.
+ * @see vec2_neg_ptr
  *
  * @param v The input vector.
  * @return The negated vector2.
@@ -182,7 +182,7 @@ vector2 vec2_neg(const vector2 v)
 /**
  * @brief Returns the absolute values of each component.
  *
- * See `vec2_abs_ptr` instead.
+ * @see vec2_abs_ptr
  *
  * @param v The input vector.
  * @return The absolute value vector2.
@@ -197,7 +197,7 @@ vector2 vec2_abs(const vector2 v)
 /**
  * @brief Computes the 2D cross-product as a vector.
  *
- * See `vec2_cross_ptr` instead.
+ * @see vec2_cross_ptr
  *
  * @param a The first vector.
  * @param b The second vector.
@@ -213,7 +213,7 @@ vector2 vec2_cross(const vector2 a, const vector2 b)
 /**
  * @brief Normalizes the vector to unit length.
  *
- * See `vec2_normalize_ptr` instead.
+ * @see vec2_normalize_ptr
  *
  * @param v The input vector.
  * @return The normalized vector2 (unchanged if zero length).
@@ -228,7 +228,7 @@ vector2 vec2_normalize(const vector2 v)
 /**
  * @brief Returns the component-wise minimum of two vectors.
  *
- * See `vec2_min_ptr` instead.
+ * @see vec2_min_ptr
  *
  * @param a The first vector.
  * @param b The second vector.
@@ -244,7 +244,7 @@ vector2 vec2_min(const vector2 a, const vector2 b)
 /**
  * @brief Returns the component-wise maximum of two vectors.
  *
- * See `vec2_max_ptr` instead.
+ * @see vec2_max_ptr
  *
  * @param a The first vector.
  * @param b The second vector.
@@ -260,7 +260,7 @@ vector2 vec2_max(const vector2 a, const vector2 b)
 /**
  * @brief Returns the sign of each component (+1.0f, -1.0f, or 0.0f).
  *
- * See `vec2_sign_ptr` instead.
+ * @see vec2_sign_ptr
  *
  * @param v The input vector.
  * @return The sign vector2.
@@ -275,7 +275,7 @@ vector2 vec2_sign(const vector2 v)
 /**
  * @brief Applies floor to each component.
  *
- * See `vec2_floor_ptr` instead.
+ * @see vec2_floor_ptr
  *
  * @param v The input vector.
  * @return The floored vector2.
@@ -290,7 +290,7 @@ vector2 vec2_floor(const vector2 v)
 /**
  * @brief Applies ceil to each component.
  *
- * See `vec2_ceil_ptr` instead.
+ * @see vec2_ceil_ptr
  *
  * @param v The input vector.
  * @return The ceiled vector2.
@@ -305,7 +305,7 @@ vector2 vec2_ceil(const vector2 v)
 /**
  * @brief Applies round to each component.
  *
- * See `vec2_round_ptr` instead.
+ * @see vec2_round_ptr
  *
  * @param v The input vector.
  * @return The rounded vector2.
@@ -321,7 +321,7 @@ vector2 vec2_round(const vector2 v)
 /**
  * @brief Returns the perpendicular vector (90 degrees counterclockwise).
  *
- * See `vec2_perpendicular_ptr` instead.
+ * @see vec2_perpendicular_ptr
  *
  * @param v The input vector.
  * @return The perpendicular vector2.
@@ -336,7 +336,7 @@ vector2 vec2_perpendicular(const vector2 v)
 /**
  * @brief Reflects vector v across the normal, storing the result in res.
  *
- * See `vec2_reflect_ptr` instead.
+ * @see vec2_reflect_ptr
  *
  * @param v The incident vector.
  * @param normal The unit normal vector.
@@ -352,7 +352,7 @@ vector2 vec2_reflect(const vector2 v, const vector2 normal)
 /**
  * @brief Projects the first vector onto the second.
  *
- * See `vec2_project_ptr` instead.
+ * @see vec2_project_ptr
  *
  * @param a The vector to project.
  * @param b The projection direction vector.
@@ -368,7 +368,7 @@ vector2 vec2_project(const vector2 a, const vector2 b)
 /**
  * @brief Returns the tangent vector perpendicular to the input (90 degrees clockwise).
  *
- * See `vec2_tangent_ptr` instead.
+ * @see vec2_tangent_ptr
  *
  * @param v The input vector.
  * @return The tangent vector2.
@@ -411,7 +411,7 @@ vector2 vec2_rotate_deg(const vector2 v, const vm_float_t degrees)
 /**
  * @brief Slides the input vector tangent to the normal (removes normal component).
  *
- * See `vec2_slide_ptr` instead.
+ * @see vec2_slide_ptr
  *
  * @param v The input vector.
  * @param normal The unit normal vector.
@@ -427,7 +427,7 @@ vector2 vec2_slide(const vector2 v, const vector2 normal)
 /**
  * @brief Clamps vector v component-wise between min and max.
  *
- * See `vec2_clamp_ptr` instead.
+ * @see vec2_clamp_ptr
  *
  * @param v The input vector.
  * @param min The minimum bounds vector.
@@ -513,7 +513,7 @@ vm_float_t vec2_angle(const vector2 a, const vector2 b)
 /**
  * @brief Linearly interpolates from a to b by t.
  *
- * See `vec2_lerp_ptr` instead.
+ * @see vec2_lerp_ptr
  *
  * @param a First input vector.
  * @param b Second input vector.
@@ -530,7 +530,7 @@ vector2 vec2_lerp(const vector2 a, const vector2 b, const vm_float_t t)
 /**
  * @brief Divides two vectors component-wise.
  *
- * See `vec2_div_ptr` instead.
+ * @see vec2_div_ptr
  *
  * @param a First input vector.
  * @param b Second input vector.
@@ -546,7 +546,7 @@ vector2 vec2_div(const vector2 a, const vector2 b)
 /**
  * @brief Adds a scalar to each component.
  *
- * See `vec2_add_scalar_ptr` instead.
+ * @see vec2_add_scalar_ptr
  *
  * @param v Input vector.
  * @param s Scalar value.
@@ -562,7 +562,7 @@ vector2 vec2_add_scalar(const vector2 v, const vm_float_t s)
 /**
  * @brief Subtracts a scalar from each component.
  *
- * See `vec2_sub_scalar_ptr` instead.
+ * @see vec2_sub_scalar_ptr
  *
  * @param v Input vector.
  * @param s Scalar value.
@@ -578,7 +578,7 @@ vector2 vec2_sub_scalar(const vector2 v, const vm_float_t s)
 /**
  * @brief Clamps each component to the scalar range [min, max].
  *
- * See `vec2_clamp_scalar_ptr` instead.
+ * @see vec2_clamp_scalar_ptr
  *
  * @param v Input vector.
  * @param min Lower bound.
@@ -595,7 +595,7 @@ vector2 vec2_clamp_scalar(const vector2 v, const vm_float_t min, const vm_float_
 /**
  * @brief Clamps each component to the range [0, 1].
  *
- * See `vec2_saturate_ptr` instead.
+ * @see vec2_saturate_ptr
  *
  * @param v Input vector.
  * @return The resulting vector2.
@@ -610,7 +610,7 @@ vector2 vec2_saturate(const vector2 v)
 /**
  * @brief Returns the fractional part of each component.
  *
- * See `vec2_fract_ptr` instead.
+ * @see vec2_fract_ptr
  *
  * @param v Input vector.
  * @return The resulting vector2.
@@ -625,7 +625,7 @@ vector2 vec2_fract(const vector2 v)
 /**
  * @brief Computes the refraction of incident across normal with ratio eta.
  *
- * See `vec2_refract_ptr` instead.
+ * @see vec2_refract_ptr
  *
  * @param incident Incident vector.
  * @param normal Surface normal.
@@ -642,7 +642,7 @@ vector2 vec2_refract(const vector2 incident, const vector2 normal, const vm_floa
 /**
  * @brief Returns the component of a orthogonal to b.
  *
- * See `vec2_reject_ptr` instead.
+ * @see vec2_reject_ptr
  *
  * @param a First input vector.
  * @param b Second input vector.
@@ -658,7 +658,7 @@ vector2 vec2_reject(const vector2 a, const vector2 b)
 /**
  * @brief Returns a vector with every component set to s.
  *
- * See `vec2_splat_ptr` instead.
+ * @see vec2_splat_ptr
  *
  * @param s Scalar value.
  * @return The resulting vector2.
@@ -727,7 +727,7 @@ vector2 vec2_rotate_around_deg(const vector2 v, const vector2 pivot, const vm_fl
 /**
  * @brief Moves current toward target by at most max_delta.
  *
- * See `vec2_move_toward_ptr` instead.
+ * @see vec2_move_toward_ptr
  *
  * @param current Current position.
  * @param target Target position.
@@ -744,7 +744,7 @@ vector2 vec2_move_toward(const vector2 current, const vector2 target, const vm_f
 /**
  * @brief Clamps the vector length to max_len.
  *
- * See `vec2_limit_length_ptr` instead.
+ * @see vec2_limit_length_ptr
  *
  * @param v Input vector.
  * @param max_len Maximum length.
@@ -760,7 +760,7 @@ vector2 vec2_limit_length(const vector2 v, const vm_float_t max_len)
 /**
  * @brief Converts a vector2 to a vector3 using z.
  *
- * See `vec2_to_vec3_ptr` instead.
+ * @see vec2_to_vec3_ptr
  *
  * @param v Input vector.
  * @param z Z component.

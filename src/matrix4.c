@@ -7,7 +7,7 @@
 /**
  * @brief Constructs the 4x4 identity matrix.
  *
- * See `mat4_identity_ptr` instead.
+ * @see mat4_identity_ptr
  *
  * @return The identity matrix4.
  */
@@ -21,7 +21,7 @@ matrix4 mat4_identity(void)
 /**
  * @brief Multiplies two 4x4 matrices (a * b).
  *
- * See `mat4_mul_ptr` instead.
+ * @see mat4_mul_ptr
  *
  * @param a The first matrix.
  * @param b The second matrix.
@@ -37,7 +37,7 @@ matrix4 mat4_mul(const matrix4 a, const matrix4 b)
 /**
  * @brief Computes the transpose of a 4x4 matrix.
  *
- * See `mat4_transpose_ptr` instead.
+ * @see mat4_transpose_ptr
  *
  * @param m The input matrix.
  * @return The transposed matrix4.
@@ -52,7 +52,7 @@ matrix4 mat4_transpose(const matrix4 m)
 /**
  * @brief Computes the inverse of a 4x4 matrix.
  *
- * See `mat4_inverse_ptr` instead.
+ * @see mat4_inverse_ptr
  *
  * @param m The input matrix.
  * @return The inverse matrix4.
@@ -81,7 +81,7 @@ matrix4 mat4_inverse_affine(const matrix4 m)
 /**
  * @brief Constructs a translation matrix from the given vector.
  *
- * See `mat4_translate_ptr` instead.
+ * @see mat4_translate_ptr
  *
  * @param v The translation vector (x, y, z).
  * @return The translation matrix4.
@@ -96,7 +96,7 @@ matrix4 mat4_translate(const vector3 v)
 /**
  * @brief Constructs a scaling matrix from the given scale vector.
  *
- * See `mat4_scale_ptr` instead.
+ * @see mat4_scale_ptr
  *
  * @param v The scale vector (x, y, z factors).
  * @return The resulting scaling matrix4.
@@ -111,7 +111,7 @@ matrix4 mat4_scale(const vector3 v)
 /**
  * @brief Constructs a 4x4 rotation matrix.
  *
- * See `mat4_rotation_ptr` instead.
+ * @see mat4_rotation_ptr
  *
  * @param axis The rotation axis.
  * @param radians The rotation angle in radians.
@@ -140,7 +140,7 @@ matrix4 mat4_rotation_deg(const vector3 axis, const vm_float_t degrees)
 /**
  * @brief Constructs a perspective projection matrix.
  *
- * See `mat4_perspective_ptr` instead.
+ * @see mat4_perspective_ptr
  *
  * @param fov Field of view (radians).
  * @param aspect Aspect ratio (width/height).
@@ -194,7 +194,7 @@ matrix4 mat4_ortho(const vm_float_t left, const vm_float_t right, const vm_float
 /**
  * @brief Constructs a view matrix from eye position, target, and up vector.
  *
- * See `mat4_look_at_ptr` instead.
+ * @see mat4_look_at_ptr
  *
  * @param position Eye position.
  * @param target Target position.
@@ -211,7 +211,7 @@ matrix4 mat4_look_at(const vector3 position, const vector3 target, const vector3
 /**
  * @brief Constructs a perspective projection matrix using FOV, width, and height.
  *
- * See `mat4_perspective_fov_ptr` instead.
+ * @see mat4_perspective_fov_ptr
  *
  * @param fov Vertical field of view (radians).
  * @param w Viewport width.
@@ -249,7 +249,7 @@ matrix4 mat4_perspective_fov_deg(const vm_float_t fov_deg, const vm_float_t w, c
 /**
  * @brief Constructs an infinite far-plane perspective projection matrix.
  *
- * See `mat4_perspective_infinite_ptr` instead.
+ * @see mat4_perspective_infinite_ptr
  *
  * @param fov_y Vertical field of view (radians).
  * @param aspect Aspect ratio.
@@ -306,7 +306,7 @@ vm_float_t mat4_determinant(const matrix4 m)
 /**
  * @brief Multiplies a 4x4 matrix by a vector4.
  *
- * See `mat4_mul_vec4_ptr` instead.
+ * @see mat4_mul_vec4_ptr
  *
  * @param m Input matrix.
  * @param v Input vector.
@@ -323,7 +323,7 @@ vector4 mat4_mul_vec4(const matrix4 m, const vector4 v)
 /**
  * @brief Transforms a vector3 by a 4x4 matrix using homogeneous w.
  *
- * See `mat4_mul_vec3_ptr` instead.
+ * @see mat4_mul_vec3_ptr
  *
  * @param m Input matrix.
  * @param v Input vector.
@@ -341,7 +341,7 @@ vector3 mat4_mul_vec3(const matrix4 m, const vector3 v, const vm_float_t w)
 /**
  * @brief Constructs a 4x4 rotation matrix around the X axis.
  *
- * See `mat4_rotation_x_ptr` instead.
+ * @see mat4_rotation_x_ptr
  *
  * @param radians Rotation angle in radians.
  * @return The rotation matrix4.
@@ -422,7 +422,7 @@ matrix4 mat4_rotation_z_deg(const vm_float_t degrees)
 /**
  * @brief Builds a 4x4 TRS matrix from translation, rotation, and scale.
  *
- * See `mat4_trs_ptr` instead.
+ * @see mat4_trs_ptr
  *
  * @param translation Translation vector.
  * @param rotation Rotation quaternion.
@@ -440,7 +440,7 @@ matrix4 mat4_trs(const vector3 translation, const quaternion rotation, const vec
 /**
  * @brief Embeds a matrix3 into the upper-left of a matrix4.
  *
- * See `mat4_from_mat3_ptr` instead.
+ * @see mat4_from_mat3_ptr
  *
  * @param m Input matrix.
  * @return The resulting matrix4.
@@ -455,7 +455,7 @@ matrix4 mat4_from_mat3(const matrix3 m)
 /**
  * @brief Extracts the translation vector from a matrix4.
  *
- * See `mat4_extract_translation_ptr` instead.
+ * @see mat4_extract_translation_ptr
  *
  * @param m Input matrix.
  * @return The resulting vector3.
@@ -470,7 +470,7 @@ vector3 mat4_extract_translation(const matrix4 m)
 /**
  * @brief Extracts the scale vector from a matrix4.
  *
- * See `mat4_extract_scale_ptr` instead.
+ * @see mat4_extract_scale_ptr
  *
  * @param m Input matrix.
  * @return The resulting vector3.
@@ -485,7 +485,7 @@ vector3 mat4_extract_scale(const matrix4 m)
 /**
  * @brief Extracts the rotation quaternion from a matrix4.
  *
- * See `mat4_extract_rotation_ptr` instead.
+ * @see mat4_extract_rotation_ptr
  *
  * @param m Input matrix.
  * @return The resulting quaternion.
@@ -1068,7 +1068,7 @@ vector3 vec3_world_to_window(const vector3 world, const matrix4 model,
 /**
  * @brief Un-projects a window coordinate back to world space.
  *
- * See `vec3_window_to_world_ptr` instead.
+ * @see vec3_window_to_world_ptr
  *
  * @param window The window coordinate to un-project.
  * @param model The model matrix.

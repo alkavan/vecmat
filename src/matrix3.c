@@ -7,7 +7,7 @@
 /**
  * @brief Constructs the 3x3 identity matrix.
  *
- * See `mat3_identity_ptr` instead.
+ * @see mat3_identity_ptr
  *
  * @return The identity matrix3.
  */
@@ -21,7 +21,7 @@ matrix3 mat3_identity(void)
 /**
  * @brief Multiplies two 3x3 matrices.
  *
- * See `mat3_mul_ptr` instead.
+ * @see mat3_mul_ptr
  *
  * @param a The first matrix.
  * @param b The second matrix.
@@ -37,7 +37,7 @@ matrix3 mat3_mul(const matrix3 a, const matrix3 b)
 /**
  * @brief Computes the transpose of a 3x3 matrix.
  *
- * See `mat3_transpose_ptr` instead.
+ * @see mat3_transpose_ptr
  *
  * @param m The input matrix.
  * @return The transposed matrix.
@@ -52,7 +52,7 @@ matrix3 mat3_transpose(const matrix3 m)
 /**
  * @brief Computes the inverse of a 3x3 matrix.
  *
- * See `mat3_inverse_ptr` instead.
+ * @see mat3_inverse_ptr
  *
  * @param m The input matrix.
  * @return The inverse matrix.
@@ -67,7 +67,7 @@ matrix3 mat3_inverse(const matrix3 m)
 /**
  * @brief Constructs a 3x3 rotation matrix around the Z axis.
  *
- * See `mat3_rotation_z_ptr` instead.
+ * @see mat3_rotation_z_ptr
  *
  * @param radians Rotation angle in radians.
  * @return The rotation matrix3.
@@ -108,7 +108,7 @@ vm_float_t mat3_determinant(const matrix3 m)
 /**
  * @brief Multiplies a 3x3 matrix by a vector3.
  *
- * See `mat3_mul_vec3_ptr` instead.
+ * @see mat3_mul_vec3_ptr
  *
  * @param m Input matrix.
  * @param v Input vector.
@@ -124,7 +124,7 @@ vector3 mat3_mul_vec3(const matrix3 m, const vector3 v)
 /**
  * @brief Applies a 3x3 affine transform to a vector2.
  *
- * See `mat3_mul_vec2_ptr` instead.
+ * @see mat3_mul_vec2_ptr
  *
  * @param m Input matrix.
  * @param v Input vector.
@@ -140,7 +140,7 @@ vector2 mat3_mul_vec2(const matrix3 m, const vector2 v)
 /**
  * @brief Constructs a 3x3 rotation matrix around the X axis.
  *
- * See `mat3_rotation_x_ptr` instead.
+ * @see mat3_rotation_x_ptr
  *
  * @param radians Rotation angle in radians.
  * @return The rotation matrix3.
@@ -194,7 +194,7 @@ matrix3 mat3_rotation_y_deg(const vm_float_t degrees)
 /**
  * @brief Builds a 3x3 2D translation matrix.
  *
- * See `mat3_translate_ptr` instead.
+ * @see mat3_translate_ptr
  *
  * @param t Translation vector.
  * @return The resulting matrix3.
@@ -209,7 +209,7 @@ matrix3 mat3_translate(const vector2 t)
 /**
  * @brief Builds a 3x3 2D scaling matrix.
  *
- * See `mat3_scale_ptr` instead.
+ * @see mat3_scale_ptr
  *
  * @param s Scale vector.
  * @return The resulting matrix3.
@@ -224,7 +224,7 @@ matrix3 mat3_scale(const vector2 s)
 /**
  * @brief Copies the upper-left 3x3 of a matrix4.
  *
- * See `mat3_from_mat4_ptr` instead.
+ * @see mat3_from_mat4_ptr
  *
  * @param m Input matrix.
  * @return The resulting matrix3.
@@ -239,7 +239,7 @@ matrix3 mat3_from_mat4(const matrix4 m)
 /**
  * @brief Inverse-transpose of a 3x3 (normal matrix).
  *
- * See `mat3_normal_ptr` instead.
+ * @see mat3_normal_ptr
  *
  * @param m Linear part of a model transform.
  * @return The normal matrix3.

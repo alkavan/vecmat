@@ -7,7 +7,7 @@
 /**
  * @brief Constructs the 3x3 identity matrix.
  *
- * See `mat3i_identity_ptr` instead.
+ * @see mat3i_identity_ptr
  *
  * @return The identity matrix3i.
  */
@@ -21,7 +21,7 @@ matrix3i mat3i_identity(void)
 /**
  * @brief Multiplies two 3x3 integer matrices.
  *
- * See `mat3i_mul_ptr` instead.
+ * @see mat3i_mul_ptr
  *
  * @param a The first matrix.
  * @param b The second matrix.
@@ -37,7 +37,7 @@ matrix3i mat3i_mul(const matrix3i a, const matrix3i b)
 /**
  * @brief Computes the transpose of a 3x3 integer matrix.
  *
- * See `mat3i_transpose_ptr` instead.
+ * @see mat3i_transpose_ptr
  *
  * @param m The input matrix.
  * @return The transposed matrix.
@@ -65,7 +65,7 @@ vm_int_t mat3i_determinant(const matrix3i m)
 /**
  * @brief Computes the inverse of a 3x3 integer matrix.
  *
- * See `mat3i_inverse_ptr` instead.
+ * @see mat3i_inverse_ptr
  *
  * @param m The input matrix.
  * @return The inverse matrix.
@@ -80,7 +80,7 @@ matrix3i mat3i_inverse(const matrix3i m)
 /**
  * @brief Multiplies a 3x3 integer matrix by a vector3i.
  *
- * See `mat3i_mul_vec3i_ptr` instead.
+ * @see mat3i_mul_vec3i_ptr
  *
  * @param m Input matrix.
  * @param v Input vector.
@@ -96,7 +96,7 @@ vector3i mat3i_mul_vec3i(const matrix3i m, const vector3i v)
 /**
  * @brief Applies a 3x3 integer affine transform to a vector2i.
  *
- * See `mat3i_mul_vec2i_ptr` instead.
+ * @see mat3i_mul_vec2i_ptr
  *
  * @param m Input matrix.
  * @param v Input vector.
