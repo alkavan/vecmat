@@ -1,5 +1,5 @@
-# SPDX-FileCopyrightText: Copyright (c) 2025-2026 Igal Alkon
-# SPDX-FileCopyrightText: Copyright (c) 2026 ALKONTEK <git@alkontek.com>
+# SPDX-FileCopyrightText: 2025-2026 Igal Alkon
+# SPDX-FileCopyrightText: 2026 ALKONTEK <git@alkontek.com>
 # SPDX-License-Identifier: BSD-3-Clause
 
 name: Vecmat CI Workflow
