@@ -281,6 +281,7 @@ printf("compiled=%s runtime=%s selected=%s\n",
 
 ### Relevant Resources
 * [Convenient CPU feature detection and dispatch](https://blog.magnum.graphics/backstage/cpu-feature-detection-dispatch/) by [Vladimír Vondruš](https://github.com/mosra)
+* [Eigen 5.0.1 Documentation](https://libeigen.gitlab.io/eigen/docs-5.0.1/)
 * [LAPACK: Linear Algebra PACKage](https://www.netlib.org/lapack/explore-html/d3/dcc/md__r_e_a_d_m_e.html)
 * [BiCGSTAB](https://www.ctcms.nist.gov/~langer/oof2man/RegisteredClass-StabilizedBiConjugateGradient.html)
 
@@ -293,7 +294,7 @@ if(NOT TARGET vecmat::vecmat)
     include(FetchContent)
     FetchContent_Declare(vecmat
         GIT_REPOSITORY https://github.com/alkavan/vecmat.git
-        GIT_TAG v0.2.6
+        GIT_TAG v0.2.7
     )
     FetchContent_MakeAvailable(vecmat)
 endif()
