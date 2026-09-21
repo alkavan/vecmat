@@ -37,9 +37,8 @@ static int vm_backend_ops_complete(const vm_backend_ops *ops)
 const vm_backend *vm_backend_best(void)
 {
     const vm_backend *best = NULL;
-    int i;
 
-    for (i = 0; i < vm_backend_count; ++i) {
+    for (int i = 0; i < vm_backend_count; ++i) {
         const vm_backend *b = vm_backends[i];
         if (!best || b->priority > best->priority)
             best = b;
@@ -114,7 +113,7 @@ static void vm_cpu_bind_backend(const vm_backend *backend)
         VECMAT_PICK_SVE2(name)                 \
         VECMAT_PICK_SVE(name)                  \
         VECMAT_PICK_NEON(name)                 \
-        VECMAT_PICK_AVX512F(name)               \
+        VECMAT_PICK_AVX512F(name)              \
         VECMAT_PICK_AVX2(name)                 \
         VECMAT_PICK_AVX(name)                  \
         { /* scalar already set */ }           \
@@ -144,7 +143,6 @@ static void vm_cpu_bind(const vm_cpu_features_t features)
  */
 int vm_backend_register(const vm_backend *backend)
 {
-    int i;
     int ready;
 
     if (!backend || !backend->name || backend->name[0] == '\0' || !backend->ops)
@@ -158,7 +156,7 @@ int vm_backend_register(const vm_backend *backend)
     }
 #endif
 
-    for (i = 0; i < vm_backend_count; ++i) {
+    for (int i = 0; i < vm_backend_count; ++i) {
         if (vm_backends[i] == backend) {
 #if !defined(__STDC_NO_ATOMICS__)
             atomic_flag_clear_explicit(&dispatch_lock, memory_order_release);
