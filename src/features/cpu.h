@@ -33,6 +33,7 @@ VECMAT_DISPATCH_LIST(VECMAT_FN_PTR_DECL)
 #define VECMAT_DECL_AVX(name, params, args)     void name##_avx params;
 #define VECMAT_DECL_AVX2(name, params, args)    void name##_avx2 params;
 #define VECMAT_DECL_AVX512F(name, params, args) void name##_avx512 params;
+#define VECMAT_DECL_NEON(name, params, args)    void name##_neon params;
 #define VECMAT_DECL_SVE(name, params, args)     void name##_sve params;
 #define VECMAT_DECL_SVE2(name, params, args)    void name##_sve2 params;
 
@@ -50,6 +51,10 @@ VECMAT_DISPATCH_LIST(VECMAT_DECL_AVX2)
 VECMAT_DISPATCH_LIST(VECMAT_DECL_AVX512F)
 #endif
 
+#if defined(VECMAT_ENABLE_NEON)
+VECMAT_DISPATCH_LIST(VECMAT_DECL_NEON)
+#endif
+
 #if defined(VECMAT_ENABLE_SVE)
 VECMAT_DISPATCH_LIST(VECMAT_DECL_SVE)
 #endif
@@ -62,6 +67,7 @@ VECMAT_DISPATCH_LIST(VECMAT_DECL_SVE2)
 #undef VECMAT_DECL_AVX
 #undef VECMAT_DECL_AVX2
 #undef VECMAT_DECL_AVX512F
+#undef VECMAT_DECL_NEON
 #undef VECMAT_DECL_SVE
 #undef VECMAT_DECL_SVE2
 

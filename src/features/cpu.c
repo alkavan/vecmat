@@ -27,6 +27,9 @@
 
 #if defined(VECMAT_ARCH_AARCH64) && defined(__linux__)
 #include <sys/auxv.h>
+#ifndef HWCAP_ASIMD
+#define HWCAP_ASIMD (1u << 1)
+#endif
 #ifndef HWCAP_SVE
 #define HWCAP_SVE (1u << 22)
 #endif
@@ -166,6 +169,27 @@ static int vm_cpu_probe_avx512f(void)
 #endif /* VECMAT_ARCH_X86 */
 
 /**
+ * @brief Probes AArch64 Advanced SIMD (NEON).
+ *
+ * ASIMD is mandatory on AArch64, so non-Linux targets (Apple, BSD, Windows)
+ * report it as present. Linux still consults AT_HWCAP.
+ *
+ * @return Non-zero if NEON / ASIMD is usable.
+ */
+static int vm_cpu_probe_neon(void)
+{
+#if defined(VECMAT_ARCH_AARCH64)
+#if defined(__linux__)
+    return (getauxval(AT_HWCAP) & HWCAP_ASIMD) != 0;
+#else
+    return 1;
+#endif
+#else
+    return 0;
+#endif
+}
+
+/**
  * @brief Probes SVE via Linux AT_HWCAP.
  *
  * @return Non-zero if SVE is usable.
@@ -232,6 +256,9 @@ vm_cpu_features_t vm_cpu_compiled_features(void)
 #if defined(VECMAT_ENABLE_AVX512F) || defined(__AVX512F__)
     f |= VM_CPU_AVX512F;
 #endif
+#if defined(VECMAT_ENABLE_NEON)
+    f |= VM_CPU_NEON;
+#endif
 #if defined(VECMAT_ENABLE_SVE) || defined(__ARM_FEATURE_SVE)
     f |= VM_CPU_SVE;
 #endif
@@ -265,6 +292,8 @@ vm_cpu_features_t vm_cpu_runtime_features(void)
     if (vm_cpu_probe_avx512f())
         f |= VM_CPU_AVX512F;
 #endif
+    if (vm_cpu_probe_neon())
+        f |= VM_CPU_NEON;
     if (vm_cpu_probe_sve())
         f |= VM_CPU_SVE;
     if (vm_cpu_probe_sve2())
@@ -301,6 +330,8 @@ vm_cpu_features_t vm_cpu_selected_features(void)
         return VM_CPU_SVE2;
     if (have & VM_CPU_SVE)
         return VM_CPU_SVE;
+    if (have & VM_CPU_NEON)
+        return VM_CPU_NEON;
     if (have & VM_CPU_AVX512F)
         return VM_CPU_AVX512F;
     if (have & VM_CPU_AVX2)
@@ -322,6 +353,8 @@ const char *vm_cpu_name(const vm_cpu_features_t features)
         return "sve2";
     if (features & VM_CPU_SVE)
         return "sve";
+    if (features & VM_CPU_NEON)
+        return "neon";
     if (features & VM_CPU_AVX512F)
         return "avx512f";
     if (features & VM_CPU_AVX2)

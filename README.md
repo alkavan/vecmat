@@ -3,7 +3,7 @@ A simple math and linear algebra library in C for 2D/3D graphics,
 machine learning, physics, and science.
 
 **Vecmat is a heartfelt ❤ love letter to the C programming language** —
-with emphasis on the elegance, simplicity and readability of the language, even for
+with emphasis on the elegance, simplicity, and readability of the language, even for
 scenarios where other languages might seem more suited. Performance is important
 but second to usability and elegance.
 
@@ -42,14 +42,14 @@ Elegance, simplicity, and readability matter more than squeezing every cycle.
 - Quaternions for rotation.
 - Easing functions for animation-style interpolation.
 - Clip-space presets for OpenGL (`RH_NO`), Vulkan (`RH_ZO`) and Direct3D (`LH_ZO`).
-- Dense packed `vm_gemm` (`C = α op(A) op(B) + β C`), batched GEMM, and heap `vm_mat` with LU / QR / SVD / Cholesky (solve, det,
-  inverse, least squares).
+- Dense packed `vm_gemm` (`C = α op(A) op(B) + β C`), batched GEMM, and heap `vm_mat` with LU / QR / SVD / Cholesky
+  (solve, det, inverse, least squares).
 - Sparse CSR (`vm_spmat`) with CG / BiCGSTAB and Jacobi / SSOR / IC(0) preconditioners.
 - Time integrators (semi-implicit Euler, velocity Verlet, RK2 / RK4), CFL helper, and `vm_rigid_step`.
 - Regular-grid / MAC operators and an assembled 5-/7-point Laplacian for Poisson projection.
 
 ### Features to Avoid
-- No SSE and no NEON on purpose. The library jumps to AVX / AVX2 / AVX-512 and ARM SVE / SVE2.
+- No SSE on purpose. The library jumps to AVX / AVX2 / AVX-512 on x86-64 and to NEON / SVE / SVE2 on AArch64.
 
 ### Two ways to call everything
 - By-value helpers for everyday code.
@@ -83,19 +83,22 @@ helpers also take radians. Use `mat4_perspective_deg` (and friends) for degrees:
 - `mat4_look_at_rh`
 - `mat4_look_at_lh`
 
-**Look-from-direction view matrices** — same basis as look-at, but the camera aims along a direction (FPS / fly camera, no target point):
+**Look-from-direction view matrices** — the same basis as look-at,
+but the camera aims along a direction (FPS / fly camera, no target point):
 - `mat4_look_from_dir` / `mat4_look_from_dir_clip`
 - `mat4_look_from_dir_rh` / `mat4_look_from_dir_lh`
 - `quat_look` / `quat_look_clip` — orientation whose local −Z (RH) or +Z (LH) aims along the direction
 - `quat_from_to` — shortest rotation taking one vector onto another
 
-**Infinite / reverse-Z projections** — infinite far plane, optionally with reversed depth (near → 1, infinity → 0 on ZO):
+**Infinite / reverse-Z projections** — infinite far plane,
+optionally with reversed depth (near → 1, infinity → 0 on ZO):
 - `mat4_perspective_infinite` stays historic OpenGL `RH_NO`
 - `mat4_perspective_infinite_clip` — infinite + any clip convention (`*_ZO` is infinite + zero-to-one)
 - `mat4_infinite_reverse_z` — modern-engine preset: infinite + RH + ZO + reversed depth
 - `mat4_infinite_reverse_z_clip` — same mapping for the other clip conventions
 
-**Viewport, world ↔ window** — NDC to a pixel box and back. Geometric `vec3_project` (onto a direction) is unchanged:
+**Viewport, world ↔ window** — NDC to a pixel box and back.
+Geometric `vec3_project` (onto a direction) is unchanged:
 - `mat4_viewport` / `mat4_viewport_depth`
 - `vec3_world_to_window` / `vec3_window_to_world`
 - `vec3_world_to_window_clip` / `vec3_window_to_world_clip`
@@ -147,14 +150,17 @@ reused across calls.
 **`vm_im2col`** unfolds an NCHW image into a GEMM-ready panel for convolution.
 
 Internally, large multiplies use blocking/packing; with runtime dispatch the inner kernel may use AVX / AVX2 / AVX-512 /
-SVE / SVE2, otherwise scalar. fp16 / bf16 are not in this release.
+NEON / SVE / SVE2, otherwise scalar. fp16 / bf16 are not in this release.
 #### Dense Linear Algebra
 
 - Heap `vm_mat` (M×N, column-major) for general dense work beyond the fixed 2×2 / 3×3 / 4×4 types.
-- **LU** — `vm_lu_factor` / `vm_lu_solve` with partial pivoting; `vm_mat_det` and `vm_mat_inverse` are thin wrappers on the same path (square systems).
+- **LU** — `vm_lu_factor` / `vm_lu_solve` with partial pivoting; `vm_mat_det` and `vm_mat_inverse` are thin wrappers on
+  the same path (square systems).
 - **QR** — Householder `vm_qr_factor` / `vm_qr_unpack`; `vm_qr_solve` for least-squares `min ||Ax − b||` when `m ≥ n`.
-- **SVD** — thin one-sided Jacobi `vm_svd_factor` (`A = U diag(s) Vᵀ`, singular values descending) for rank, conditioning, and reconstruction-style work.
-- **Cholesky** — in-place `vm_chol_factor` / `vm_chol_solve` for dense SPD systems (tiny Poisson, covariance, SPD least squares).
+- **SVD** — thin one-sided Jacobi `vm_svd_factor` (`A = U diag(s) Vᵀ`, singular values descending) for rank,
+  conditioning, and reconstruction-style work.
+- **Cholesky** — in-place `vm_chol_factor` / `vm_chol_solve` for dense SPD systems (tiny Poisson, covariance, SPD least
+  squares).
 
 ---
 
@@ -236,7 +242,7 @@ cd doc && doxygen Doxyfile
 ## SIMD and MMA
 
 **Selection order:**
-`SVE2 -> SVE -> AVX-512F -> AVX2 -> AVX -> Scalar`
+`SVE2 -> SVE -> NEON -> AVX-512F -> AVX2 -> AVX -> Scalar`
 
 | CMake flag                     | Default                   | Effect                                                  |
 |--------------------------------|---------------------------|---------------------------------------------------------|
@@ -244,6 +250,7 @@ cd doc && doxygen Doxyfile
 | `-DVECMAT_ENABLE_AVX=ON`       | ON on x86-64              | Compile AVX kernels (`-mavx` / `/arch:AVX`)             |
 | `-DVECMAT_ENABLE_AVX2=ON`      | ON on x86-64              | Compile AVX2 kernels (`-mavx2` / `/arch:AVX2`)          |
 | `-DVECMAT_ENABLE_AVX512F=ON`   | ON on x86-64              | Compile AVX-512F kernels (`-mavx512f` / `/arch:AVX512`) |
+| `-DVECMAT_ENABLE_NEON=ON`      | ON on AArch64             | Compile NEON / ASIMD kernels (`-march=armv8-a+simd`)    |
 | `-DVECMAT_ENABLE_SVE=ON`       | ON on AArch64             | Compile SVE kernels (`-march=armv8-a+sve`)              |
 | `-DVECMAT_ENABLE_SVE2=ON`      | ON on AArch64             | Compile SVE2 kernels (`-march=armv8-a+sve2`)            |
 
@@ -268,16 +275,17 @@ printf("compiled=%s runtime=%s selected=%s\n",
 * AVX10 (FMA3) <small style="color: #e0a04e;">work in progress</small>
 * AVX10.1 (Xeon 6) <small style="color: #a78bfa;">coming in 2027</small>
 * AVX10.2 (Xeon 7) <small style="color: #22d3ee;">tbd</small>
+* NEON / ASIMD (Armv8-A) <small style="color: #34d399;">supported</small>
 * SVE (ARMv8.2-A+) <small style="color: #34d399;">supported</small>
 * SVE2 (ARMv9) <small style="color: #34d399;">supported</small>
+
+**Note:SoC-specific A53/A55 schedules might become available later in 2027/28 this backend is one Armv8-A ASIMD schedule.**
 
 ### MMA Support
 * WMMA / MMA (NVIDIA/CUDA) <small style="color: #e0a04e;">work in progress</small>
 * MFMA / WMMA (AMD/ROCm) <small style="color: #e0a04e;">work in progress</small>
 * AMX (4th-7th generation Intel Xeon) <small style="color: #a78bfa;">coming in 2027</small>
 * SME / SME2 (ARMv9.2-A+) <small style="color: #22d3ee;">tbd</small>
-
-*At this moment we have no plans to support NEON.*
 
 ### Relevant Resources
 * [Convenient CPU feature detection and dispatch](https://blog.magnum.graphics/backstage/cpu-feature-detection-dispatch/) by [Vladimír Vondruš](https://github.com/mosra)

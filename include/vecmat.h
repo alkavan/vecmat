@@ -670,7 +670,8 @@ enum {
     VM_CPU_SVE     = 1u << 2,
     VM_CPU_AVX512F = 1u << 3,
     VM_CPU_SVE2    = 1u << 4,
-    VM_CPU_AVX     = 1u << 5
+    VM_CPU_AVX     = 1u << 5,
+    VM_CPU_NEON    = 1u << 6
 };
 
 VEC_API vm_cpu_features_t vm_cpu_compiled_features(void);

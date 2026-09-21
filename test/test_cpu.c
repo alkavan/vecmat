@@ -26,6 +26,7 @@ TEST_CASE(cpu_features_test, "[cpu]") {
     REQUIRE(selected == VM_CPU_SCALAR ||
             selected == VM_CPU_AVX ||
             selected == VM_CPU_AVX2 ||
+            selected == VM_CPU_NEON ||
             selected == VM_CPU_SVE ||
             selected == VM_CPU_AVX512F ||
             selected == VM_CPU_SVE2);
@@ -39,7 +40,11 @@ TEST_CASE(cpu_features_test, "[cpu]") {
         REQUIRE(selected == VM_CPU_AVX512F);
     if ((compiled & VM_CPU_SVE2) && (runtime & VM_CPU_SVE2))
         REQUIRE(selected == VM_CPU_SVE2);
+    if ((compiled & VM_CPU_NEON) && (runtime & VM_CPU_NEON) &&
+        (compiled & VM_CPU_SVE) == 0 && (runtime & VM_CPU_SVE) == 0)
+        REQUIRE(selected == VM_CPU_NEON);
     REQUIRE(vm_cpu_name(VM_CPU_SVE2)[0] == 's');
+    REQUIRE(vm_cpu_name(VM_CPU_NEON)[0] == 'n');
 }
 
 TEST_CASE(cpu_dispatched_vec4_add_matches_scalar_shape, "[cpu][vector4]") {

@@ -10,7 +10,7 @@
  *
  * Add a new row here, implement name_scalar in the existing _ptr file (plus a
  * public `name` trampoline that calls name##_), and name_avx / name_avx2 /
- * name_avx512 / name_sve / name_sve2. dispatch.c only binds the pointers.
+ * name_avx512 / name_neon / name_sve / name_sve2. dispatch.c only binds the pointers.
  */
 #define VECMAT_DISPATCH_LIST(X)                                                              \
     X(vec4_add_ptr,                                                                          \

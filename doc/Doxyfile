@@ -196,6 +196,7 @@ PREDEFINED             = VECMAT_USE_F64= \
                          VECMAT_ENABLE_AVX= \
                          VECMAT_ENABLE_AVX2= \
                          VECMAT_ENABLE_AVX512F= \
+                         VECMAT_ENABLE_NEON= \
                          VECMAT_ENABLE_SVE= \
                          VECMAT_ENABLE_SVE2= \
                          VEC_API= \

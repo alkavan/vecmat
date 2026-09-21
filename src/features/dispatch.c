@@ -37,6 +37,15 @@ static volatile int dispatch_ready;
 #define VECMAT_PICK_SVE(name)
 #endif
 
+#if defined(VECMAT_ENABLE_NEON)
+#define VECMAT_PICK_NEON(name)                  \
+    if ((features & VM_CPU_NEON) != 0) {        \
+        fn = name##_neon;                       \
+    } else
+#else
+#define VECMAT_PICK_NEON(name)
+#endif
+
 #if defined(VECMAT_ENABLE_AVX512F)
 #define VECMAT_PICK_AVX512F(name)               \
     if ((features & VM_CPU_AVX512F) != 0) {     \
@@ -69,6 +78,7 @@ static volatile int dispatch_ready;
         name##_fn fn = name##_scalar;          \
         VECMAT_PICK_SVE2(name)                 \
         VECMAT_PICK_SVE(name)                  \
+        VECMAT_PICK_NEON(name)                 \
         VECMAT_PICK_AVX512F(name)               \
         VECMAT_PICK_AVX2(name)                 \
         VECMAT_PICK_AVX(name)                  \
