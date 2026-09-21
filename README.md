@@ -242,7 +242,11 @@ cd doc && doxygen Doxyfile
 ## SIMD and MMA
 
 **Selection order:**
-`SVE2 -> SVE -> NEON -> AVX-512F -> AVX2 -> AVX -> Scalar`
+`registered backends (by priority) -> SVE2 -> SVE -> NEON -> AVX-512F -> AVX2 -> AVX -> Scalar`
+
+`vm_backend_register()` installs a complete `_ptr` table (`vm_backend_ops`).
+Call it before the first `vm_cpu_init()`. Same pointer is idempotent; a table
+with a missing slot is rejected. Public code does not `dlopen`.
 
 | CMake flag                     | Default                   | Effect                                                  |
 |--------------------------------|---------------------------|---------------------------------------------------------|

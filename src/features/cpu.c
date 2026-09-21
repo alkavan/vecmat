@@ -2,6 +2,8 @@
 // SPDX-FileCopyrightText: 2026 ALKONTEK <git@alkontek.com>
 // SPDX-License-Identifier: BSD-3-Clause
 
+#include "cpu.h"
+
 #include <vecmat.h>
 
 #if !defined(__STDC_NO_ATOMICS__)
@@ -323,6 +325,15 @@ vm_cpu_features_t vm_cpu_runtime_features(void)
  */
 vm_cpu_features_t vm_cpu_selected_features(void)
 {
+#if defined(VECMAT_RUNTIME_DISPATCH)
+    const vm_backend *backend = vm_backend_best();
+
+    if (backend) {
+        const vm_cpu_features_t bits =
+            (vm_cpu_features_t)(backend->features & 0xffffffffu);
+        return bits != 0 ? bits : VM_CPU_BACKEND;
+    }
+#endif
     const vm_cpu_features_t have =
         vm_cpu_compiled_features() & vm_cpu_runtime_features();
 
@@ -349,6 +360,19 @@ vm_cpu_features_t vm_cpu_selected_features(void)
  */
 const char *vm_cpu_name(const vm_cpu_features_t features)
 {
+#if defined(VECMAT_RUNTIME_DISPATCH)
+    {
+        const vm_backend *backend = vm_backend_best();
+        if (backend) {
+            vm_cpu_features_t bits =
+                (vm_cpu_features_t)(backend->features & 0xffffffffu);
+            if (bits == 0)
+                bits = VM_CPU_BACKEND;
+            if (features == bits)
+                return backend->name;
+        }
+    }
+#endif
     if (features & VM_CPU_SVE2)
         return "sve2";
     if (features & VM_CPU_SVE)
@@ -361,6 +385,8 @@ const char *vm_cpu_name(const vm_cpu_features_t features)
         return "avx2";
     if (features & VM_CPU_AVX)
         return "avx";
+    if (features & VM_CPU_BACKEND)
+        return "backend";
     if (features & VM_CPU_SCALAR)
         return "scalar";
     return "none";
@@ -373,5 +399,11 @@ const char *vm_cpu_name(const vm_cpu_features_t features)
 void vm_cpu_init(void)
 {
     (void)vm_cpu_runtime_features();
+}
+
+int vm_backend_register(const vm_backend *backend)
+{
+    (void)backend;
+    return VM_BACKEND_ERR_NODISPATCH;
 }
 #endif

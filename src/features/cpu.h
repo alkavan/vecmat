@@ -6,7 +6,6 @@
 #define VECMAT_CPU_H
 
 #include <vecmat.h>
-#include "dispatch_list.h"
 
 /*
  * Scalar kernel linkage. When dispatch is off the _scalar body is static and
@@ -70,6 +69,8 @@ VECMAT_DISPATCH_LIST(VECMAT_DECL_SVE2)
 #undef VECMAT_DECL_NEON
 #undef VECMAT_DECL_SVE
 #undef VECMAT_DECL_SVE2
+
+const vm_backend *vm_backend_best(void);
 
 #endif /* VECMAT_RUNTIME_DISPATCH */
 

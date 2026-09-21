@@ -4,6 +4,8 @@
 
 #include "cpu.h"
 
+#include <string.h>
+
 #if !defined(__STDC_NO_ATOMICS__)
 #include <stdatomic.h>
 #endif
@@ -18,6 +20,39 @@ static atomic_flag dispatch_lock = ATOMIC_FLAG_INIT;
 #else
 static volatile int dispatch_ready;
 #endif
+
+static const vm_backend *vm_backends[VM_BACKEND_MAX];
+static int vm_backend_count;
+
+static int vm_backend_ops_complete(const vm_backend_ops *ops)
+{
+#define VECMAT_REQUIRE_OP(name, params, args) \
+    if (ops->name == NULL)                    \
+        return 0;
+    VECMAT_DISPATCH_LIST(VECMAT_REQUIRE_OP)
+#undef VECMAT_REQUIRE_OP
+    return 1;
+}
+
+const vm_backend *vm_backend_best(void)
+{
+    const vm_backend *best = NULL;
+    int i;
+
+    for (i = 0; i < vm_backend_count; ++i) {
+        const vm_backend *b = vm_backends[i];
+        if (!best || b->priority > best->priority)
+            best = b;
+    }
+    return best;
+}
+
+static void vm_cpu_bind_backend(const vm_backend *backend)
+{
+#define VECMAT_BIND_BACKEND(name, params, args) name##_ = backend->ops->name;
+    VECMAT_DISPATCH_LIST(VECMAT_BIND_BACKEND)
+#undef VECMAT_BIND_BACKEND
+}
 
 #if defined(VECMAT_ENABLE_SVE2)
 #define VECMAT_PICK_SVE2(name)                 \
@@ -93,9 +128,72 @@ static volatile int dispatch_ready;
  */
 static void vm_cpu_bind(const vm_cpu_features_t features)
 {
+    const vm_backend *backend = vm_backend_best();
+
+    if (backend) {
+        vm_cpu_bind_backend(backend);
+        return;
+    }
 #define VECMAT_BIND(name, params, args) VECMAT_PICK(name);
     VECMAT_DISPATCH_LIST(VECMAT_BIND)
 #undef VECMAT_BIND
+}
+
+/**
+ * @brief Register an external backend (see `vm_backend_register`).
+ */
+int vm_backend_register(const vm_backend *backend)
+{
+    int i;
+    int ready;
+
+    if (!backend || !backend->name || backend->name[0] == '\0' || !backend->ops)
+        return VM_BACKEND_ERR_INVAL;
+    if (!vm_backend_ops_complete(backend->ops))
+        return VM_BACKEND_ERR_INVAL;
+
+#if !defined(__STDC_NO_ATOMICS__)
+    while (atomic_flag_test_and_set_explicit(&dispatch_lock, memory_order_acquire)) {
+        /* spin */
+    }
+#endif
+
+    for (i = 0; i < vm_backend_count; ++i) {
+        if (vm_backends[i] == backend) {
+#if !defined(__STDC_NO_ATOMICS__)
+            atomic_flag_clear_explicit(&dispatch_lock, memory_order_release);
+#endif
+            return VM_BACKEND_OK;
+        }
+        if (strcmp(vm_backends[i]->name, backend->name) == 0) {
+#if !defined(__STDC_NO_ATOMICS__)
+            atomic_flag_clear_explicit(&dispatch_lock, memory_order_release);
+#endif
+            return VM_BACKEND_ERR_CONFLICT;
+        }
+    }
+
+    if (vm_backend_count >= VM_BACKEND_MAX) {
+#if !defined(__STDC_NO_ATOMICS__)
+        atomic_flag_clear_explicit(&dispatch_lock, memory_order_release);
+#endif
+        return VM_BACKEND_ERR_FULL;
+    }
+
+    vm_backends[vm_backend_count++] = backend;
+
+#if !defined(__STDC_NO_ATOMICS__)
+    ready = atomic_load_explicit(&dispatch_ready, memory_order_relaxed);
+#else
+    ready = dispatch_ready;
+#endif
+    if (ready)
+        vm_cpu_bind(vm_cpu_selected_features());
+
+#if !defined(__STDC_NO_ATOMICS__)
+    atomic_flag_clear_explicit(&dispatch_lock, memory_order_release);
+#endif
+    return VM_BACKEND_OK;
 }
 
 /**
