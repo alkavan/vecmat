@@ -243,7 +243,7 @@ cd doc && doxygen Doxyfile
 | `-DVECMAT_RUNTIME_DISPATCH=ON` | ON for x86-64 and AArch64 | Build extra ISA TUs and bind public names at runtime    |
 | `-DVECMAT_ENABLE_AVX=ON`       | ON on x86-64              | Compile AVX kernels (`-mavx` / `/arch:AVX`)             |
 | `-DVECMAT_ENABLE_AVX2=ON`      | ON on x86-64              | Compile AVX2 kernels (`-mavx2` / `/arch:AVX2`)          |
-| `-DVECMAT_ENABLE_AVX512=ON`    | ON on x86-64              | Compile AVX-512F kernels (`-mavx512f` / `/arch:AVX512`) |
+| `-DVECMAT_ENABLE_AVX512F=ON`   | ON on x86-64              | Compile AVX-512F kernels (`-mavx512f` / `/arch:AVX512`) |
 | `-DVECMAT_ENABLE_SVE=ON`       | ON on AArch64             | Compile SVE kernels (`-march=armv8-a+sve`)              |
 | `-DVECMAT_ENABLE_SVE2=ON`      | ON on AArch64             | Compile SVE2 kernels (`-march=armv8-a+sve2`)            |
 

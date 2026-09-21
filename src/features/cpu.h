@@ -29,12 +29,12 @@ VECMAT_DISPATCH_LIST(VECMAT_FN_TYPE)
 VECMAT_DISPATCH_LIST(VECMAT_FN_PTR_DECL)
 #undef VECMAT_FN_PTR_DECL
 
-#define VECMAT_DECL_SCALAR(name, params, args) void name##_scalar params;
-#define VECMAT_DECL_AVX(name, params, args)    void name##_avx params;
-#define VECMAT_DECL_AVX2(name, params, args)   void name##_avx2 params;
-#define VECMAT_DECL_AVX512(name, params, args) void name##_avx512 params;
-#define VECMAT_DECL_SVE(name, params, args)    void name##_sve params;
-#define VECMAT_DECL_SVE2(name, params, args)   void name##_sve2 params;
+#define VECMAT_DECL_SCALAR(name, params, args)  void name##_scalar params;
+#define VECMAT_DECL_AVX(name, params, args)     void name##_avx params;
+#define VECMAT_DECL_AVX2(name, params, args)    void name##_avx2 params;
+#define VECMAT_DECL_AVX512F(name, params, args) void name##_avx512 params;
+#define VECMAT_DECL_SVE(name, params, args)     void name##_sve params;
+#define VECMAT_DECL_SVE2(name, params, args)    void name##_sve2 params;
 
 VECMAT_DISPATCH_LIST(VECMAT_DECL_SCALAR)
 
@@ -46,8 +46,8 @@ VECMAT_DISPATCH_LIST(VECMAT_DECL_AVX)
 VECMAT_DISPATCH_LIST(VECMAT_DECL_AVX2)
 #endif
 
-#if defined(VECMAT_ENABLE_AVX512)
-VECMAT_DISPATCH_LIST(VECMAT_DECL_AVX512)
+#if defined(VECMAT_ENABLE_AVX512F)
+VECMAT_DISPATCH_LIST(VECMAT_DECL_AVX512F)
 #endif
 
 #if defined(VECMAT_ENABLE_SVE)
@@ -61,7 +61,7 @@ VECMAT_DISPATCH_LIST(VECMAT_DECL_SVE2)
 #undef VECMAT_DECL_SCALAR
 #undef VECMAT_DECL_AVX
 #undef VECMAT_DECL_AVX2
-#undef VECMAT_DECL_AVX512
+#undef VECMAT_DECL_AVX512F
 #undef VECMAT_DECL_SVE
 #undef VECMAT_DECL_SVE2
 

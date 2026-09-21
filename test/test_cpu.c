@@ -27,16 +27,16 @@ TEST_CASE(cpu_features_test, "[cpu]") {
             selected == VM_CPU_AVX ||
             selected == VM_CPU_AVX2 ||
             selected == VM_CPU_SVE ||
-            selected == VM_CPU_AVX512 ||
+            selected == VM_CPU_AVX512F ||
             selected == VM_CPU_SVE2);
     REQUIRE((selected & compiled) == selected);
     REQUIRE((selected & runtime) == selected);
     REQUIRE(vm_cpu_name(selected) != NULL);
     REQUIRE(vm_cpu_name(VM_CPU_SCALAR)[0] == 's');
-    REQUIRE(vm_cpu_name(VM_CPU_AVX512)[0] == 'a');
+    REQUIRE(vm_cpu_name(VM_CPU_AVX512F)[0] == 'a');
 
-    if ((compiled & VM_CPU_AVX512) && (runtime & VM_CPU_AVX512))
-        REQUIRE(selected == VM_CPU_AVX512);
+    if ((compiled & VM_CPU_AVX512F) && (runtime & VM_CPU_AVX512F))
+        REQUIRE(selected == VM_CPU_AVX512F);
     if ((compiled & VM_CPU_SVE2) && (runtime & VM_CPU_SVE2))
         REQUIRE(selected == VM_CPU_SVE2);
     REQUIRE(vm_cpu_name(VM_CPU_SVE2)[0] == 's');

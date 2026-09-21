@@ -37,13 +37,13 @@ static volatile int dispatch_ready;
 #define VECMAT_PICK_SVE(name)
 #endif
 
-#if defined(VECMAT_ENABLE_AVX512)
-#define VECMAT_PICK_AVX512(name)               \
-    if ((features & VM_CPU_AVX512) != 0) {     \
-        fn = name##_avx512;                    \
+#if defined(VECMAT_ENABLE_AVX512F)
+#define VECMAT_PICK_AVX512F(name)               \
+    if ((features & VM_CPU_AVX512F) != 0) {     \
+        fn = name##_avx512;                     \
     } else
 #else
-#define VECMAT_PICK_AVX512(name)
+#define VECMAT_PICK_AVX512F(name)
 #endif
 
 #if defined(VECMAT_ENABLE_AVX2)
@@ -69,7 +69,7 @@ static volatile int dispatch_ready;
         name##_fn fn = name##_scalar;          \
         VECMAT_PICK_SVE2(name)                 \
         VECMAT_PICK_SVE(name)                  \
-        VECMAT_PICK_AVX512(name)               \
+        VECMAT_PICK_AVX512F(name)               \
         VECMAT_PICK_AVX2(name)                 \
         VECMAT_PICK_AVX(name)                  \
         { /* scalar already set */ }           \

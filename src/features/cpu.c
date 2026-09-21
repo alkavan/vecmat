@@ -229,8 +229,8 @@ vm_cpu_features_t vm_cpu_compiled_features(void)
 #if defined(VECMAT_ENABLE_AVX2) || defined(__AVX2__)
     f |= VM_CPU_AVX2;
 #endif
-#if defined(VECMAT_ENABLE_AVX512) || defined(__AVX512F__)
-    f |= VM_CPU_AVX512;
+#if defined(VECMAT_ENABLE_AVX512F) || defined(__AVX512F__)
+    f |= VM_CPU_AVX512F;
 #endif
 #if defined(VECMAT_ENABLE_SVE) || defined(__ARM_FEATURE_SVE)
     f |= VM_CPU_SVE;
@@ -263,7 +263,7 @@ vm_cpu_features_t vm_cpu_runtime_features(void)
     if (vm_cpu_probe_avx2())
         f |= VM_CPU_AVX2;
     if (vm_cpu_probe_avx512f())
-        f |= VM_CPU_AVX512;
+        f |= VM_CPU_AVX512F;
 #endif
     if (vm_cpu_probe_sve())
         f |= VM_CPU_SVE;
@@ -301,8 +301,8 @@ vm_cpu_features_t vm_cpu_selected_features(void)
         return VM_CPU_SVE2;
     if (have & VM_CPU_SVE)
         return VM_CPU_SVE;
-    if (have & VM_CPU_AVX512)
-        return VM_CPU_AVX512;
+    if (have & VM_CPU_AVX512F)
+        return VM_CPU_AVX512F;
     if (have & VM_CPU_AVX2)
         return VM_CPU_AVX2;
     if (have & VM_CPU_AVX)
@@ -322,8 +322,8 @@ const char *vm_cpu_name(const vm_cpu_features_t features)
         return "sve2";
     if (features & VM_CPU_SVE)
         return "sve";
-    if (features & VM_CPU_AVX512)
-        return "avx512";
+    if (features & VM_CPU_AVX512F)
+        return "avx512f";
     if (features & VM_CPU_AVX2)
         return "avx2";
     if (features & VM_CPU_AVX)
