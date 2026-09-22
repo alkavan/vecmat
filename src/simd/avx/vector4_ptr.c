@@ -6,14 +6,20 @@
 #include <math.h>
 #include <vecmat.h>
 
+#if defined(_MSC_VER)
+#define VM_SIMD_INLINE static __forceinline
+#else
+#define VM_SIMD_INLINE static inline __attribute__((always_inline))
+#endif
+
 #if defined(VECMAT_USE_F64)
 
-static inline __m256d load4(const vector4 *v)
+VM_SIMD_INLINE __m256d load4(const vector4 *v)
 {
     return _mm256_loadu_pd(v->v);
 }
 
-static inline void store4(vector4 *v, const __m256d x)
+VM_SIMD_INLINE void store4(vector4 *v, const __m256d x)
 {
     _mm256_storeu_pd(v->v, x);
 }
@@ -87,11 +93,8 @@ void vec4_normalize_ptr_avx(vector4 *res, const vector4 *v)
         *res = *v;
         return;
     }
-    /* rsqrtss estimate + two Newton steps in double (no rsqrt.pd in AVX). */
-    double y = (double)_mm_cvtss_f32(_mm_rsqrt_ss(_mm_set_ss((float)len2)));
-    y = y * (1.5 - 0.5 * len2 * y * y);
-    y = y * (1.5 - 0.5 * len2 * y * y);
-    store4(res, _mm256_mul_pd(x, _mm256_set1_pd(y)));
+    const double len = _mm_cvtsd_f64(_mm_sqrt_sd(_mm_setzero_pd(), _mm_set_sd(len2)));
+    store4(res, _mm256_mul_pd(x, _mm256_set1_pd(1.0 / len)));
 }
 
 void vec4_min_ptr_avx(vector4 *res, const vector4 *a, const vector4 *b)
