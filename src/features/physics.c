@@ -6,15 +6,6 @@
 #include <string.h>
 #include <vecmat.h>
 
-/**
- * @brief Semi-implicit Euler: `v += a dt`, then `x += v dt`.
- *
- * @param x  Position vector (in/out); length `n`.
- * @param v  Velocity vector (in/out); length `n`.
- * @param a  Acceleration vector; length `n`.
- * @param n  State dimension.
- * @param dt Timestep.
- */
 void vm_euler_semi(vm_float_t *x, vm_float_t *v, const vm_float_t *a, const int n, const vm_float_t dt)
 {
     if (!x || !v || !a || n <= 0) {
@@ -26,20 +17,6 @@ void vm_euler_semi(vm_float_t *x, vm_float_t *v, const vm_float_t *a, const int 
     }
 }
 
-/**
- * @brief Velocity Verlet with an acceleration callback.
- *
- * Uses the incoming `a` at `x`, advances `x`, re-evaluates `acc`, then
- * completes the velocity half-kick.
- *
- * @param acc Acceleration callback `acc(x, a, ctx)`.
- * @param x   Position vector (in/out); length `n`.
- * @param v   Velocity vector (in/out); length `n`.
- * @param a   Acceleration vector (in/out); length `n`.
- * @param n   State dimension.
- * @param dt  Timestep.
- * @param ctx User context passed to `acc`.
- */
 void vm_verlet(const vm_acc_fn acc, vm_float_t *x, vm_float_t *v, vm_float_t *a,
                const int n, const vm_float_t dt, void *ctx)
 {
@@ -59,24 +36,15 @@ void vm_verlet(const vm_acc_fn acc, vm_float_t *x, vm_float_t *v, vm_float_t *a,
     }
 }
 
-/**
- * @brief Explicit midpoint RK2 for `y' = f(y)`.
- *
- * @param f   ODE right-hand side `f(y, dy, ctx)`.
- * @param y   State vector (in/out); length `n`.
- * @param n   State dimension.
- * @param dt  Timestep.
- * @param ctx User context passed to `f`.
- */
 void vm_rk2(const vm_ode_fn f, vm_float_t *y, const int n, const vm_float_t dt, void *ctx)
 {
     if (!f || !y || n <= 0) {
         return;
     }
 
-    vm_float_t *k1 = (vm_float_t *)malloc((size_t)n * sizeof(vm_float_t));
-    vm_float_t *yt = (vm_float_t *)malloc((size_t)n * sizeof(vm_float_t));
-    vm_float_t *k2 = (vm_float_t *)malloc((size_t)n * sizeof(vm_float_t));
+    vm_float_t *k1 = malloc((size_t)n * sizeof(vm_float_t));
+    vm_float_t *yt = malloc((size_t)n * sizeof(vm_float_t));
+    vm_float_t *k2 = malloc((size_t)n * sizeof(vm_float_t));
     if (!k1 || !yt || !k2) {
         free(k1);
         free(yt);
@@ -99,25 +67,16 @@ void vm_rk2(const vm_ode_fn f, vm_float_t *y, const int n, const vm_float_t dt, 
     free(k2);
 }
 
-/**
- * @brief Classic RK4 for `y' = f(y)`.
- *
- * @param f   ODE right-hand side `f(y, dy, ctx)`.
- * @param y   State vector (in/out); length `n`.
- * @param n   State dimension.
- * @param dt  Timestep.
- * @param ctx User context passed to `f`.
- */
 void vm_rk4(const vm_ode_fn f, vm_float_t *y, const int n, const vm_float_t dt, void *ctx)
 {
     if (!f || !y || n <= 0) {
         return;
     }
-    vm_float_t *k1 = (vm_float_t *)malloc((size_t)n * sizeof(vm_float_t));
-    vm_float_t *k2 = (vm_float_t *)malloc((size_t)n * sizeof(vm_float_t));
-    vm_float_t *k3 = (vm_float_t *)malloc((size_t)n * sizeof(vm_float_t));
-    vm_float_t *k4 = (vm_float_t *)malloc((size_t)n * sizeof(vm_float_t));
-    vm_float_t *yt = (vm_float_t *)malloc((size_t)n * sizeof(vm_float_t));
+    vm_float_t *k1 = malloc((size_t)n * sizeof(vm_float_t));
+    vm_float_t *k2 = malloc((size_t)n * sizeof(vm_float_t));
+    vm_float_t *k3 = malloc((size_t)n * sizeof(vm_float_t));
+    vm_float_t *k4 = malloc((size_t)n * sizeof(vm_float_t));
+    vm_float_t *yt = malloc((size_t)n * sizeof(vm_float_t));
     if (!k1 || !k2 || !k3 || !k4 || !yt) {
         free(k1);
         free(k2);
@@ -157,27 +116,12 @@ void vm_rk4(const vm_ode_fn f, vm_float_t *y, const int n, const vm_float_t dt, 
     free(yt);
 }
 
-/**
- * @brief CFL timestep `dt = cfl * dx / (|u| + ε)`.
- *
- * @param cfl   CFL number (typically in `(0, 1]`).
- * @param dx    Characteristic cell size.
- * @param speed Characteristic speed (e.g. `|u|`).
- * @return Stable timestep estimate.
- */
 vm_float_t vm_cfl_dt(const vm_float_t cfl, const vm_float_t dx, const vm_float_t speed)
 {
     const vm_float_t den = VECMAT_FABS(speed) + VECMAT_EPSILON;
     return cfl * dx / den;
 }
 
-/**
- * @brief 3×3 Cholesky `A = L Lᵀ`. `L` is lower; the upper triangle is zeroed.
- *
- * @param a SPD coefficient matrix.
- * @param L Lower-triangular Cholesky factor (out); upper triangle set to 0.
- * @return `true` on success, `false` if `L` is NULL or `a` is not SPD.
- */
 bool mat3_chol(const matrix3 a, matrix3 *L)
 {
     if (!L) {
@@ -233,14 +177,6 @@ static bool mat3_chol_solve(const matrix3 L, const vector3 b, vector3 *x)
     return true;
 }
 
-/**
- * @brief Solve the 3×3 SPD system `A x = b` via Cholesky.
- *
- * @param a SPD coefficient matrix.
- * @param b Right-hand side vector.
- * @param x Solution vector (out).
- * @return `true` on success, `false` if `x` is NULL or factorization fails.
- */
 bool mat3_spd_solve(const matrix3 a, const vector3 b, vector3 *x)
 {
     if (!x) {
@@ -253,26 +189,12 @@ bool mat3_spd_solve(const matrix3 a, const vector3 b, vector3 *x)
     return mat3_chol_solve(L, b, x);
 }
 
-/**
- * @brief World-frame inertia `I_w = R I_b Rᵀ` from a body tensor and orientation.
- *
- * @param ib  Body-frame inertia tensor.
- * @param q   Orientation quaternion.
- * @return World-frame inertia tensor.
- */
 matrix3 vm_inertia_world(const matrix3 ib, const quaternion q)
 {
     const matrix3 R = quat_to_mat3(q);
     return mat3_mul(mat3_mul(R, ib), mat3_transpose(R));
 }
 
-/**
- * @brief Recover `ω` from angular momentum `L = I ω`.
- *
- * @param I Inertia tensor (same frame as `L`).
- * @param L Angular momentum.
- * @return Angular velocity, or the zero vector if the solve fails.
- */
 vector3 vm_omega_from_angmom(const matrix3 I, const vector3 L)
 {
     vector3 w = { 0 };
@@ -282,41 +204,12 @@ vector3 vm_omega_from_angmom(const matrix3 I, const vector3 L)
     return w;
 }
 
-/**
- * @brief Rigid kinetic energy `½ m |v|² + ½ ω · (I ω)`.
- *
- * `I` and `ω` must share a frame.
- *
- * @param mass Mass.
- * @param v    Linear velocity.
- * @param I    Inertia tensor (same frame as `w`).
- * @param w    Angular velocity (same frame as `I`).
- *
- * @return Kinetic energy.
- */
 vm_float_t vm_rigid_energy(const vm_float_t mass, const vector3 v, const matrix3 I, const vector3 w)
 {
     const vector3 Iw = mat3_mul_vec3(I, w);
     return VM_F(0.5) * mass * vec3_length_squared(v) + VM_F(0.5) * vec3_dot(w, Iw);
 }
 
-/**
- * @brief One symplectic-Euler rigid step.
- *
- * `x`, `v`, `F` are world-frame. `w` and `tau` are body-frame. `I_body` is
- * the body inertia (any SPD 3×3). Orientation is advanced with
- * `quat_integrate`.
- *
- * @param x      World-frame position (in/out).
- * @param v      World-frame linear velocity (in/out).
- * @param q      Orientation quaternion (in/out).
- * @param w      Body-frame angular velocity (in/out).
- * @param F      World-frame force.
- * @param tau    Body-frame torque.
- * @param mass   Mass.
- * @param I_body Body-frame inertia tensor (SPD 3×3).
- * @param dt     Timestep.
- */
 void vm_rigid_step(vector3 *x, vector3 *v, quaternion *q, vector3 *w,
                    const vector3 F, const vector3 tau, const vm_float_t mass,
                    const matrix3 I_body, const vm_float_t dt)
@@ -338,20 +231,6 @@ void vm_rigid_step(vector3 *x, vector3 *v, quaternion *q, vector3 *w,
     *q = quat_integrate(*q, *w, dt);
 }
 
-/**
- * @brief Single-constraint Baumgarte correction along a unit normal.
- *
- * `C` is the signed constraint value (0 at contact). Position is moved by
- * `-beta C n`; velocity by `-gamma C / dt n`.
- *
- * @param x     Position to correct (in/out).
- * @param v     Velocity to correct (in/out).
- * @param n     Unit constraint normal.
- * @param C     Signed constraint value (`0` at contact).
- * @param beta  Position Baumgarte coefficient.
- * @param gamma Velocity Baumgarte coefficient.
- * @param dt    Timestep used for the velocity correction scale.
- */
 void vm_baumgarte_correct(vector3 *x, vector3 *v, const vector3 n, const vm_float_t C,
                           const vm_float_t beta, const vm_float_t gamma, const vm_float_t dt)
 {
@@ -364,18 +243,6 @@ void vm_baumgarte_correct(vector3 *x, vector3 *v, const vector3 n, const vm_floa
     *v = vec3_sub(*v, vec3_mul_scalar(n, gamma * C * inv_dt));
 }
 
-/**
- * @brief Build a 3-D grid descriptor.
- *
- * @param nx Number of cells in x.
- * @param ny Number of cells in y.
- * @param nz Number of cells in z; values `<= 0` are treated as `1`.
- * @param dx Cell spacing in x.
- * @param dy Cell spacing in y.
- * @param dz Cell spacing in z.
- *
- * @return Grid descriptor with the given dimensions and spacing.
- */
 vm_grid3 vm_grid3_make(const int nx, const int ny, const int nz,
                        const vm_float_t dx, const vm_float_t dy, const vm_float_t dz)
 {
@@ -390,12 +257,6 @@ vm_grid3 vm_grid3_make(const int nx, const int ny, const int nz,
     return g;
 }
 
-/**
- * @brief Returns the total number of cells in the grid.
- *
- * @param g 3D grid descriptor.
- * @return Total cell count (`nx * ny * nz`), or `0` if `nx` or `ny` is non-positive.
- */
 int vm_grid_ncells(const vm_grid3 g)
 {
     const int nz = (g.nz > 0) ? g.nz : 1;
@@ -405,27 +266,11 @@ int vm_grid_ncells(const vm_grid3 g)
     return g.nx * g.ny * nz;
 }
 
-/**
- * @brief Compute linear index of a cell in a 3-D grid stored in row-major order.
- *
- * @param g grid dimensions and spacing
- * @param i cell index along x
- * @param j cell index along y
- * @param k cell index along z
- *
- * @return flattened 1-D index of the cell
- */
 int vm_grid_cell(const vm_grid3 g, const int i, const int j, const int k)
 {
     return i + g.nx * (j + g.ny * k);
 }
 
-/**
- * @brief Returns the number of u-velocity MAC face values for the grid.
- *
- * @param g Grid definition.
- * @return Number of u-faces, or zero if the grid is invalid.
- */
 int vm_mac_nu(const vm_grid3 g)
 {
     const int nz = (g.nz > 0) ? g.nz : 1;
@@ -435,12 +280,6 @@ int vm_mac_nu(const vm_grid3 g)
     return (g.nx + 1) * g.ny * nz;
 }
 
-/**
- * @brief Returns the number of MAC grid v-velocity components.
- *
- * @param g Grid dimensions and spacing.
- * @return Number of v-velocity samples.
- */
 int vm_mac_nv(const vm_grid3 g)
 {
     const int nz = (g.nz > 0) ? g.nz : 1;
@@ -450,12 +289,6 @@ int vm_mac_nv(const vm_grid3 g)
     return g.nx * (g.ny + 1) * nz;
 }
 
-/**
- * @brief Returns the number of MAC grid faces in the z (vertical) direction.
- *
- * @param g Grid dimensions and spacing.
- * @return Number of vertical MAC faces, or 0 if the grid is invalid.
- */
 int vm_mac_nw(const vm_grid3 g)
 {
     if (g.nz <= 1 || g.nx <= 0 || g.ny <= 0) {
@@ -464,46 +297,16 @@ int vm_mac_nw(const vm_grid3 g)
     return g.nx * g.ny * (g.nz + 1);
 }
 
-/**
- * @brief Compute linear index of u-velocity on MAC grid.
- *
- * @param g Grid descriptor.
- * @param i Cell index in x.
- * @param j Cell index in y.
- * @param k Cell index in z.
- *
- * @return Linear array index for the u-face value.
- */
 int vm_mac_u(const vm_grid3 g, const int i, const int j, const int k)
 {
     return i + (g.nx + 1) * (j + g.ny * k);
 }
 
-/**
- * @brief Computes the linear index for the v-component of a MAC grid velocity.
- *
- * @param g Grid descriptor.
- * @param i Cell index in x.
- * @param j Cell index in y.
- * @param k Cell index in z.
- *
- * @return Linear array index for v at the given staggered location.
- */
 int vm_mac_v(const vm_grid3 g, const int i, const int j, const int k)
 {
     return i + g.nx * (j + (g.ny + 1) * k);
 }
 
-/**
- * @brief Compute linear index of MAC grid w-component at cell (i,j,k).
- *
- * @param g Grid descriptor.
- * @param i Cell index in x.
- * @param j Cell index in y.
- * @param k Cell index in z.
- *
- * @return Linear array index for the w velocity component.
- */
 int vm_mac_w(const vm_grid3 g, const int i, const int j, const int k)
 {
     return i + g.nx * (j + g.ny * k);
@@ -531,18 +334,6 @@ static bool vm_grid_on_boundary(const vm_grid3 g, const int i, const int j, cons
     return false;
 }
 
-/**
- * @brief Assemble the SPD operator `-∇²` on a cell-centered grid.
- *
- * 5-point in 2-D (`nz == 1`), 7-point in 3-D. Dirichlet boundary cells become
- * identity rows. Homogeneous Neumann drops the missing neighbour (singular
- * constant nullspace).
- *
- * @param A  Output sparse matrix; size `vm_grid_ncells(g)`.
- * @param g  Grid dimensions and spacing.
- * @param bc Boundary condition (`VM_BC_DIRICHLET` or `VM_BC_NEUMANN`).
- * @return `true` on success, `false` on invalid input or allocation failure.
- */
 bool vm_grid_laplacian(vm_spmat *A, const vm_grid3 g, const vm_bc_t bc)
 {
     const int nz = (g.nz > 0) ? g.nz : 1;
@@ -552,9 +343,9 @@ bool vm_grid_laplacian(vm_spmat *A, const vm_grid3 g, const vm_bc_t bc)
     }
 
     const int cap = n * 7;
-    int *row = (int *)malloc((size_t)cap * sizeof(int));
-    int *col = (int *)malloc((size_t)cap * sizeof(int));
-    vm_float_t *val = (vm_float_t *)malloc((size_t)cap * sizeof(vm_float_t));
+    int *row = malloc((size_t)cap * sizeof(int));
+    int *col = malloc((size_t)cap * sizeof(int));
+    vm_float_t *val = malloc((size_t)cap * sizeof(vm_float_t));
 
     if (!row || !col || !val) {
         free(row);
@@ -626,17 +417,6 @@ bool vm_grid_laplacian(vm_spmat *A, const vm_grid3 g, const vm_bc_t bc)
     return ok;
 }
 
-/**
- * @brief Cell-centered divergence of a MAC velocity field.
- *
- * `w` may be NULL when `g.nz <= 1`. `div` has length `vm_grid_ncells(g)`.
- *
- * @param div Output cell-centered divergence; length `vm_grid_ncells(g)`.
- * @param u   MAC face-centered x-velocity; length `vm_mac_nu(g)`.
- * @param v   MAC face-centered y-velocity; length `vm_mac_nv(g)`.
- * @param w   MAC face-centered z-velocity, or NULL when `g.nz <= 1`; length `vm_mac_nw(g)`.
- * @param g   Grid dimensions and spacing.
- */
 void vm_mac_div(vm_float_t *div, const vm_float_t *u, const vm_float_t *v,
     const vm_float_t *w, const vm_grid3 g)
 {
@@ -661,17 +441,6 @@ void vm_mac_div(vm_float_t *div, const vm_float_t *u, const vm_float_t *v,
     }
 }
 
-/**
- * @brief MAC face gradient of a cell-centered scalar (pressure).
- *
- * Boundary faces are left at 0. `gw` may be NULL when `g.nz <= 1`.
- *
- * @param gu Output MAC face gradient in x; length `vm_mac_nu(g)`.
- * @param gv Output MAC face gradient in y; length `vm_mac_nv(g)`.
- * @param gw Output MAC face gradient in z, or NULL when `g.nz <= 1`; length `vm_mac_nw(g)`.
- * @param p  Cell-centered scalar field; length `vm_grid_ncells(g)`.
- * @param g  Grid dimensions and spacing.
- */
 void vm_mac_grad(vm_float_t *gu, vm_float_t *gv, vm_float_t *gw,
                  const vm_float_t *p, const vm_grid3 g)
 {
@@ -719,14 +488,6 @@ void vm_mac_grad(vm_float_t *gu, vm_float_t *gv, vm_float_t *gw,
     }
 }
 
-/**
- * @brief Cell-centered z-vorticity `(∂v/∂x − ∂u/∂y)` from MAC `u, v`.
- *
- * @param cz Output cell-centered vorticity; length `vm_grid_ncells(g)`.
- * @param u  MAC face-centered x-velocity.
- * @param v  MAC face-centered y-velocity.
- * @param g  Grid dimensions and spacing.
- */
 void vm_mac_curl_z(vm_float_t *cz, const vm_float_t *u, const vm_float_t *v, const vm_grid3 g)
 {
     const int nz = (g.nz > 0) ? g.nz : 1;

@@ -236,18 +236,6 @@ static bool vm_svd_jacobi_tall(const vm_mat *B, vm_mat *V)
     return true;
 }
 
-/**
- * @brief Thin SVD `A = U diag(s) V^T`.
- *
- * `s` has length `k = min(m, n)` (descending). `U` is m x k, `V` is n x k
- * (columns are singular vectors). Allocates or resizes `U` and `V`.
- *
- * @param A Input matrix (not modified).
- * @param U Left singular vectors on success.
- * @param s Singular values, length `min(m, n)`.
- * @param V Right singular vectors on success.
- * @return True on success.
- */
 bool vm_svd_factor(const vm_mat *A, vm_mat *U, vm_float_t *s, vm_mat *V)
 {
     if (!A || !A->data || !U || !s || !V || A->rows <= 0 || A->cols <= 0) {

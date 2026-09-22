@@ -4,11 +4,6 @@
 
 #include <vecmat.h>
 
-/**
- * @brief Initializes the integer 2x2 matrix to identity (diagonal 1, others 0).
- *
- * @param res Pointer to the output matrix2i.
- */
 void mat2i_identity_ptr(matrix2i *res)
 {
     *res = (matrix2i){0};
@@ -16,14 +11,6 @@ void mat2i_identity_ptr(matrix2i *res)
     res->v[3] = 1;
 }
 
-/**
- * @brief Multiplies two integer 2x2 matrices (a * b) using explicit loops and
- * stores the result in res.
- *
- * @param res Pointer to the output matrix2i.
- * @param a Pointer to the first matrix.
- * @param b Pointer to the second matrix.
- */
 void mat2i_mul_ptr(matrix2i *res, const matrix2i *a, const matrix2i *b)
 {
     const matrix2i tmp = {
@@ -35,12 +22,6 @@ void mat2i_mul_ptr(matrix2i *res, const matrix2i *a, const matrix2i *b)
     *res = tmp;
 }
 
-/**
- * @brief Computes the transpose of the input integer 2x2 matrix and stores in res.
- *
- * @param res Pointer to the output matrix2i.
- * @param m Pointer to the input matrix.
- */
 void mat2i_transpose_ptr(matrix2i *res, const matrix2i *m)
 {
     *res = (matrix2i){
@@ -49,14 +30,6 @@ void mat2i_transpose_ptr(matrix2i *res, const matrix2i *m)
     };
 }
 
-/**
- * @brief Computes the inverse of the input integer 2x2 matrix and stores in res.
- *
- * Uses double precision for inversion, truncates to int; sets to identity if det=0.
- *
- * @param res Pointer to the output matrix2i.
- * @param m Pointer to the input matrix.
- */
 void mat2i_inverse_ptr(matrix2i *res, const matrix2i *m)
 {
     const vm_int_t det = mat2i_determinant(*m);
@@ -71,13 +44,6 @@ void mat2i_inverse_ptr(matrix2i *res, const matrix2i *m)
     };
 }
 
-/**
- * @brief Multiplies a 2x2 integer matrix by a vector2i.
- *
- * @param res Output value.
- * @param m Input matrix.
- * @param v Input vector.
- */
 void mat2i_mul_vec2i_ptr(vector2i *res, const matrix2i *m, const vector2i *v)
 {
     const vm_int_t x = v->x;

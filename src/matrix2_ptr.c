@@ -4,11 +4,6 @@
 
 #include <vecmat.h>
 
-/**
- * @brief Initializes the 2x2 matrix to identity (diagonal 1.0, others 0.0).
- *
- * @param res Pointer to the output matrix2.
- */
 void mat2_identity_ptr(matrix2 *res)
 {
     *res = (matrix2){0};
@@ -16,13 +11,6 @@ void mat2_identity_ptr(matrix2 *res)
     res->v[3] = 1.0f;
 }
 
-/**
- * @brief Multiplies two 2x2 matrices (a * b) in column-major / column-vector convention.
- *
- * @param res Pointer to the output matrix2.
- * @param a Pointer to the first matrix.
- * @param b Pointer to the second matrix.
- */
 void mat2_mul_ptr(matrix2 *res, const matrix2 *a, const matrix2 *b)
 {
     const matrix2 tmp = {
@@ -34,12 +22,6 @@ void mat2_mul_ptr(matrix2 *res, const matrix2 *a, const matrix2 *b)
     *res = tmp;
 }
 
-/**
- * @brief Computes the transpose of the input 2x2 matrix and stores in res.
- *
- * @param res Pointer to the output matrix2.
- * @param m Pointer to the input matrix.
- */
 void mat2_transpose_ptr(matrix2 *res, const matrix2 *m)
 {
     *res = (matrix2){
@@ -48,15 +30,6 @@ void mat2_transpose_ptr(matrix2 *res, const matrix2 *m)
     };
 }
 
-
-/**
- * @brief Computes the inverse of the input 2x2 matrix using determinant and stores in res.
- *
- * If the determinant is zero, sets res to identity matrix.
- *
- * @param res Pointer to the output matrix2.
- * @param m Pointer to the input matrix.
- */
 void mat2_inverse_ptr(matrix2 *res, const matrix2 *m)
 {
     const vm_float_t det = mat2_determinant(*m);
@@ -71,13 +44,6 @@ void mat2_inverse_ptr(matrix2 *res, const matrix2 *m)
     };
 }
 
-/**
- * @brief Multiplies a 2x2 matrix by a vector2.
- *
- * @param res Output value.
- * @param m Input matrix.
- * @param v Input vector.
- */
 void mat2_mul_vec2_ptr(vector2 *res, const matrix2 *m, const vector2 *v)
 {
     const vm_float_t x = v->x;
@@ -86,12 +52,6 @@ void mat2_mul_vec2_ptr(vector2 *res, const matrix2 *m, const vector2 *v)
     res->y = m->m21 * x + m->m22 * y;
 }
 
-/**
- * @brief Sets the 2x2 matrix to a Z-axis (counter-clockwise) rotation.
- *
- * @param res Pointer to the output matrix2.
- * @param radians Rotation angle in radians.
- */
 void mat2_rotation_z_ptr(matrix2 *res, const vm_float_t radians)
 {
     const vm_float_t cos_theta = VECMAT_COS(radians);
@@ -102,23 +62,11 @@ void mat2_rotation_z_ptr(matrix2 *res, const vm_float_t radians)
     };
 }
 
-/**
- * @brief Initializes the 2x2 matrix to a rotation around Z axis (counter-clockwise).
- *
- * @param res Pointer to the output matrix2.
- * @param degrees Rotation angle in degrees.
- */
 void mat2_rotation_z_deg_ptr(matrix2 *res, const vm_float_t degrees)
 {
     mat2_rotation_z_ptr(res, deg_to_rad(degrees));
 }
 
-/**
- * @brief Builds a 2x2 scaling matrix from a vector2.
- *
- * @param res Output value.
- * @param s Scale vector.
- */
 void mat2_scale_ptr(matrix2 *res, const vector2 *s)
 {
     *res = (matrix2){
@@ -127,12 +75,6 @@ void mat2_scale_ptr(matrix2 *res, const vector2 *s)
     };
 }
 
-/**
- * @brief Copies the upper-left 2x2 of a matrix3.
- *
- * @param res Output value.
- * @param m Input matrix.
- */
 void mat2_from_mat3_ptr(matrix2 *res, const matrix3 *m)
 {
     *res = (matrix2){

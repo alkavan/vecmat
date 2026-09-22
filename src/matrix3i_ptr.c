@@ -4,11 +4,6 @@
 
 #include <vecmat.h>
 
-/**
- * @brief Fills the given 3x3 integer matrix with the identity matrix.
- *
- * @param res Pointer to the result matrix.
- */
 void mat3i_identity_ptr(matrix3i *res)
 {
     res->m11 = 1; res->m12 = 0; res->m13 = 0;
@@ -16,13 +11,6 @@ void mat3i_identity_ptr(matrix3i *res)
     res->m31 = 0; res->m32 = 0; res->m33 = 1;
 }
 
-/**
- * @brief Multiplies two 3x3 integer matrices (standard matrix multiplication).
- *
- * @param res Pointer to the result matrix.
- * @param a   Pointer to the first input matrix.
- * @param b   Pointer to the second input matrix.
- */
 void mat3i_mul_ptr(matrix3i *res, const matrix3i *a, const matrix3i *b)
 {
     matrix3i temp;
@@ -41,12 +29,6 @@ void mat3i_mul_ptr(matrix3i *res, const matrix3i *a, const matrix3i *b)
     *res = temp;
 }
 
-/**
- * @brief Computes the transpose of a 3x3 integer matrix.
- *
- * @param res Pointer to the result matrix.
- * @param m   Pointer to the input matrix.
- */
 void mat3i_transpose_ptr(matrix3i *res, const matrix3i *m)
 {
     matrix3i temp;
@@ -56,14 +38,6 @@ void mat3i_transpose_ptr(matrix3i *res, const matrix3i *m)
     *res = temp;
 }
 
-/**
- * @brief Computes the inverse of a 3x3 integer matrix using adjugate over determinant.
- *
- * If the determinant is zero (singular), sets the result to the identity matrix.
- *
- * @param res Pointer to the result matrix.
- * @param m   Pointer to the input matrix.
- */
 void mat3i_inverse_ptr(matrix3i *res, const matrix3i *m)
 {
     const vm_int_t det = mat3i_determinant(*m);
@@ -88,13 +62,6 @@ void mat3i_inverse_ptr(matrix3i *res, const matrix3i *m)
     *res = temp;
 }
 
-/**
- * @brief Multiplies a 3x3 integer matrix by a vector3i.
- *
- * @param res Output value.
- * @param m Input matrix.
- * @param v Input vector.
- */
 void mat3i_mul_vec3i_ptr(vector3i *res, const matrix3i *m, const vector3i *v)
 {
     const vm_int_t x = v->x;
@@ -105,13 +72,6 @@ void mat3i_mul_vec3i_ptr(vector3i *res, const matrix3i *m, const vector3i *v)
     res->z = m->m31 * x + m->m32 * y + m->m33 * z;
 }
 
-/**
- * @brief Applies a 3x3 integer affine transform to a vector2i.
- *
- * @param res Output value.
- * @param m Input matrix.
- * @param v Input vector.
- */
 void mat3i_mul_vec2i_ptr(vector2i *res, const matrix3i *m, const vector2i *v)
 {
     const vm_int_t x = v->x;

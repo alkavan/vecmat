@@ -4,11 +4,6 @@
 
 #include <vecmat.h>
 
-/**
- * @brief Sets the given 4x4 integer matrix to the identity matrix.
- *
- * @param res Pointer to the matrix structure to set to identity.
- */
 void mat4i_identity_ptr(matrix4i *res)
 {
     matrix4i m = {0};
@@ -19,13 +14,6 @@ void mat4i_identity_ptr(matrix4i *res)
     *res = m;
 }
 
-/**
- * @brief Performs matrix multiplication of two 4x4 matrices and stores the result.
- *
- * @param res Pointer to the matrix structure to store the result of the multiplication.
- * @param a Pointer to the first matrix operand.
- * @param b Pointer to the second matrix operand.
- */
 void mat4i_mul_ptr(matrix4i *res, const matrix4i *a, const matrix4i *b)
 {
     matrix4i r;
@@ -51,13 +39,6 @@ void mat4i_mul_ptr(matrix4i *res, const matrix4i *a, const matrix4i *b)
     *res = r;
 }
 
-/**
- * @brief Transposes the given 4x4 integer matrix and stores the result in the
- * provided matrix structure.
- *
- * @param res Pointer to the matrix structure to store the transposed matrix.
- * @param m Pointer to the input matrix to be transposed.
- */
 void mat4i_transpose_ptr(matrix4i *res, const matrix4i *m)
 {
     matrix4i r;
@@ -69,15 +50,6 @@ void mat4i_transpose_ptr(matrix4i *res, const matrix4i *m)
     *res = r;
 }
 
-/**
- * @brief Computes the inverse of the given 4x4 integer matrix and stores the
- * result in the specified matrix.
- *
- * If the matrix is singular (determinant is zero), the result is set to the identity matrix.
- *
- * @param res Pointer to the matrix structure to store the inverse matrix.
- * @param m Pointer to the constant matrix to be inverted.
- */
 void mat4i_inverse_ptr(matrix4i *res, const matrix4i *m)
 {
     int inv[16];
@@ -119,13 +91,6 @@ void mat4i_inverse_ptr(matrix4i *res, const matrix4i *m)
     *res = result;
 }
 
-/**
- * @brief Multiplies a 4x4 integer matrix by a vector4i.
- *
- * @param res Output value.
- * @param m Input matrix.
- * @param v Input vector.
- */
 void mat4i_mul_vec4i_ptr(vector4i *res, const matrix4i *m, const vector4i *v)
 {
     const vm_int_t x = v->x;
@@ -138,14 +103,6 @@ void mat4i_mul_vec4i_ptr(vector4i *res, const matrix4i *m, const vector4i *v)
     res->w = m->m41 * x + m->m42 * y + m->m43 * z + m->m44 * w;
 }
 
-/**
- * @brief Transforms a vector3i by a 4x4 integer matrix using homogeneous w.
- *
- * @param res Output value.
- * @param m Input matrix.
- * @param v Input vector.
- * @param w Homogeneous w component.
- */
 void mat4i_mul_vec3i_ptr(vector3i *res, const matrix4i *m, const vector3i *v, const vm_int_t w)
 {
     const vm_int_t x = v->x;

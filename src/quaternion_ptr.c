@@ -5,11 +5,6 @@
 #include <vecmat.h>
 #include "features/cpu.h"
 
-/**
- * @brief Sets the quaternion to the identity quaternion (x=0, y=0, z=0, w=1).
- *
- * @param res Pointer to the quaternion to initialize.
- */
 void quat_identity_ptr(quaternion *res)
 {
     res->x = 0.0f;
@@ -34,15 +29,6 @@ VECMAT_SCALAR_API void quat_mul_ptr_scalar(quaternion *res, const quaternion *a,
     res->z = a->w * b->z + a->x * b->y - a->y * b->x + a->z * b->w;
 }
 
-/**
- * @brief Hamilton product `a * b` (dispatched).
- *
- * @see quat_mul_ptr_scalar
- *
- * @param res Result quaternion.
- * @param a Left quaternion.
- * @param b Right quaternion.
- */
 void quat_mul_ptr(quaternion *res, const quaternion *a, const quaternion *b)
 {
 #ifdef VECMAT_RUNTIME_DISPATCH
@@ -78,14 +64,6 @@ VECMAT_SCALAR_API void quat_normalize_ptr_scalar(quaternion *res, const quaterni
     }
 }
 
-/**
- * @brief Normalizes a quaternion (dispatched).
- *
- * @see quat_normalize_ptr_scalar
- *
- * @param res Result quaternion.
- * @param q Input quaternion.
- */
 void quat_normalize_ptr(quaternion *res, const quaternion *q)
 {
 #ifdef VECMAT_RUNTIME_DISPATCH
@@ -96,16 +74,6 @@ void quat_normalize_ptr(quaternion *res, const quaternion *q)
 #endif
 }
 
-/**
- * @brief Converts Euler angles (in radians) to a normalized quaternion.
- *
- * Computes a quaternion from the given Euler rotation vector using the
- * XYZ (Tait-Bryan) convention. The resulting quaternion is guaranteed
- * to be normalized.
- *
- * @param res Pointer to the quaternion that will receive the result.
- * @param euler Pointer to a vector3 containing the Euler angles in radians (x, y, z).
- */
 void quat_from_euler_ptr(quaternion *res, const vector3 *euler)
 {
     const vm_float_t rad_x = euler->x * VM_F(0.5);
@@ -125,14 +93,6 @@ void quat_from_euler_ptr(quaternion *res, const vector3 *euler)
     quat_normalize_ptr(res, &temp);
 }
 
-/**
- * @brief Converts Euler angles in degrees to a quaternion.
- *
- * @see quat_from_euler_ptr
- *
- * @param res Pointer to the quaternion to store the result.
- * @param euler_deg Pointer to the vector containing Euler angles in degrees.
- */
 void quat_from_euler_deg_ptr(quaternion *res, const vector3 *euler_deg)
 {
     const vector3 rad = {
@@ -143,14 +103,6 @@ void quat_from_euler_deg_ptr(quaternion *res, const vector3 *euler_deg)
     quat_from_euler_ptr(res, &rad);
 }
 
-/**
- * @brief Converts a unit quaternion to a 4x4 rotation matrix and stores in res.
- *
- * Starts with the identity matrix and applies rotation components.
- *
- * @param res Pointer to the output matrix4.
- * @param q Pointer to the input quaternion (should be normalized).
- */
 void quat_to_mat4_ptr(matrix4 *res, const quaternion *q)
 {
     mat4_identity_ptr(res);
@@ -176,12 +128,6 @@ void quat_to_mat4_ptr(matrix4 *res, const quaternion *q)
     res->m33 = 1.0f - 2.0f * (xx + yy);
 }
 
-/**
- * @brief Writes the conjugate of a quaternion.
- *
- * @param res Output value.
- * @param q Input quaternion.
- */
 void quat_conjugate_ptr(quaternion *res, const quaternion *q)
 {
     res->x = -q->x;
@@ -190,12 +136,6 @@ void quat_conjugate_ptr(quaternion *res, const quaternion *q)
     res->w = q->w;
 }
 
-/**
- * @brief Writes the inverse of a quaternion.
- *
- * @param res Output value.
- * @param q Input quaternion.
- */
 void quat_inverse_ptr(quaternion *res, const quaternion *q)
 {
     const vm_float_t n2 = q->x * q->x + q->y * q->y + q->z * q->z + q->w * q->w;
@@ -210,15 +150,6 @@ void quat_inverse_ptr(quaternion *res, const quaternion *q)
     res->w = q->w * inv;
 }
 
-/**
- * @brief Converts an axis-angle rotation to a quaternion.
- *
- * The axis vector is normalized internally. The angle is given in radians.
- *
- * @param res Pointer to the quaternion that will receive the result.
- * @param axis Pointer to the rotation axis vector.
- * @param radians Rotation angle around the axis in radians.
- */
 void quat_from_axis_angle_ptr(quaternion *res, const vector3 *axis, const vm_float_t radians)
 {
     const vector3 n = vec3_normalize(*axis);
@@ -230,24 +161,11 @@ void quat_from_axis_angle_ptr(quaternion *res, const vector3 *axis, const vm_flo
     res->w = VECMAT_COS(half);
 }
 
-/**
- * @brief Converts an axis-angle rotation (in degrees) to a quaternion.
- *
- * @param res Pointer to the quaternion that will receive the result.
- * @param axis Pointer to the rotation axis vector.
- * @param degrees Rotation angle around the axis in degrees.
- */
 void quat_from_axis_angle_deg_ptr(quaternion *res, const vector3 *axis, const vm_float_t degrees)
 {
     quat_from_axis_angle_ptr(res, axis, deg_to_rad(degrees));
 }
 
-/**
- * @brief Builds a quaternion from a 3x3 rotation matrix.
- *
- * @param res Output value.
- * @param m Input matrix.
- */
 void quat_from_mat3_ptr(quaternion *res, const matrix3 *m)
 {
     const vm_float_t trace = m->m11 + m->m22 + m->m33;
@@ -279,12 +197,6 @@ void quat_from_mat3_ptr(quaternion *res, const matrix3 *m)
     quat_normalize_ptr(res, res);
 }
 
-/**
- * @brief Builds a quaternion from the rotation of a 4x4 matrix.
- *
- * @param res Output value.
- * @param m Input matrix.
- */
 void quat_from_mat4_ptr(quaternion *res, const matrix4 *m)
 {
     const matrix3 m3 = {
@@ -295,14 +207,6 @@ void quat_from_mat4_ptr(quaternion *res, const matrix4 *m)
     quat_from_mat3_ptr(res, &m3);
 }
 
-/**
- * @brief Normalized-linearly interpolates from a to b by t.
- *
- * @param res Output value.
- * @param a First input quaternion.
- * @param b Second input quaternion.
- * @param t Interpolation factor.
- */
 void quat_nlerp_ptr(quaternion *res, const quaternion *a, const quaternion *b, const vm_float_t t)
 {
     quaternion bb = *b;
@@ -321,14 +225,6 @@ void quat_nlerp_ptr(quaternion *res, const quaternion *a, const quaternion *b, c
     quat_normalize_ptr(res, &tmp);
 }
 
-/**
- * @brief Spherical-linearly interpolates from a to b by t.
- *
- * @param res Output value.
- * @param a First input quaternion.
- * @param b Second input quaternion.
- * @param t Interpolation factor.
- */
 void quat_slerp_ptr(quaternion *res, const quaternion *a, const quaternion *b, const vm_float_t t)
 {
     vm_float_t d = quat_dot(*a, *b);
@@ -354,13 +250,6 @@ void quat_slerp_ptr(quaternion *res, const quaternion *a, const quaternion *b, c
     res->w = a->w * wa + bb.w * wb;
 }
 
-/**
- * @brief Rotates a vector3 by a quaternion.
- *
- * @param res Output value.
- * @param q Input quaternion.
- * @param v Input vector.
- */
 void quat_rotate_vec3_ptr(vector3 *res, const quaternion *q, const vector3 *v)
 {
     const quaternion p = {.x = v->x, .y = v->y, .z = v->z, .w = 0.0f};
@@ -375,12 +264,6 @@ void quat_rotate_vec3_ptr(vector3 *res, const quaternion *q, const vector3 *v)
     res->z = out.z;
 }
 
-/**
- * @brief Converts a quaternion to Euler angles in degrees (XYZ).
- *
- * @param res Output value.
- * @param q Input quaternion.
- */
 void quat_to_euler_ptr(vector3 *res, const quaternion *q)
 {
     const vm_float_t x = q->x;
@@ -404,14 +287,6 @@ void quat_to_euler_ptr(vector3 *res, const quaternion *q)
     res->z = VECMAT_ATAN2(siny_cosp, cosy_cosp);
 }
 
-/**
- * @brief Converts a quaternion to XYZ Euler angles in degrees.
- *
- * @see quat_to_euler_ptr
- *
- * @param res Euler angles in degrees (x, y, z).
- * @param q Input quaternion.
- */
 void quat_to_euler_deg_ptr(vector3 *res, const quaternion *q)
 {
     quat_to_euler_ptr(res, q);
@@ -420,18 +295,6 @@ void quat_to_euler_deg_ptr(vector3 *res, const quaternion *q)
     res->z = rad_to_deg(res->z);
 }
 
-/**
- * @brief Converts a quaternion to an axis-angle representation.
- *
- * The quaternion is first normalized. The axis is stored in the provided
- * vector3 pointer. The rotation angle in radians is optionally written to
- * the radians pointer if it is not NULL. When the axis cannot be uniquely
- * determined (near zero rotation) the axis is set to (1, 0, 0).
- *
- * @param axis Pointer to the vector3 that will receive the rotation axis.
- * @param radians Pointer to a float that will receive the rotation angle in radians, or NULL.
- * @param q Pointer to the input quaternion.
- */
 void quat_to_axis_angle_ptr(vector3 *axis, vm_float_t *radians, const quaternion *q)
 {
     quaternion n;
@@ -453,17 +316,6 @@ void quat_to_axis_angle_ptr(vector3 *axis, vm_float_t *radians, const quaternion
     }
 }
 
-/**
- * @brief Converts a quaternion to an axis-angle representation, with the angle in degrees.
- *
- * Extracts the rotation axis and rotation angle (in degrees) equivalent to the
- * given quaternion. The quaternion is first normalized internally. If the
- * quaternion represents no rotation, the axis is set to (1, 0, 0).
- *
- * @param axis Pointer to the vector3 that will receive the normalized rotation axis.
- * @param degrees Pointer to a float that will receive the rotation angle in degrees (may be NULL).
- * @param q Pointer to the source quaternion.
- */
 void quat_to_axis_angle_deg_ptr(vector3 *axis, vm_float_t *degrees, const quaternion *q)
 {
     vm_float_t radians = VM_F(0.0);
@@ -473,12 +325,6 @@ void quat_to_axis_angle_deg_ptr(vector3 *axis, vm_float_t *degrees, const quater
     }
 }
 
-/**
- * @brief Converts a quaternion to a 3x3 rotation matrix.
- *
- * @param res Output value.
- * @param q Input quaternion.
- */
 void quat_to_mat3_ptr(matrix3 *res, const quaternion *q)
 {
     matrix4 m4;
@@ -488,18 +334,6 @@ void quat_to_mat3_ptr(matrix3 *res, const quaternion *q)
     res->m13 = m4.m13; res->m23 = m4.m23; res->m33 = m4.m33;
 }
 
-/**
- * @brief Integrates angular velocity over a time step and applies the
- * resulting rotation to the input quaternion.
- *
- * Computes a delta quaternion from the angular velocity and timestep,
- * multiplies it with the source quaternion and normalizes the result.
- *
- * @param res Pointer to the quaternion where the integrated result is stored.
- * @param q Pointer to the source quaternion.
- * @param omega Pointer to the angular velocity vector (in radians per second).
- * @param dt Time step (in seconds).
- */
 void quat_integrate_ptr(quaternion *res, const quaternion *q, const vector3 *omega, const vm_float_t dt)
 {
     const vm_float_t omega_len = vec3_length(*omega);
@@ -553,10 +387,10 @@ static void quat_look_basis(matrix3 *r, const vector3 *direction, const vector3 
 
     vector3 right = vec3_cross(forward, world_up);
     if (vec3_length_squared(right) <= VECMAT_EPSILON * VECMAT_EPSILON) {
-        const vector3 alt = { VM_F(1.0), VM_F(0.0), VM_F(0.0) };
+        const vector3 alt = {.x = VM_F(1.0), .y = VM_F(0.0), .z = VM_F(0.0)};
         right = vec3_cross(forward, alt);
         if (vec3_length_squared(right) <= VECMAT_EPSILON * VECMAT_EPSILON) {
-            const vector3 alt2 = { VM_F(0.0), VM_F(0.0), VM_F(1.0) };
+            const vector3 alt2 = {.x = VM_F(0.0), .y = VM_F(0.0), .z = VM_F(1.0)};
             right = vec3_cross(forward, alt2);
         }
     }
@@ -572,30 +406,11 @@ static void quat_look_basis(matrix3 *r, const vector3 *direction, const vector3 
     r->m13 = col_z.x;   r->m23 = col_z.y;   r->m33 = col_z.z;
 }
 
-/**
- * @brief Orientation that aims local -Z along @p direction (RH / FPS camera).
- *
- * Matches the rotation part of `mat4_look_from_dir` inverted (view-to-world).
- *
- * @param res Result quaternion.
- * @param direction Look direction.
- * @param up World up hint.
- */
 void quat_look_ptr(quaternion *res, const vector3 *direction, const vector3 *up)
 {
     quat_look_clip_ptr(res, direction, up, VM_CLIP_RH_NO);
 }
 
-/**
- * @brief Orientation that aims along @p direction.
- *
- * RH: local -Z maps to @p direction. LH: local +Z maps to @p direction.
- *
- * @param res Result quaternion.
- * @param direction Look direction.
- * @param up World up hint.
- * @param clip Clip-space convention selecting handedness.
- */
 void quat_look_clip_ptr(quaternion *res, const vector3 *direction, const vector3 *up,
                         const vm_clip_t clip)
 {
@@ -605,16 +420,6 @@ void quat_look_clip_ptr(quaternion *res, const vector3 *direction, const vector3
     quat_from_mat3_ptr(res, &r);
 }
 
-/**
- * @brief Shortest rotation taking @p from onto @p to.
- *
- * Opposite vectors pick a stable orthogonal axis (180 deg). Near-parallel
- * vectors return identity.
- *
- * @param res Result quaternion.
- * @param from Source direction.
- * @param to Target direction.
- */
 void quat_from_to_ptr(quaternion *res, const vector3 *from, const vector3 *to)
 {
     vector3 a = *from;
@@ -634,9 +439,9 @@ void quat_from_to_ptr(quaternion *res, const vector3 *from, const vector3 *to)
     }
 
     if (d <= VM_F(-1.0) + VECMAT_EPSILON) {
-        vector3 axis = vec3_cross((vector3){ VM_F(1.0), VM_F(0.0), VM_F(0.0) }, a);
+        vector3 axis = vec3_cross((vector3){.x = VM_F(1.0), .y = VM_F(0.0), .z = VM_F(0.0)}, a);
         if (vec3_length_squared(axis) <= VECMAT_EPSILON * VECMAT_EPSILON) {
-            axis = vec3_cross((vector3){ VM_F(0.0), VM_F(1.0), VM_F(0.0) }, a);
+            axis = vec3_cross((vector3){.x = VM_F(0.0), .y = VM_F(1.0), .z = VM_F(0.0)}, a);
         }
         quat_from_axis_angle_ptr(res, &axis, (vm_float_t)M_PI);
         return;

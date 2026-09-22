@@ -5,13 +5,6 @@
 #include <vecmat.h>
 #include <stdlib.h>
 
-/**
- * @brief Computes the component-wise sum of two `vector3i`.
- *
- * @param res Pointer to the vector that will store the result.
- * @param a Pointer to the first vector.
- * @param b Pointer to the second vector.
- */
 void vec3i_add_ptr(vector3i *res, const vector3i *a, const vector3i *b)
 {
     res->x = a->x + b->x;
@@ -19,13 +12,6 @@ void vec3i_add_ptr(vector3i *res, const vector3i *a, const vector3i *b)
     res->z = a->z + b->z;
 }
 
-/**
- * @brief Computes the component-wise difference of two `vector3i` (a minus b).
- *
- * @param res Pointer to the vector that will store the result.
- * @param a Pointer to the first vector.
- * @param b Pointer to the second vector.
- */
 void vec3i_sub_ptr(vector3i *res, const vector3i *a, const vector3i *b)
 {
     res->x = a->x - b->x;
@@ -33,13 +19,6 @@ void vec3i_sub_ptr(vector3i *res, const vector3i *a, const vector3i *b)
     res->z = a->z - b->z;
 }
 
-/**
- * @brief Scales a `vector3i` by an integer scalar.
- *
- * @param res Pointer to the vector that will store the result.
- * @param v Pointer to the input vector.
- * @param s The scalar multiplier.
- */
 void vec3i_mul_scalar_ptr(vector3i *res, const vector3i *v, const vm_int_t s)
 {
     res->x = v->x * s;
@@ -47,15 +26,6 @@ void vec3i_mul_scalar_ptr(vector3i *res, const vector3i *v, const vm_int_t s)
     res->z = v->z * s;
 }
 
-/**
- * @brief Scales a `vector3i` by the inverse of an integer scalar.
- *
- * If the scalar is zero, stores the zero vector.
- *
- * @param res Pointer to the vector that will store the result.
- * @param v Pointer to the input vector.
- * @param s The scalar divisor.
- */
 void vec3i_div_scalar_ptr(vector3i *res, const vector3i *v, const vm_int_t s)
 {
     if (s == 0) {
@@ -69,13 +39,6 @@ void vec3i_div_scalar_ptr(vector3i *res, const vector3i *v, const vm_int_t s)
     res->z = v->z / s;
 }
 
-/**
- * @brief Computes the component-wise product (Hadamard) of two `vector3i`.
- *
- * @param res Pointer to the vector that will store the result.
- * @param a Pointer to the first vector.
- * @param b Pointer to the second vector.
- */
 void vec3i_mul_ptr(vector3i *res, const vector3i *a, const vector3i *b)
 {
     res->x = a->x * b->x;
@@ -83,12 +46,6 @@ void vec3i_mul_ptr(vector3i *res, const vector3i *a, const vector3i *b)
     res->z = a->z * b->z;
 }
 
-/**
- * @brief Negates a `vector3i` (multiplies by -1).
- *
- * @param res Pointer to the vector that will store the result.
- * @param v Pointer to the input vector.
- */
 void vec3i_neg_ptr(vector3i *res, const vector3i *v)
 {
     res->x = -v->x;
@@ -96,12 +53,6 @@ void vec3i_neg_ptr(vector3i *res, const vector3i *v)
     res->z = -v->z;
 }
 
-/**
- * @brief Computes the absolute value of each component of a `vector3i`.
- *
- * @param res Pointer to the vector that will store the result.
- * @param v Pointer to the input vector.
- */
 void vec3i_abs_ptr(vector3i *res, const vector3i *v)
 {
     res->x = abs(v->x);
@@ -109,14 +60,6 @@ void vec3i_abs_ptr(vector3i *res, const vector3i *v)
     res->z = abs(v->z);
 }
 
-/**
- * @brief Normalizes a `vector3i` to approximate unit length.
- *
- * If the vector length is zero, copies the input vector.
- *
- * @param res Pointer to the vector that will store the result.
- * @param v Pointer to the input vector.
- */
 void vec3i_normalize_ptr(vector3i *res, const vector3i *v)
 {
     const vm_float_t len = vec3i_length(*v);
@@ -130,13 +73,6 @@ void vec3i_normalize_ptr(vector3i *res, const vector3i *v)
     res->z = (vm_int_t)(v->z / len);
 }
 
-/**
- * @brief Computes the cross-product of two `vector3i`.
- *
- * @param res Pointer to the vector that will store the result.
- * @param a Pointer to the first vector.
- * @param b Pointer to the second vector.
- */
 void vec3i_cross_ptr(vector3i *res, const vector3i *a, const vector3i *b)
 {
     res->x = a->y * b->z - a->z * b->y;
@@ -144,13 +80,6 @@ void vec3i_cross_ptr(vector3i *res, const vector3i *a, const vector3i *b)
     res->z = a->x * b->y - a->y * b->x;
 }
 
-/**
- * @brief Computes the component-wise minimum of two `vector3i`.
- *
- * @param res Pointer to the vector that will store the result.
- * @param a Pointer to the first vector.
- * @param b Pointer to the second vector.
- */
 void vec3i_min_ptr(vector3i *res, const vector3i *a, const vector3i *b)
 {
     res->x = a->x < b->x ? a->x : b->x;
@@ -158,13 +87,6 @@ void vec3i_min_ptr(vector3i *res, const vector3i *a, const vector3i *b)
     res->z = a->z < b->z ? a->z : b->z;
 }
 
-/**
- * @brief Computes the component-wise maximum of two `vector3i`.
- *
- * @param res Pointer to the vector that will store the result.
- * @param a Pointer to the first vector.
- * @param b Pointer to the second vector.
- */
 void vec3i_max_ptr(vector3i *res, const vector3i *a, const vector3i *b)
 {
     res->x = a->x > b->x ? a->x : b->x;
@@ -172,12 +94,6 @@ void vec3i_max_ptr(vector3i *res, const vector3i *a, const vector3i *b)
     res->z = a->z > b->z ? a->z : b->z;
 }
 
-/**
- * @brief Computes the sign of each component of a `vector3i` (-1, 0, or 1).
- *
- * @param res Pointer to the vector that will store the result.
- * @param v Pointer to the input vector.
- */
 void vec3i_sign_ptr(vector3i *res, const vector3i *v)
 {
     res->x = v->x > 0 ? 1 : v->x < 0 ? -1 : 0;
@@ -185,14 +101,6 @@ void vec3i_sign_ptr(vector3i *res, const vector3i *v)
     res->z = v->z > 0 ? 1 : v->z < 0 ? -1 : 0;
 }
 
-/**
- * @brief Performs linear interpolation between two `vector3i`.
- *
- * @param res Pointer to the vector that will store the result.
- * @param a Pointer to the start vector.
- * @param b Pointer to the end vector.
- * @param t Interpolation factor (typically between 0.0 and 1.0).
- */
 void vec3i_lerp_ptr(vector3i *res, const vector3i *a, const vector3i *b, const vm_float_t t)
 {
     res->x = (vm_int_t)((1.0f - t) * (vm_float_t)a->x + t * (vm_float_t)b->x);
@@ -200,15 +108,6 @@ void vec3i_lerp_ptr(vector3i *res, const vector3i *a, const vector3i *b, const v
     res->z = (vm_int_t)((1.0f - t) * (vm_float_t)a->z + t * (vm_float_t)b->z);
 }
 
-/**
- * @brief Clamps each component of a `vector3i` between corresponding min and
- * max values.
- *
- * @param res Pointer to the vector that will store the result.
- * @param v Pointer to the input vector.
- * @param min Pointer to the minimum bounds vector.
- * @param max Pointer to the maximum bounds vector.
- */
 void vec3i_clamp_ptr(vector3i *res, const vector3i *v, const vector3i *min, const vector3i *max)
 {
     res->x = v->x < min->x ? min->x : (v->x > max->x ? max->x : v->x);
@@ -255,13 +154,6 @@ static vm_int_t vm_mod_floor3(const vm_int_t a, const vm_int_t b)
     return r;
 }
 
-/**
- * @brief Divides two vectors component-wise.
- *
- * @param res Output vector.
- * @param a First input vector.
- * @param b Second input vector.
- */
 void vec3i_div_ptr(vector3i *res, const vector3i *a, const vector3i *b)
 {
     res->x = (b->x == 0) ? 0 : a->x / b->x;
@@ -269,13 +161,6 @@ void vec3i_div_ptr(vector3i *res, const vector3i *a, const vector3i *b)
     res->z = (b->z == 0) ? 0 : a->z / b->z;
 }
 
-/**
- * @brief Adds a scalar to each component.
- *
- * @param res Output vector.
- * @param v Input vector.
- * @param s Scalar value.
- */
 void vec3i_add_scalar_ptr(vector3i *res, const vector3i *v, const vm_int_t s)
 {
     res->x = v->x + s;
@@ -283,13 +168,6 @@ void vec3i_add_scalar_ptr(vector3i *res, const vector3i *v, const vm_int_t s)
     res->z = v->z + s;
 }
 
-/**
- * @brief Subtracts a scalar from each component.
- *
- * @param res Output vector.
- * @param v Input vector.
- * @param s Scalar value.
- */
 void vec3i_sub_scalar_ptr(vector3i *res, const vector3i *v, const vm_int_t s)
 {
     res->x = v->x - s;
@@ -297,13 +175,6 @@ void vec3i_sub_scalar_ptr(vector3i *res, const vector3i *v, const vm_int_t s)
     res->z = v->z - s;
 }
 
-/**
- * @brief Component-wise floor modulo of a by b.
- *
- * @param res Output vector.
- * @param a First input vector.
- * @param b Second input vector.
- */
 void vec3i_mod_ptr(vector3i *res, const vector3i *a, const vector3i *b)
 {
     res->x = vm_mod_floor3(a->x, b->x);
@@ -311,13 +182,6 @@ void vec3i_mod_ptr(vector3i *res, const vector3i *a, const vector3i *b)
     res->z = vm_mod_floor3(a->z, b->z);
 }
 
-/**
- * @brief Component-wise floored division of a by b.
- *
- * @param res Output vector.
- * @param a First input vector.
- * @param b Second input vector.
- */
 void vec3i_div_floor_ptr(vector3i *res, const vector3i *a, const vector3i *b)
 {
     res->x = vm_div_floor3(a->x, b->x);
@@ -325,13 +189,6 @@ void vec3i_div_floor_ptr(vector3i *res, const vector3i *a, const vector3i *b)
     res->z = vm_div_floor3(a->z, b->z);
 }
 
-/**
- * @brief Wraps each component of v into [0, period).
- *
- * @param res Output vector.
- * @param v Input vector.
- * @param period Wrap period per component.
- */
 void vec3i_wrap_ptr(vector3i *res, const vector3i *v, const vector3i *period)
 {
     res->x = vm_mod_floor3(v->x, period->x);
@@ -339,13 +196,6 @@ void vec3i_wrap_ptr(vector3i *res, const vector3i *v, const vector3i *period)
     res->z = vm_mod_floor3(v->z, period->z);
 }
 
-/**
- * @brief Builds a vector3i from a vector2i and z.
- *
- * @param res Output vector.
- * @param v Input vector.
- * @param z Z component.
- */
 void vec3i_from_vec2i_ptr(vector3i *res, const vector2i *v, const vm_int_t z)
 {
     res->x = v->x;
@@ -353,24 +203,12 @@ void vec3i_from_vec2i_ptr(vector3i *res, const vector2i *v, const vm_int_t z)
     res->z = z;
 }
 
-/**
- * @brief Returns the x and y components as a 2D vector.
- *
- * @param res Output vector.
- * @param v Input vector.
- */
 void vec3i_xy_ptr(vector2i *res, const vector3i *v)
 {
     res->x = v->x;
     res->y = v->y;
 }
 
-/**
- * @brief Converts to a unit-length vector3.
- *
- * @param res Output vector.
- * @param v Input vector.
- */
 void vec3i_normalize_to_vec3_ptr(vector3 *res, const vector3i *v)
 {
     const vector3 f = {

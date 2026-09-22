@@ -136,16 +136,6 @@ static void vm_apply_householder(const vm_mat *M, const vm_mat *QR, const vm_flo
     }
 }
 
-/**
- * @brief In-place Householder QR. `A` is m x n.
- *
- * On success the upper triangle of `A` is R and the strict lower part
- * stores Householder vectors. `tau` must hold `min(m, n)` scalars.
- *
- * @param A Matrix overwritten with R and Householder vectors.
- * @param tau Householder scales, length `min(m, n)`.
- * @return True on success.
- */
 bool vm_qr_factor(vm_mat *A, vm_float_t *tau)
 {
     if (!A || !A->data || !tau || A->rows <= 0 || A->cols <= 0) {
@@ -181,17 +171,6 @@ bool vm_qr_factor(vm_mat *A, vm_float_t *tau)
     return true;
 }
 
-/**
- * @brief Thin factors: Q is m x k, R is k x n, k = min(m, n).
- *
- * Allocates or resizes `Q` and `R` when they do not already match.
- *
- * @param Q Orthonormal factor on success.
- * @param R Upper-triangular factor on success.
- * @param QR Factored matrix from `vm_qr_factor`.
- * @param tau Householder scales from `vm_qr_factor`.
- * @return True on success.
- */
 bool vm_qr_unpack(vm_mat *Q, vm_mat *R, const vm_mat *QR, const vm_float_t *tau)
 {
     if (!Q || !R || !QR || !QR->data || !tau) {
@@ -223,17 +202,6 @@ bool vm_qr_unpack(vm_mat *Q, vm_mat *R, const vm_mat *QR, const vm_float_t *tau)
     return true;
 }
 
-/**
- * @brief Least-squares solve `min ||A x - b||` from a factored QR.
- *
- * Requires `m >= n`. `b` has length `m`, `x` has length `n`.
- *
- * @param QR Factored matrix from `vm_qr_factor`.
- * @param tau Householder scales from `vm_qr_factor`.
- * @param b Right-hand side, length `m`.
- * @param x Solution, length `n`.
- * @return True on success.
- */
 bool vm_qr_solve(const vm_mat *QR, const vm_float_t *tau, const vm_float_t *b, vm_float_t *x)
 {
     if (!QR || !QR->data || !tau || !b || !x || QR->rows < QR->cols) {

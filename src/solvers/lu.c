@@ -53,17 +53,6 @@ static vm_float_t vm_factor_tol(const vm_float_t scale, const int n)
     return VECMAT_EPSILON * (vm_float_t)dim * scale;
 }
 
-/**
- * @brief In-place LU factorization with partial pivoting.
- *
- * On success `A` holds L (unit diagonal, strictly below) and U (on and
- * above the diagonal). `pivot[i]` is the original row now at position `i`.
- *
- * @param A Square matrix, overwritten with L and U.
- * @param pivot Row permutation; length `A->rows`.
- * @param sign Optional; set to +1 or -1 for the permutation sign.
- * @return True on success.
- */
 bool vm_lu_factor(vm_mat *A, int *pivot, int *sign)
 {
     if (!A || !A->data || !pivot || A->rows <= 0 || A->rows != A->cols) {
@@ -119,15 +108,6 @@ bool vm_lu_factor(vm_mat *A, int *pivot, int *sign)
     return true;
 }
 
-/**
- * @brief Solves `A x = b` from a factored LU.
- *
- * @param LU Factored matrix from `vm_lu_factor`.
- * @param pivot Row permutation from `vm_lu_factor`.
- * @param b Right-hand side, length `n`.
- * @param x Solution, length `n`.
- * @return True on success.
- */
 bool vm_lu_solve(const vm_mat *LU, const int *pivot, const vm_float_t *b, vm_float_t *x)
 {
     if (!LU || !LU->data || !pivot || !b || !x || LU->rows != LU->cols) {
@@ -169,12 +149,6 @@ bool vm_lu_solve(const vm_mat *LU, const int *pivot, const vm_float_t *b, vm_flo
     return true;
 }
 
-/**
- * @brief Determinant of a square matrix via LU.
- *
- * @param A Square matrix (not modified).
- * @return det(A), or 0 on failure.
- */
 vm_float_t vm_mat_det(const vm_mat *A)
 {
     if (!A || !A->data || A->rows != A->cols || A->rows <= 0) {
@@ -206,15 +180,6 @@ vm_float_t vm_mat_det(const vm_mat *A)
     return det;
 }
 
-/**
- * @brief Inverse of a square matrix via LU.
- *
- * Allocates or resizes `out` when it is not already `n` x `n`.
- *
- * @param out Inverse on success.
- * @param A Square matrix (not modified).
- * @return True on success.
- */
 bool vm_mat_inverse(vm_mat *out, const vm_mat *A)
 {
     if (!out || !A || !A->data || A->rows != A->cols || A->rows <= 0) {

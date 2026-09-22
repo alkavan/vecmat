@@ -5,13 +5,6 @@
 #include <stdlib.h>
 #include <vecmat.h>
 
-/**
- * @brief Adds the components of two `vector4i` and stores the result in res.
- *
- * @param res Pointer to result vector
- * @param a Pointer to first vector
- * @param b Pointer to second vector
- */
 void vec4i_add_ptr(vector4i *res, const vector4i *a, const vector4i *b)
 {
     res->x = a->x + b->x;
@@ -20,14 +13,6 @@ void vec4i_add_ptr(vector4i *res, const vector4i *a, const vector4i *b)
     res->w = a->w + b->w;
 }
 
-/**
- * Subtracts the components of the second vector from the first `vector4i`
- * and stores the result in res.
- *
- * @param res Pointer to result vector
- * @param a Pointer to first vector
- * @param b Pointer to second vector
- */
 void vec4i_sub_ptr(vector4i *res, const vector4i *a, const vector4i *b)
 {
     res->x = a->x - b->x;
@@ -36,14 +21,6 @@ void vec4i_sub_ptr(vector4i *res, const vector4i *a, const vector4i *b)
     res->w = a->w - b->w;
 }
 
-/**
- * @brief Multiplies the components of a `vector4i` by a scalar and stores
- * the result in res.
- *
- * @param res Pointer to result vector
- * @param v Pointer to input vector
- * @param s Scalar value
- */
 void vec4i_mul_scalar_ptr(vector4i *res, const vector4i *v, const vm_int_t s)
 {
     res->x = v->x * s;
@@ -52,16 +29,6 @@ void vec4i_mul_scalar_ptr(vector4i *res, const vector4i *v, const vm_int_t s)
     res->w = v->w * s;
 }
 
-/**
- * @brief Divides the components of a `vector4i` by a scalar and stores the
- * result in res.
- *
- * If the scalar is zero, sets all components of res to zero.
- *
- * @param res Pointer to result vector
- * @param v Pointer to input vector
- * @param s Scalar divisor
- */
 void vec4i_div_scalar_ptr(vector4i *res, const vector4i *v, const vm_int_t s)
 {
     if (s == 0) {
@@ -77,13 +44,6 @@ void vec4i_div_scalar_ptr(vector4i *res, const vector4i *v, const vm_int_t s)
     res->w = v->w / s;
 }
 
-/**
- * @brief Multiplies the components of two `vector4i` and stores the result in res.
- *
- * @param res Pointer to result vector
- * @param a Pointer to first vector
- * @param b Pointer to second vector
- */
 void vec4i_mul_ptr(vector4i *res, const vector4i *a, const vector4i *b)
 {
     res->x = a->x * b->x;
@@ -92,12 +52,6 @@ void vec4i_mul_ptr(vector4i *res, const vector4i *a, const vector4i *b)
     res->w = a->w * b->w;
 }
 
-/**
- * @brief Negates the components of a `vector4i` and stores the result in res.
- *
- * @param res Pointer to result vector
- * @param v Pointer to input vector
- */
 void vec4i_neg_ptr(vector4i *res, const vector4i *v)
 {
     res->x = -v->x;
@@ -106,13 +60,6 @@ void vec4i_neg_ptr(vector4i *res, const vector4i *v)
     res->w = -v->w;
 }
 
-/**
- * @brief Computes the absolute value of each component of a `vector4i` and
- * stores the result in res.
- *
- * @param res Pointer to result vector
- * @param v Pointer to input vector
- */
 void vec4i_abs_ptr(vector4i *res, const vector4i *v)
 {
     res->x = abs(v->x);
@@ -121,15 +68,6 @@ void vec4i_abs_ptr(vector4i *res, const vector4i *v)
     res->w = abs(v->w);
 }
 
-/**
- * @brief Normalizes a `vector4i` by dividing its components by the vector
- * length and stores the result in res.
- *
- * If the length is zero, copies the input vector to res.
- *
- * @param res Pointer to result vector
- * @param v Pointer to input vector
- */
 void vec4i_normalize_ptr(vector4i *res, const vector4i *v)
 {
     const vm_float_t len = vec4i_length(*v);
@@ -144,14 +82,6 @@ void vec4i_normalize_ptr(vector4i *res, const vector4i *v)
     res->w = (vm_int_t)(v->w / len);
 }
 
-/**
- * @brief Takes the component-wise minimum of two `vector4i` and stores the
- * result in res.
- *
- * @param res Pointer to result vector
- * @param a Pointer to first vector
- * @param b Pointer to second vector
- */
 void vec4i_min_ptr(vector4i *res, const vector4i *a, const vector4i *b)
 {
     res->x = a->x < b->x ? a->x : b->x;
@@ -160,14 +90,6 @@ void vec4i_min_ptr(vector4i *res, const vector4i *a, const vector4i *b)
     res->w = a->w < b->w ? a->w : b->w;
 }
 
-/**
- * @brief Computes the component-wise maximum of two `vector4i` and stores the
- * result in res.
- *
- * @param res Pointer to result vector
- * @param a Pointer to first vector
- * @param b Pointer to second vector
- */
 void vec4i_max_ptr(vector4i *res, const vector4i *a, const vector4i *b)
 {
     res->x = a->x > b->x ? a->x : b->x;
@@ -176,13 +98,6 @@ void vec4i_max_ptr(vector4i *res, const vector4i *a, const vector4i *b)
     res->w = a->w > b->w ? a->w : b->w;
 }
 
-/**
- * @brief Computes the sign (-1, 0, or 1) of each component of a `vector4i`
- * and stores the result in res.
- *
- * @param res Pointer to result vector
- * @param v Pointer to input vector
- */
 void vec4i_sign_ptr(vector4i *res, const vector4i *v)
 {
     res->x = v->x > 0 ? 1 : v->x < 0 ? -1 : 0;
@@ -191,15 +106,6 @@ void vec4i_sign_ptr(vector4i *res, const vector4i *v)
     res->w = v->w > 0 ? 1 : v->w < 0 ? -1 : 0;
 }
 
-/**
- * @brief Linearly interpolates between two `vector4i` using an interpolation
- * factor t (clamped to [0,1]) and stores the result in res.
- *
- * @param res Pointer to result vector
- * @param a Pointer to first vector
- * @param b Pointer to second vector
- * @param t Interpolation factor
- */
 void vec4i_lerp_ptr(vector4i *res, const vector4i *a, const vector4i *b, const vm_float_t t)
 {
     const vm_float_t clamped_t = (t < 0.0f) ? 0.0f : (t > 1.0f) ? 1.0f : t;
@@ -210,15 +116,6 @@ void vec4i_lerp_ptr(vector4i *res, const vector4i *a, const vector4i *b, const v
     res->w = (vm_int_t)(a->w + (b->w - a->w) * clamped_t);
 }
 
-/**
- * @brief Clamps the components of a `vector4i` to the range [min, max] and
- * stores the result in res.
- *
- * @param res Pointer to result vector
- * @param v Pointer to input vector
- * @param min Pointer to minimum bounds vector
- * @param max Pointer to maximum bounds vector
- */
 void vec4i_clamp_ptr(vector4i *res, const vector4i *v, const vector4i *min, const vector4i *max)
 {
     res->x = v->x < min->x ? min->x : (v->x > max->x ? max->x : v->x);
@@ -227,13 +124,6 @@ void vec4i_clamp_ptr(vector4i *res, const vector4i *v, const vector4i *min, cons
     res->w = v->w < min->w ? min->w : (v->w > max->w ? max->w : v->w);
 }
 
-/**
- * @brief Copies the x, y, z components of a `vector4i` and stores the result
- * in a `vector3i`.
- *
- * @param res Pointer to result `vector3i`
- * @param v Pointer to source `vector4i`
- */
 void vec4i_to_vec3i_ptr(vector3i *res, const vector4i *v)
 {
     res->x = v->x;
@@ -280,13 +170,6 @@ static vm_int_t vm_mod_floor4(const vm_int_t a, const vm_int_t b)
     return r;
 }
 
-/**
- * @brief Divides two vectors component-wise.
- *
- * @param res Output vector.
- * @param a First input vector.
- * @param b Second input vector.
- */
 void vec4i_div_ptr(vector4i *res, const vector4i *a, const vector4i *b)
 {
     res->x = (b->x == 0) ? 0 : a->x / b->x;
@@ -295,13 +178,6 @@ void vec4i_div_ptr(vector4i *res, const vector4i *a, const vector4i *b)
     res->w = (b->w == 0) ? 0 : a->w / b->w;
 }
 
-/**
- * @brief Adds a scalar to each component.
- *
- * @param res Output vector.
- * @param v Input vector.
- * @param s Scalar value.
- */
 void vec4i_add_scalar_ptr(vector4i *res, const vector4i *v, const vm_int_t s)
 {
     res->x = v->x + s;
@@ -310,13 +186,6 @@ void vec4i_add_scalar_ptr(vector4i *res, const vector4i *v, const vm_int_t s)
     res->w = v->w + s;
 }
 
-/**
- * @brief Subtracts a scalar from each component.
- *
- * @param res Output vector.
- * @param v Input vector.
- * @param s Scalar value.
- */
 void vec4i_sub_scalar_ptr(vector4i *res, const vector4i *v, const vm_int_t s)
 {
     res->x = v->x - s;
@@ -325,13 +194,6 @@ void vec4i_sub_scalar_ptr(vector4i *res, const vector4i *v, const vm_int_t s)
     res->w = v->w - s;
 }
 
-/**
- * @brief Component-wise floor modulo of a by b.
- *
- * @param res Output vector.
- * @param a First input vector.
- * @param b Second input vector.
- */
 void vec4i_mod_ptr(vector4i *res, const vector4i *a, const vector4i *b)
 {
     res->x = vm_mod_floor4(a->x, b->x);
@@ -340,13 +202,6 @@ void vec4i_mod_ptr(vector4i *res, const vector4i *a, const vector4i *b)
     res->w = vm_mod_floor4(a->w, b->w);
 }
 
-/**
- * @brief Component-wise floored division of a by b.
- *
- * @param res Output vector.
- * @param a First input vector.
- * @param b Second input vector.
- */
 void vec4i_div_floor_ptr(vector4i *res, const vector4i *a, const vector4i *b)
 {
     res->x = vm_div_floor4(a->x, b->x);
@@ -355,13 +210,6 @@ void vec4i_div_floor_ptr(vector4i *res, const vector4i *a, const vector4i *b)
     res->w = vm_div_floor4(a->w, b->w);
 }
 
-/**
- * @brief Wraps each component of v into [0, period).
- *
- * @param res Output vector.
- * @param v Input vector.
- * @param period Wrap period per component.
- */
 void vec4i_wrap_ptr(vector4i *res, const vector4i *v, const vector4i *period)
 {
     res->x = vm_mod_floor4(v->x, period->x);

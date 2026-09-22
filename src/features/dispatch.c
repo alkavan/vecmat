@@ -138,9 +138,6 @@ static void vm_cpu_bind(const vm_cpu_features_t features)
 #undef VECMAT_BIND
 }
 
-/**
- * @brief Register an external backend (see `vm_backend_register`).
- */
 int vm_backend_register(const vm_backend *backend)
 {
     int ready;

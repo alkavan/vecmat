@@ -15,11 +15,6 @@ typedef struct {
     vm_float_t v;  /**< Entry value */
 } vm_trip;
 
-/**
- * @brief Initialize a sparse matrix to empty.
- *
- * @param A Sparse matrix (may be NULL).
- */
 void vm_spmat_init(vm_spmat *A)
 {
     if (!A) {
@@ -32,11 +27,6 @@ void vm_spmat_init(vm_spmat *A)
     A->val = NULL;
 }
 
-/**
- * @brief Free sparse matrix storage and reset it.
- *
- * @param A Sparse matrix (may be NULL).
- */
 void vm_spmat_free(vm_spmat *A)
 {
     if (!A) {
@@ -135,21 +125,6 @@ static void vm_vec_zero(vm_float_t *y, const int n)
     memset(y, 0, (size_t)n * sizeof(vm_float_t));
 }
 
-/**
- * @brief Build a square CSR matrix from unsorted (row, col, val) triplets.
- *
- * Duplicate (i, j) entries are summed. Out-of-range indices are skipped.
- * On success, existing storage in `A` is freed and replaced.
- *
- * @param A Output sparse matrix.
- * @param n Matrix size (n×n).
- * @param nnz Number of input triplets.
- * @param row Row indices (length nnz).
- * @param col Column indices (length nnz).
- * @param val Values (length nnz).
- *
- * @return true on success, false on error.
- */
 bool vm_spmat_from_triplets(vm_spmat *A, const int n, const int nnz,
                             const int *row, const int *col, const vm_float_t *val)
 {
@@ -189,13 +164,13 @@ bool vm_spmat_from_triplets(vm_spmat *A, const int n, const int nnz,
         }
     }
 
-    int *row_ptr = (int *)calloc((size_t)n + 1u, sizeof(int));
+    int *row_ptr = calloc((size_t)n + 1u, sizeof(int));
     int *cidx = NULL;
     vm_float_t *aval = NULL;
 
     if (uniq > 0) {
         cidx = (int *)malloc((size_t)uniq * sizeof(int));
-        aval = (vm_float_t *)malloc((size_t)uniq * sizeof(vm_float_t));
+        aval = malloc((size_t)uniq * sizeof(vm_float_t));
     }
 
     if (!row_ptr || (uniq > 0 && (!cidx || !aval))) {
@@ -225,13 +200,6 @@ bool vm_spmat_from_triplets(vm_spmat *A, const int n, const int nnz,
     return true;
 }
 
-/**
- * @brief Sparse matrix–vector product y = A x.
- *
- * @param y Output vector (length A->n).
- * @param A CSR matrix.
- * @param x Input vector (length A->n).
- */
 void vm_spmv(vm_float_t *y, const vm_spmat *A, const vm_float_t *x)
 {
     if (!y || !A || !A->row_ptr || !x || A->n <= 0) {
@@ -248,15 +216,6 @@ void vm_spmv(vm_float_t *y, const vm_spmat *A, const vm_float_t *x)
     }
 }
 
-/**
- * @brief Extract the main diagonal of A into d.
- *
- * Missing diagonal entries are set to 0.
- *
- * @param A CSR matrix.
- * @param d Output diagonal (length A->n).
- * @return true on success, false on error.
- */
 bool vm_spmat_diag(const vm_spmat *A, vm_float_t *d)
 {
     if (!A || !A->row_ptr || !d || A->n <= 0) {
@@ -383,10 +342,10 @@ static bool vm_ic0_factor(vm_ic0 *ic, const vm_spmat *A)
         }
     }
 
-    int *row_ptr = (int *)calloc((size_t)n + 1u, sizeof(int));
-    int *col = (int *)malloc((size_t)lower * sizeof(int));
-    vm_float_t *val = (vm_float_t *)malloc((size_t)lower * sizeof(vm_float_t));
-    int *diag = (int *)malloc((size_t)n * sizeof(int));
+    int *row_ptr = calloc((size_t)n + 1u, sizeof(int));
+    int *col = malloc((size_t)lower * sizeof(int));
+    vm_float_t *val = malloc((size_t)lower * sizeof(vm_float_t));
+    int *diag = malloc((size_t)n * sizeof(int));
     if (!row_ptr || (lower > 0 && (!col || !val)) || !diag) {
         free(row_ptr);
         free(col);
@@ -558,7 +517,7 @@ static bool vm_prec_setup(vm_prec *p, const vm_spmat *A, const vm_ksp_prec_t kin
     }
 
     const int n = A->n;
-    p->diag = (vm_float_t *)malloc((size_t)n * sizeof(vm_float_t));
+    p->diag = malloc((size_t)n * sizeof(vm_float_t));
     if (!p->diag || !vm_spmat_diag(A, p->diag)) {
         vm_prec_free(p);
         return false;
@@ -569,7 +528,7 @@ static bool vm_prec_setup(vm_prec *p, const vm_spmat *A, const vm_ksp_prec_t kin
         return true;
     }
 
-    p->tmp = (vm_float_t *)malloc((size_t)n * sizeof(vm_float_t));
+    p->tmp = malloc((size_t)n * sizeof(vm_float_t));
     if (!p->tmp) {
         vm_prec_free(p);
         return false;
@@ -634,21 +593,6 @@ static void vm_ksp_set(vm_ksp_info *info, const int iters, const vm_float_t relr
     info->ok = ok;
 }
 
-/**
- * @brief Conjugate gradient for SPD A x = b.
- *
- * `x` is the initial guess and the solution. `tol` is relative residual
- * ||r|| / max(||b||, ε).
- *
- * @param A SPD CSR matrix.
- * @param b Right-hand side (length A->n).
- * @param x Initial guess / solution (length A->n).
- * @param tol Relative residual tolerance (≤0 picks a default).
- * @param max_iter Max iterations (≤0 defaults to n).
- * @param pre_cond NONE, JACOBI, SSOR, or IC0.
- * @param info Optional solver stats (may be NULL).
- * @return true if converged, false otherwise.
- */
 bool vm_cg(const vm_spmat *A, const vm_float_t *b, vm_float_t *x,
            vm_float_t tol, int max_iter, const vm_ksp_prec_t pre_cond, vm_ksp_info *info)
 {
@@ -666,10 +610,10 @@ bool vm_cg(const vm_spmat *A, const vm_float_t *b, vm_float_t *x,
         tol = VECMAT_EPSILON * (vm_float_t)n;
     }
 
-    vm_float_t *r = (vm_float_t *)malloc((size_t)n * sizeof(vm_float_t));
-    vm_float_t *z = (vm_float_t *)malloc((size_t)n * sizeof(vm_float_t));
-    vm_float_t *p = (vm_float_t *)malloc((size_t)n * sizeof(vm_float_t));
-    vm_float_t *ap = (vm_float_t *)malloc((size_t)n * sizeof(vm_float_t));
+    vm_float_t *r  = malloc((size_t)n * sizeof(vm_float_t));
+    vm_float_t *z  = malloc((size_t)n * sizeof(vm_float_t));
+    vm_float_t *p  = malloc((size_t)n * sizeof(vm_float_t));
+    vm_float_t *ap = malloc((size_t)n * sizeof(vm_float_t));
 
     if (!r || !z || !p || !ap) {
         free(r);
@@ -782,14 +726,14 @@ bool vm_bicgstab(const vm_spmat *A, const vm_float_t *b, vm_float_t *x,
         tol = VECMAT_EPSILON * (vm_float_t)n;
     }
 
-    vm_float_t *r  =  (vm_float_t *)malloc((size_t)n * sizeof(vm_float_t));
-    vm_float_t *r0 =  (vm_float_t *)malloc((size_t)n * sizeof(vm_float_t));
-    vm_float_t *p  =  (vm_float_t *)malloc((size_t)n * sizeof(vm_float_t));
-    vm_float_t *v  =  (vm_float_t *)malloc((size_t)n * sizeof(vm_float_t));
-    vm_float_t *s  =  (vm_float_t *)malloc((size_t)n * sizeof(vm_float_t));
-    vm_float_t *t  =  (vm_float_t *)malloc((size_t)n * sizeof(vm_float_t));
-    vm_float_t *y  =  (vm_float_t *)malloc((size_t)n * sizeof(vm_float_t));
-    vm_float_t *z  =  (vm_float_t *)malloc((size_t)n * sizeof(vm_float_t));
+    vm_float_t *r  = malloc((size_t)n * sizeof(vm_float_t));
+    vm_float_t *r0 = malloc((size_t)n * sizeof(vm_float_t));
+    vm_float_t *p  = malloc((size_t)n * sizeof(vm_float_t));
+    vm_float_t *v  = malloc((size_t)n * sizeof(vm_float_t));
+    vm_float_t *s  = malloc((size_t)n * sizeof(vm_float_t));
+    vm_float_t *t  = malloc((size_t)n * sizeof(vm_float_t));
+    vm_float_t *y  = malloc((size_t)n * sizeof(vm_float_t));
+    vm_float_t *z  = malloc((size_t)n * sizeof(vm_float_t));
     if (!r || !r0 || !p || !v || !s || !t || !y || !z) {
         free(r);
         free(r0);

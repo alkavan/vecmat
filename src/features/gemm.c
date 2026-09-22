@@ -32,14 +32,17 @@
 #endif
 #endif
 
+/**
+ * @brief GEMM threading and small-batch thresholds.
+ *
+ * Caps the worker pool, stays serial when spawn cost would dominate, and
+ * keeps tiny strided batches on the stack.
+ */
 enum {
-    VM_GEMM_MAX_THREADS = 16,
-    /* Serial below this many mul-adds; pthread_create is tens of microseconds. */
-    VM_GEMM_THREAD_MIN_FLOPS = 131072,
-    /* Do not split a batch thinner than this many problems per worker. */
-    VM_GEMM_THREAD_MIN_PER_WORKER = 2,
-    /* Stack pointer arrays for strided batch when batch is at most this. */
-    VM_GEMM_STRIDE_STACK = 32
+    VM_GEMM_MAX_THREADS = 16,          /**< Hard cap on GEMM worker threads. */
+    VM_GEMM_THREAD_MIN_FLOPS = 131072, /**< Stay serial below this many mul-adds; thread spawn is tens of microseconds. */
+    VM_GEMM_THREAD_MIN_PER_WORKER = 2, /**< Do not split a batch thinner than this many problems per worker. */
+    VM_GEMM_STRIDE_STACK = 32          /**< Use stack pointer arrays for a strided batch at or below this size. */
 };
 
 /**
@@ -47,21 +50,10 @@ enum {
  */
 static int vm_gemm_thread_limit;
 
-/** Cached `VECMAT_GEMM_THREADS` (`0` = unset / invalid). */
-static int vm_gemm_env_threads;
-
 /**
- * @brief Cap or force the GEMM worker-thread budget.
- *
- * `n > 0` sets a fixed limit used by `vm_gemm_threads`; `n == 0` (or negative,
- * treated as 0) restores auto selection via env / hardware.
- *
- * @param n Thread limit (`0` = auto, `1` = serial, `N` = cap at N).
+ * @brief Cached `VECMAT_GEMM_THREADS` (`0` = unset / invalid).
  */
-void vm_gemm_set_threads(const int n)
-{
-    vm_gemm_thread_limit = n < 0 ? 0 : n;
-}
+static int vm_gemm_env_threads;
 
 /**
  * @brief Online logical CPU count for GEMM threading defaults.
@@ -83,14 +75,6 @@ static int vm_gemm_hw_threads(void)
 #endif
 }
 
-/**
- * @brief Resolve the GEMM worker-thread budget.
- *
- * Order: `vm_gemm_set_threads` limit if > 0; else a positive integer from
- * `VECMAT_GEMM_THREADS` (invalid values ignored); else online CPU count.
- *
- * @return Requested thread count (>= 1 from hardware fallback when unset).
- */
 int vm_gemm_threads(void)
 {
     if (vm_gemm_thread_limit > 0) {
@@ -113,6 +97,11 @@ int vm_gemm_threads(void)
         return vm_gemm_env_threads;
     }
     return vm_gemm_hw_threads();
+}
+
+void vm_gemm_set_threads(const int n)
+{
+    vm_gemm_thread_limit = n < 0 ? 0 : n;
 }
 
 /**
@@ -500,28 +489,6 @@ static void vm_panel_set_c(vm_float_t *C, const int ldc, const int r, const int 
     }
 }
 
-/**
- * @brief Triple-loop reference GEMM. Useful for tests and tiny/fallback paths.
- *
- * Computes `C = alpha * op(A) * op(B) + beta * C`.
- * `op(X) = X` or `X^T` according to the matching transpose flag. Layout
- * selects row-major or column-major indexing for A, B and C together.
- *
- * @param C      Output matrix (M×N), updated in place.
- * @param ldc    Leading dimension of C.
- * @param A      Left input matrix; ignored when alpha == 0 or K <= 0.
- * @param lda    Leading dimension of A.
- * @param B      Right input matrix; ignored when alpha == 0 or K <= 0.
- * @param ldb    Leading dimension of B.
- * @param M      Number of rows of op(A) and C.
- * @param N      Number of columns of op(B) and C.
- * @param K      Inner product length (columns of op(A), rows of op(B)).
- * @param alpha  Scale factor for the A*B product.
- * @param beta   Scale factor for the existing C values (0 skips reading C).
- * @param transA If true, use A^T; otherwise A.
- * @param transB If true, use B^T; otherwise B.
- * @param layout Memory layout for A, B, and C.
- */
 void vm_gemm_ref(vm_float_t *C, const int ldc,
                  const vm_float_t *A, const int lda,
                  const vm_float_t *B, const int ldb,
@@ -548,8 +515,7 @@ void vm_gemm_ref(vm_float_t *C, const int ldc,
                 vm_panel_set_c(C, ldc, i, j, acc, layout);
             } else {
                 vm_panel_set_c(C, ldc, i, j,
-                               acc + beta * vm_panel_get_c(C, ldc, i, j, layout),
-                               layout);
+                    acc + beta * vm_panel_get_c(C, ldc, i, j, layout), layout);
             }
         }
     }
@@ -807,7 +773,12 @@ static void vm_gemm_scale_c(vm_float_t *C, const int ldc,
     }
 }
 
-/** Thread-local pack workspace for A/B panels (grows on demand). */
+/**
+ * @brief Thread-local pack workspace for A/B GEMM panels.
+ *
+ * Holds the packed A and B buffers for one thread. Buffers grow on demand
+ * and are never shrunk; capacities are in elements.
+ */
 typedef struct {
     vm_float_t *Ap;  /* Packed A buffer. */
     vm_float_t *Bp;  /* Packed B buffer. */
@@ -1070,29 +1041,6 @@ static void vm_gemm_ex_body(vm_float_t *C, const int ldc,
     }
 }
 
-/**
- * @brief C = alpha * op(A) * op(B) + beta * C with optional fused epilogue.
- *
- * Same blocked packed path as `vm_gemm`, plus last-K bias add and/or ReLU
- * when requested via `op`.
- *
- * @param C      Output matrix (M×N), updated in place.
- * @param ldc    Leading dimension of C.
- * @param A      Left input matrix; ignored when alpha == 0 or K <= 0.
- * @param lda    Leading dimension of A.
- * @param B      Right input matrix; ignored when alpha == 0 or K <= 0.
- * @param ldb    Leading dimension of B.
- * @param M      Number of rows of op(A) and C.
- * @param N      Number of columns of op(B) and C.
- * @param K      Inner product length.
- * @param alpha  Scale factor for the A*B product.
- * @param beta   Scale factor for the existing C values.
- * @param transA If true, use A^T; otherwise A.
- * @param transB If true, use B^T; otherwise B.
- * @param layout Memory layout for A, B, and C.
- * @param op     Epilogue flags (`VM_GEMM_OP_*`).
- * @param bias   Optional length-N bias vector (may be NULL).
- */
 void vm_gemm_ex(vm_float_t *C, const int ldc,
                 const vm_float_t *A, const int lda,
                 const vm_float_t *B, const int ldb,
@@ -1106,27 +1054,6 @@ void vm_gemm_ex(vm_float_t *C, const int ldc,
                     alpha, beta, transA, transB, layout, op, bias);
 }
 
-/**
- * @brief C = alpha * op(A) * op(B) + beta * C for dense float panels.
- *
- * Blocked packed kernel with thread-local A/B workspaces. Equivalent to
- * `vm_gemm_ex` with `op == VM_GEMM_OP_NONE`.
- *
- * @param C      Output matrix (M×N), updated in place.
- * @param ldc    Leading dimension of C.
- * @param A      Left input matrix; ignored when alpha == 0 or K <= 0.
- * @param lda    Leading dimension of A.
- * @param B      Right input matrix; ignored when alpha == 0 or K <= 0.
- * @param ldb    Leading dimension of B.
- * @param M      Number of rows of op(A) and C.
- * @param N      Number of columns of op(B) and C.
- * @param K      Inner product length.
- * @param alpha  Scale factor for the A*B product.
- * @param beta   Scale factor for the existing C values.
- * @param transA If true, use A^T; otherwise A.
- * @param transB If true, use B^T; otherwise B.
- * @param layout Memory layout for A, B, and C.
- */
 void vm_gemm(vm_float_t *C, const int ldc,
              const vm_float_t *A, const int lda,
              const vm_float_t *B, const int ldb,
@@ -1235,7 +1162,7 @@ typedef struct {
  */
 static void vm_gemm_batch_range(const int begin, const int end, void *arg)
 {
-    const vm_gemm_batch_ctx *c = (const vm_gemm_batch_ctx *)arg;
+    const vm_gemm_batch_ctx *c = arg;
     if (c->shared) {
         vm_gemm_batch_shared_b(c->C, c->ldc, c->A, c->lda, c->B_shared, c->ldb,
                                c->M, c->N, c->K, c->alpha, c->beta,
@@ -1250,29 +1177,6 @@ static void vm_gemm_batch_range(const int begin, const int end, void *arg)
     }
 }
 
-/**
- * @brief Batched GEMM: `batch` independent GEMMs with shared shape.
- *
- * `A[p]`, `B[p]`, `C[p]` are the p-th problem. If every `B[p]` aliases the
- * same buffer, uses a shared-B pack path; otherwise runs per-item `vm_gemm`.
- * The batch range is split across worker threads when the work is large enough.
- *
- * @param C      Array of `batch` pointers to output matrices (each M×N).
- * @param ldc    Leading dimension shared by every C[p].
- * @param A      Array of `batch` pointers to left matrices, or NULL.
- * @param lda    Leading dimension shared by every A[p].
- * @param B      Array of `batch` pointers to right matrices, or NULL.
- * @param ldb    Leading dimension shared by every B[p].
- * @param M      Number of rows of op(A) and C (same for all problems).
- * @param N      Number of columns of op(B) and C (same for all problems).
- * @param K      Inner product length (same for all problems).
- * @param alpha  Scale factor for each A*B product.
- * @param beta   Scale factor for each existing C[p].
- * @param transA If true, use A^T for every problem; otherwise A.
- * @param transB If true, use B^T for every problem; otherwise B.
- * @param layout Memory layout for all A, B, and C panels.
- * @param batch  Number of independent GEMM problems.
- */
 void vm_gemm_batch(vm_float_t * const *C, const int ldc,
                    const vm_float_t * const *A, const int lda,
                    const vm_float_t * const *B, const int ldb,
@@ -1306,31 +1210,6 @@ void vm_gemm_batch(vm_float_t * const *C, const int ldc,
                          vm_gemm_pick_threads(batch, M, N, K));
 }
 
-/**
- * @brief Strided batched GEMM: problems live `strideX` elements apart.
- *
- * Problem `p` uses `A + p * strideA`, `B + p * strideB`, `C + p * strideC`.
- * When `strideB == 0` (shared B), reuses the shared-B batch path.
- *
- * @param C       Base pointer for output matrices; problem p at C + p*strideC.
- * @param ldc     Leading dimension shared by every C panel.
- * @param strideC Element stride between consecutive C problems.
- * @param A       Base pointer for left matrices, or NULL; problem p at A + p*strideA.
- * @param lda     Leading dimension shared by every A panel.
- * @param strideA Element stride between consecutive A problems.
- * @param B       Base pointer for right matrices, or NULL; problem p at B + p*strideB.
- * @param ldb     Leading dimension shared by every B panel.
- * @param strideB Element stride between B problems (0 means one shared B).
- * @param M       Number of rows of op(A) and C (same for all problems).
- * @param N       Number of columns of op(B) and C (same for all problems).
- * @param K       Inner product length (same for all problems).
- * @param alpha   Scale factor for each A*B product.
- * @param beta    Scale factor for each existing C panel.
- * @param transA  If true, use A^T for every problem; otherwise A.
- * @param transB  If true, use B^T for every problem; otherwise B.
- * @param layout  Memory layout for all A, B, and C panels.
- * @param batch   Number of independent GEMM problems.
- */
 void vm_gemm_strided_batch(vm_float_t *C, const int ldc, const int strideC,
                            const vm_float_t *A, const int lda, const int strideA,
                            const vm_float_t *B, const int ldb, const int strideB,
@@ -1385,29 +1264,6 @@ void vm_gemm_strided_batch(vm_float_t *C, const int ldc, const int strideC,
     }
 }
 
-/**
- * @brief NCHW im2col into a GEMM-ready panel.
- *
- * `img` is N×C×H×W packed as `((n*C+c)*H+y)*W+x`. Output has `C*kH*kW` rows
- * and `N*outH*outW` columns (zero-filled off-image taps). `outH`/`outW` use
- * standard floor division with the given pads and strides; non-positive
- * `stride_h` / `stride_w` are treated as 1.
- *
- * @param col      Destination matrix for unfolded patches.
- * @param ld_col    Leading dimension of `col` under `layout`.
- * @param img      Source image tensor in NCHW order.
- * @param n        Batch size (N).
- * @param c        Channel count (C).
- * @param h        Input height (H).
- * @param w        Input width (W).
- * @param kh       Kernel height.
- * @param kw       Kernel width.
- * @param pad_h    Top/bottom padding in pixels.
- * @param pad_w    Left/right padding in pixels.
- * @param stride_h Vertical kernel stride (<= 0 treated as 1).
- * @param stride_w Horizontal kernel stride (<= 0 treated as 1).
- * @param layout   Row-major or column-major storage for `col`.
- */
 void vm_im2col(vm_float_t *col, const int ld_col,
                const vm_float_t *img,
                const int n, const int c, const int h, const int w,

@@ -277,19 +277,6 @@ VECMAT_SCALAR_API void vec4_homogenize_ptr_scalar(vector4 *res, const vector4 *v
 }
 
 /**
- * @brief Copies the x, y, z components from a `vector4` to a `vector3`.
- *
- * @param res Pointer to result `vector3`.
- * @param v Pointer to input `vector4`.
- */
-void vec4_to_vec3_ptr(vector3 *res, const vector4 *v)
-{
-    res->x = v->x;
-    res->y = v->y;
-    res->z = v->z;
-}
-
-/**
  * @brief Divides two vectors component-wise.
  *
  * @param res Output vector.
@@ -375,13 +362,13 @@ VECMAT_SCALAR_API void vec4_fract_ptr_scalar(vector4 *res, const vector4 *v)
     res->w = v->w - VECMAT_FLOOR(v->w);
 }
 
-/**
- * @brief Projects a onto b.
- *
- * @param res Output vector.
- * @param a First input vector.
- * @param b Second input vector.
- */
+void vec4_to_vec3_ptr(vector3 *res, const vector4 *v)
+{
+    res->x = v->x;
+    res->y = v->y;
+    res->z = v->z;
+}
+
 void vec4_project_ptr(vector4 *res, const vector4 *a, const vector4 *b)
 {
     const vm_float_t denom = vec4_dot(*b, *b);
@@ -396,13 +383,6 @@ void vec4_project_ptr(vector4 *res, const vector4 *a, const vector4 *b)
     res->w = b->w * scale;
 }
 
-/**
- * @brief Removes the component of v along normal.
- *
- * @param res Output vector.
- * @param v Input vector.
- * @param normal Surface normal.
- */
 void vec4_slide_ptr(vector4 *res, const vector4 *v, const vector4 *normal)
 {
     const vm_float_t d = vec4_dot(*v, *normal);
@@ -412,13 +392,6 @@ void vec4_slide_ptr(vector4 *res, const vector4 *v, const vector4 *normal)
     res->w = v->w - normal->w * d;
 }
 
-/**
- * @brief Returns the component of a orthogonal to b.
- *
- * @param res Output vector.
- * @param a First input vector.
- * @param b Second input vector.
- */
 void vec4_reject_ptr(vector4 *res, const vector4 *a, const vector4 *b)
 {
     vector4 projected;
@@ -429,15 +402,6 @@ void vec4_reject_ptr(vector4 *res, const vector4 *a, const vector4 *b)
     res->w = a->w - projected.w;
 }
 
-/**
- * @brief Component-wise addition (dispatched).
- *
- * @see vec4_add_ptr_scalar
- *
- * @param res Result vector.
- * @param a First vector.
- * @param b Second vector.
- */
 void vec4_add_ptr(vector4 *res, const vector4 *a, const vector4 *b)
 {
 #ifdef VECMAT_RUNTIME_DISPATCH
@@ -448,15 +412,6 @@ void vec4_add_ptr(vector4 *res, const vector4 *a, const vector4 *b)
 #endif
 }
 
-/**
- * @brief Component-wise subtraction (dispatched).
- *
- * @see vec4_sub_ptr_scalar
- *
- * @param res Result vector.
- * @param a First vector.
- * @param b Second vector.
- */
 void vec4_sub_ptr(vector4 *res, const vector4 *a, const vector4 *b)
 {
 #ifdef VECMAT_RUNTIME_DISPATCH
@@ -467,15 +422,6 @@ void vec4_sub_ptr(vector4 *res, const vector4 *a, const vector4 *b)
 #endif
 }
 
-/**
- * @brief Component-wise multiplication (dispatched).
- *
- * @see vec4_mul_ptr_scalar
- *
- * @param res Result vector.
- * @param a First vector.
- * @param b Second vector.
- */
 void vec4_mul_ptr(vector4 *res, const vector4 *a, const vector4 *b)
 {
 #ifdef VECMAT_RUNTIME_DISPATCH
@@ -486,15 +432,6 @@ void vec4_mul_ptr(vector4 *res, const vector4 *a, const vector4 *b)
 #endif
 }
 
-/**
- * @brief Multiplies a vector by a scalar (dispatched).
- *
- * @see vec4_mul_scalar_ptr_scalar
- *
- * @param res Result vector.
- * @param v Input vector.
- * @param s Scalar.
- */
 void vec4_mul_scalar_ptr(vector4 *res, const vector4 *v, const vm_float_t s)
 {
 #ifdef VECMAT_RUNTIME_DISPATCH
@@ -505,15 +442,6 @@ void vec4_mul_scalar_ptr(vector4 *res, const vector4 *v, const vm_float_t s)
 #endif
 }
 
-/**
- * @brief Divides a vector by a scalar (dispatched).
- *
- * @see vec4_div_scalar_ptr_scalar
- *
- * @param res Result vector.
- * @param v Input vector.
- * @param s Scalar.
- */
 void vec4_div_scalar_ptr(vector4 *res, const vector4 *v, const vm_float_t s)
 {
 #ifdef VECMAT_RUNTIME_DISPATCH
@@ -524,14 +452,6 @@ void vec4_div_scalar_ptr(vector4 *res, const vector4 *v, const vm_float_t s)
 #endif
 }
 
-/**
- * @brief Negates a vector (dispatched).
- *
- * @see vec4_neg_ptr_scalar
- *
- * @param res Result vector.
- * @param v Input vector.
- */
 void vec4_neg_ptr(vector4 *res, const vector4 *v)
 {
 #ifdef VECMAT_RUNTIME_DISPATCH
@@ -542,14 +462,6 @@ void vec4_neg_ptr(vector4 *res, const vector4 *v)
 #endif
 }
 
-/**
- * @brief Component-wise absolute value (dispatched).
- *
- * @see vec4_abs_ptr_scalar
- *
- * @param res Result vector.
- * @param v Input vector.
- */
 void vec4_abs_ptr(vector4 *res, const vector4 *v)
 {
 #ifdef VECMAT_RUNTIME_DISPATCH
@@ -560,14 +472,6 @@ void vec4_abs_ptr(vector4 *res, const vector4 *v)
 #endif
 }
 
-/**
- * @brief Normalizes a vector (dispatched).
- *
- * @see vec4_normalize_ptr_scalar
- *
- * @param res Result vector.
- * @param v Input vector.
- */
 void vec4_normalize_ptr(vector4 *res, const vector4 *v)
 {
 #ifdef VECMAT_RUNTIME_DISPATCH
@@ -578,15 +482,6 @@ void vec4_normalize_ptr(vector4 *res, const vector4 *v)
 #endif
 }
 
-/**
- * @brief Component-wise minimum (dispatched).
- *
- * @see vec4_min_ptr_scalar
- *
- * @param res Result vector.
- * @param a First vector.
- * @param b Second vector.
- */
 void vec4_min_ptr(vector4 *res, const vector4 *a, const vector4 *b)
 {
 #ifdef VECMAT_RUNTIME_DISPATCH
@@ -597,15 +492,6 @@ void vec4_min_ptr(vector4 *res, const vector4 *a, const vector4 *b)
 #endif
 }
 
-/**
- * @brief Component-wise maximum (dispatched).
- *
- * @see vec4_max_ptr_scalar
- *
- * @param res Result vector.
- * @param a First vector.
- * @param b Second vector.
- */
 void vec4_max_ptr(vector4 *res, const vector4 *a, const vector4 *b)
 {
 #ifdef VECMAT_RUNTIME_DISPATCH
@@ -616,16 +502,6 @@ void vec4_max_ptr(vector4 *res, const vector4 *a, const vector4 *b)
 #endif
 }
 
-/**
- * @brief Linear interpolation (dispatched).
- *
- * @see vec4_lerp_ptr_scalar
- *
- * @param res Result vector.
- * @param a First vector.
- * @param b Second vector.
- * @param t Interpolation factor.
- */
 void vec4_lerp_ptr(vector4 *res, const vector4 *a, const vector4 *b, const vm_float_t t)
 {
 #ifdef VECMAT_RUNTIME_DISPATCH
@@ -636,16 +512,6 @@ void vec4_lerp_ptr(vector4 *res, const vector4 *a, const vector4 *b, const vm_fl
 #endif
 }
 
-/**
- * @brief Component-wise clamp (dispatched).
- *
- * @see vec4_clamp_ptr_scalar
- *
- * @param res Result vector.
- * @param v Input vector.
- * @param min Lower bound.
- * @param max Upper bound.
- */
 void vec4_clamp_ptr(vector4 *res, const vector4 *v, const vector4 *min, const vector4 *max)
 {
 #ifdef VECMAT_RUNTIME_DISPATCH
@@ -656,15 +522,6 @@ void vec4_clamp_ptr(vector4 *res, const vector4 *v, const vector4 *min, const ve
 #endif
 }
 
-/**
- * @brief Component-wise division (dispatched).
- *
- * @see vec4_div_ptr_scalar
- *
- * @param res Result vector.
- * @param a First vector.
- * @param b Second vector.
- */
 void vec4_div_ptr(vector4 *res, const vector4 *a, const vector4 *b)
 {
 #ifdef VECMAT_RUNTIME_DISPATCH
@@ -675,15 +532,6 @@ void vec4_div_ptr(vector4 *res, const vector4 *a, const vector4 *b)
 #endif
 }
 
-/**
- * @brief Adds a scalar to each component (dispatched).
- *
- * @see vec4_add_scalar_ptr_scalar
- *
- * @param res Result vector.
- * @param v Input vector.
- * @param s Scalar.
- */
 void vec4_add_scalar_ptr(vector4 *res, const vector4 *v, const vm_float_t s)
 {
 #ifdef VECMAT_RUNTIME_DISPATCH
@@ -694,15 +542,6 @@ void vec4_add_scalar_ptr(vector4 *res, const vector4 *v, const vm_float_t s)
 #endif
 }
 
-/**
- * @brief Subtracts a scalar from each component (dispatched).
- *
- * @see vec4_sub_scalar_ptr_scalar
- *
- * @param res Result vector.
- * @param v Input vector.
- * @param s Scalar.
- */
 void vec4_sub_scalar_ptr(vector4 *res, const vector4 *v, const vm_float_t s)
 {
 #ifdef VECMAT_RUNTIME_DISPATCH
@@ -713,16 +552,6 @@ void vec4_sub_scalar_ptr(vector4 *res, const vector4 *v, const vm_float_t s)
 #endif
 }
 
-/**
- * @brief Clamps each component to a scalar range (dispatched).
- *
- * @see vec4_clamp_scalar_ptr_scalar
- *
- * @param res Result vector.
- * @param v Input vector.
- * @param min Lower bound.
- * @param max Upper bound.
- */
 void vec4_clamp_scalar_ptr(vector4 *res, const vector4 *v, const vm_float_t min, const vm_float_t max)
 {
 #ifdef VECMAT_RUNTIME_DISPATCH
@@ -733,14 +562,6 @@ void vec4_clamp_scalar_ptr(vector4 *res, const vector4 *v, const vm_float_t min,
 #endif
 }
 
-/**
- * @brief Clamps each component to [0, 1] (dispatched).
- *
- * @see vec4_saturate_ptr_scalar
- *
- * @param res Result vector.
- * @param v Input vector.
- */
 void vec4_saturate_ptr(vector4 *res, const vector4 *v)
 {
 #ifdef VECMAT_RUNTIME_DISPATCH
@@ -751,14 +572,6 @@ void vec4_saturate_ptr(vector4 *res, const vector4 *v)
 #endif
 }
 
-/**
- * @brief Component-wise sign (dispatched).
- *
- * @see vec4_sign_ptr_scalar
- *
- * @param res Result vector.
- * @param v Input vector.
- */
 void vec4_sign_ptr(vector4 *res, const vector4 *v)
 {
 #ifdef VECMAT_RUNTIME_DISPATCH
@@ -769,14 +582,6 @@ void vec4_sign_ptr(vector4 *res, const vector4 *v)
 #endif
 }
 
-/**
- * @brief Component-wise floor (dispatched).
- *
- * @see vec4_floor_ptr_scalar
- *
- * @param res Result vector.
- * @param v Input vector.
- */
 void vec4_floor_ptr(vector4 *res, const vector4 *v)
 {
 #ifdef VECMAT_RUNTIME_DISPATCH
@@ -787,14 +592,6 @@ void vec4_floor_ptr(vector4 *res, const vector4 *v)
 #endif
 }
 
-/**
- * @brief Component-wise ceil (dispatched).
- *
- * @see vec4_ceil_ptr_scalar
- *
- * @param res Result vector.
- * @param v Input vector.
- */
 void vec4_ceil_ptr(vector4 *res, const vector4 *v)
 {
 #ifdef VECMAT_RUNTIME_DISPATCH
@@ -805,14 +602,6 @@ void vec4_ceil_ptr(vector4 *res, const vector4 *v)
 #endif
 }
 
-/**
- * @brief Component-wise round (dispatched).
- *
- * @see vec4_round_ptr_scalar
- *
- * @param res Result vector.
- * @param v Input vector.
- */
 void vec4_round_ptr(vector4 *res, const vector4 *v)
 {
 #ifdef VECMAT_RUNTIME_DISPATCH
@@ -823,14 +612,6 @@ void vec4_round_ptr(vector4 *res, const vector4 *v)
 #endif
 }
 
-/**
- * @brief Component-wise fractional part (dispatched).
- *
- * @see vec4_fract_ptr_scalar
- *
- * @param res Result vector.
- * @param v Input vector.
- */
 void vec4_fract_ptr(vector4 *res, const vector4 *v)
 {
 #ifdef VECMAT_RUNTIME_DISPATCH
@@ -841,14 +622,6 @@ void vec4_fract_ptr(vector4 *res, const vector4 *v)
 #endif
 }
 
-/**
- * @brief Divides xyz by w (dispatched).
- *
- * @see vec4_homogenize_ptr_scalar
- *
- * @param res Result vector.
- * @param v Input vector.
- */
 void vec4_homogenize_ptr(vector4 *res, const vector4 *v)
 {
 #ifdef VECMAT_RUNTIME_DISPATCH

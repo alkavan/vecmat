@@ -4,11 +4,6 @@
 
 #include <vecmat.h>
 
-/**
- * @brief Initializes the 3x3 matrix to identity (diagonal 1.0, others 0.0).
- *
- * @param res Pointer to the output matrix3.
- */
 void mat3_identity_ptr(matrix3 *res)
 {
     res->v[0] = 1.0f;
@@ -22,15 +17,6 @@ void mat3_identity_ptr(matrix3 *res)
     res->v[8] = 1.0f;
 }
 
-/**
- * @brief Multiplies two 3x3 matrices (a * b) in column-major / column-vector convention.
- *
- * Accumulates into a temporary matrix.
- *
- * @param res Pointer to the output matrix3.
- * @param a Pointer to the first matrix.
- * @param b Pointer to the second matrix.
- */
 void mat3_mul_ptr(matrix3 *res, const matrix3 *a, const matrix3 *b)
 {
     matrix3 temp;
@@ -49,12 +35,6 @@ void mat3_mul_ptr(matrix3 *res, const matrix3 *a, const matrix3 *b)
     *res = temp;
 }
 
-/**
- * @brief Computes the transpose of the input 3x3 matrix and stores in res.
- *
- * @param res Pointer to the output matrix3.
- * @param m Pointer to the input matrix.
- */
 void mat3_transpose_ptr(matrix3 *res, const matrix3 *m)
 {
     matrix3 temp;
@@ -66,15 +46,6 @@ void mat3_transpose_ptr(matrix3 *res, const matrix3 *m)
     *res = temp;
 }
 
-/**
- * @brief Computes the inverse of the input 3x3 matrix using the adjugate method
- * and stores in res.
- *
- * If the determinant is zero, sets res to identity.
- *
- * @param res Pointer to the output matrix3.
- * @param m Pointer to the input matrix.
- */
 void mat3_inverse_ptr(matrix3 *res, const matrix3 *m)
 {
     // Compute determinant
@@ -102,12 +73,6 @@ void mat3_inverse_ptr(matrix3 *res, const matrix3 *m)
     *res = inv;
 }
 
-/**
- * @brief Sets the 3x3 matrix to a Z-axis rotation by the given angle in radians.
- *
- * @param res Pointer to the output matrix3.
- * @param radians Rotation angle in radians.
- */
 void mat3_rotation_z_ptr(matrix3 *res, const vm_float_t radians)
 {
     const vm_float_t c = VECMAT_COS(radians);
@@ -126,25 +91,11 @@ void mat3_rotation_z_ptr(matrix3 *res, const vm_float_t radians)
     res->m33 = 1.0f;
 }
 
-/**
- * @brief Initializes the 3x3 matrix to a rotation around the Z axis.
- *
- * @see mat3_rotation_z_ptr
- *
- * @param res Pointer to the output matrix3.
- * @param degrees Rotation angle in degrees.
- */
 void mat3_rotation_z_deg_ptr(matrix3 *res, const vm_float_t degrees)
 {
     mat3_rotation_z_ptr(res, deg_to_rad(degrees));
 }
 
-/**
- * @brief Sets the 3x3 matrix to a rotation around the X axis.
- *
- * @param res Pointer to the output matrix3.
- * @param radians Rotation angle in radians.
- */
 void mat3_rotation_x_ptr(matrix3 *res, const vm_float_t radians)
 {
     const vm_float_t c = VECMAT_COS(radians);
@@ -156,25 +107,11 @@ void mat3_rotation_x_ptr(matrix3 *res, const vm_float_t radians)
     };
 }
 
-/**
- * @brief Initializes the 3x3 matrix to a rotation around the X axis.
- *
- * @see mat3_rotation_x_ptr
- *
- * @param res Pointer to the output matrix3.
- * @param degrees Rotation angle in degrees.
- */
 void mat3_rotation_x_deg_ptr(matrix3 *res, const vm_float_t degrees)
 {
     mat3_rotation_x_ptr(res, deg_to_rad(degrees));
 }
 
-/**
- * @brief Sets the 3x3 matrix to a rotation around the Y axis.
- *
- * @param res Pointer to the output matrix3.
- * @param radians Rotation angle in radians.
- */
 void mat3_rotation_y_ptr(matrix3 *res, const vm_float_t radians)
 {
     const vm_float_t c = VECMAT_COS(radians);
@@ -186,25 +123,11 @@ void mat3_rotation_y_ptr(matrix3 *res, const vm_float_t radians)
     };
 }
 
-/**
- * @brief Initializes the 3x3 matrix to a rotation around the Y axis.
- *
- * @see mat3_rotation_y_ptr
- *
- * @param res Pointer to the output matrix3.
- * @param degrees Rotation angle in degrees.
- */
 void mat3_rotation_y_deg_ptr(matrix3 *res, const vm_float_t degrees)
 {
     mat3_rotation_y_ptr(res, deg_to_rad(degrees));
 }
 
-/**
- * @brief Builds a 3x3 2D translation matrix.
- *
- * @param res Output value.
- * @param t Translation vector.
- */
 void mat3_translate_ptr(matrix3 *res, const vector2 *t)
 {
     mat3_identity_ptr(res);
@@ -212,12 +135,6 @@ void mat3_translate_ptr(matrix3 *res, const vector2 *t)
     res->m23 = t->y;
 }
 
-/**
- * @brief Builds a 3x3 2D scaling matrix.
- *
- * @param res Output value.
- * @param s Scale vector.
- */
 void mat3_scale_ptr(matrix3 *res, const vector2 *s)
 {
     mat3_identity_ptr(res);
@@ -225,12 +142,6 @@ void mat3_scale_ptr(matrix3 *res, const vector2 *s)
     res->m22 = s->y;
 }
 
-/**
- * @brief Copies the upper-left 3x3 of a matrix4.
- *
- * @param res Output value.
- * @param m Input matrix.
- */
 void mat3_from_mat4_ptr(matrix3 *res, const matrix4 *m)
 {
     res->m11 = m->m11; res->m21 = m->m21; res->m31 = m->m31;
@@ -238,14 +149,6 @@ void mat3_from_mat4_ptr(matrix3 *res, const matrix4 *m)
     res->m13 = m->m13; res->m23 = m->m23; res->m33 = m->m33;
 }
 
-/**
- * @brief Inverse-transpose of a 3x3, for transforming normals.
- *
- * If @p m is singular the result is identity.
- *
- * @param res Normal matrix.
- * @param m Linear part of a model transform.
- */
 void mat3_normal_ptr(matrix3 *res, const matrix3 *m)
 {
     matrix3 inv;
@@ -253,13 +156,6 @@ void mat3_normal_ptr(matrix3 *res, const matrix3 *m)
     mat3_transpose_ptr(res, &inv);
 }
 
-/**
- * @brief Multiplies a 3x3 matrix by a vector3.
- *
- * @param res Output value.
- * @param m Input matrix.
- * @param v Input vector.
- */
 void mat3_mul_vec3_ptr(vector3 *res, const matrix3 *m, const vector3 *v)
 {
     const vm_float_t x = v->x;
@@ -270,13 +166,6 @@ void mat3_mul_vec3_ptr(vector3 *res, const matrix3 *m, const vector3 *v)
     res->z = m->m31 * x + m->m32 * y + m->m33 * z;
 }
 
-/**
- * @brief Applies a 3x3 affine transform to a vector2.
- *
- * @param res Output value.
- * @param m Input matrix.
- * @param v Input vector.
- */
 void mat3_mul_vec2_ptr(vector2 *res, const matrix3 *m, const vector2 *v)
 {
     const vm_float_t x = v->x;
@@ -339,16 +228,6 @@ static void vm_mat3_jacobi_rotate(matrix3 *a, matrix3 *v, const int p, const int
     }
 }
 
-/**
- * @brief Jacobi eigensolve of a symmetric 3x3 matrix.
- *
- * `m` is first replaced by `(m + m^T) / 2`. Eigenvalues are the diagonal of
- * the rotated matrix; eigenvector `i` is column `i` of `axes`.
- *
- * @param eigenvalues Output eigenvalues.
- * @param axes Output eigenvector columns.
- * @param m Input matrix (copied and symmetrized).
- */
 void mat3_sym_eigen_ptr(vector3 *eigenvalues, matrix3 *axes, const matrix3 *m)
 {
     matrix3 a;

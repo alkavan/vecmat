@@ -2,8 +2,8 @@
 // SPDX-FileCopyrightText: 2026 ALKONTEK <git@alkontek.com>
 // SPDX-License-Identifier: BSD-3-Clause
 
-#ifndef VECMAT_CPU_H
-#define VECMAT_CPU_H
+#ifndef VECMAT_FEATURES_CPU_H
+#define VECMAT_FEATURES_CPU_H
 
 #include <vecmat.h>
 
@@ -74,4 +74,4 @@ const vm_backend *vm_backend_best(void);
 
 #endif /* VECMAT_RUNTIME_DISPATCH */
 
-#endif // VECMAT_CPU_H
+#endif //VECMAT_FEATURES_CPU_H
