@@ -103,7 +103,7 @@ WARN_AS_ERROR          = NO
 WARN_FORMAT            = "$file:$line: $text"
 WARN_LOGFILE           =
 
-# Ingest public headers and all implementation / SIMD sources.
+# Ingest public headers, implementations, and unit-test/benchmark utilities.
 INPUT                  = ../include \
                          ../src \
                          ../test/except.h \
