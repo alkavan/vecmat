@@ -30,7 +30,7 @@
 // Version
 #define VECMAT_VERSION_MAJOR 0
 #define VECMAT_VERSION_MINOR 3
-#define VECMAT_VERSION_PATCH 1
+#define VECMAT_VERSION_PATCH 2
 
 // Version macros
 #define VECMAT_STR_HELPER(x) #x
