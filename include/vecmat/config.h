@@ -18,16 +18,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-// Version macros
-#define VECMAT_VERSION_MAJOR 0
-#define VECMAT_VERSION_MINOR 3
-#define VECMAT_VERSION_PATCH 0
-
-#define VECMAT_STR_HELPER(x) #x
-#define VECMAT_STR(x) VECMAT_STR_HELPER(x)
-#define VECMAT_VERSION VECMAT_STR(VECMAT_VERSION_MAJOR) "." \
-    VECMAT_STR(VECMAT_VERSION_MINOR) "." VECMAT_STR(VECMAT_VERSION_PATCH)
-
 // Export macro for a shared library on Windows
 #ifdef _WIN32
     #ifdef VEC_BUILD_SHARED

@@ -27,6 +27,17 @@
  * @brief GEMM, heap `vm_mat`, factorizations, CSR/KSP, integrators.
  */
 
+// Version
+#define VECMAT_VERSION_MAJOR 0
+#define VECMAT_VERSION_MINOR 3
+#define VECMAT_VERSION_PATCH 1
+
+// Version macros
+#define VECMAT_STR_HELPER(x) #x
+#define VECMAT_STR(x) VECMAT_STR_HELPER(x)
+#define VECMAT_VERSION VECMAT_STR(VECMAT_VERSION_MAJOR) "." \
+    VECMAT_STR(VECMAT_VERSION_MINOR) "." VECMAT_STR(VECMAT_VERSION_PATCH)
+
 #include "vecmat/config.h"
 #include "vecmat/types.h"
 #include "vecmat/cpu.h"
