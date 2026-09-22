@@ -3,6 +3,10 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include <vecmat.h>
+#include "features/abi_int_once.h"
+
+/* Integer-only: one copy (see features/abi_int_once.h). */
+#if VECMAT_INT_ONCE
 
 vector4i vec4i_zero(void)
 {
@@ -102,13 +106,6 @@ vector4i vec4i_abs(const vector4i v)
     return res;
 }
 
-vector4i vec4i_normalize(const vector4i v)
-{
-    vector4i res;
-    vec4i_normalize_ptr(&res, &v);
-    return res;
-}
-
 vector4i vec4i_min(const vector4i a, const vector4i b)
 {
     vector4i res;
@@ -130,13 +127,6 @@ vector4i vec4i_sign(const vector4i v)
     return res;
 }
 
-vector4i vec4i_lerp(const vector4i a, const vector4i b, const vm_float_t t)
-{
-    vector4i res;
-    vec4i_lerp_ptr(&res, &a, &b, t);
-    return res;
-}
-
 vector4i vec4i_clamp(const vector4i v, const vector4i min, const vector4i max)
 {
     vector4i res;
@@ -147,17 +137,6 @@ vector4i vec4i_clamp(const vector4i v, const vector4i min, const vector4i max)
 vm_int_t vec4i_dot(const vector4i a, const vector4i b)
 {
     return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
-}
-
-vm_float_t vec4i_length(const vector4i v)
-{
-    return VECMAT_SQRT(vec4i_dot(v, v));
-}
-
-vm_float_t vec4i_distance(const vector4i a, const vector4i b)
-{
-    const vector4i diff = vec4i_sub(a, b);
-    return vec4i_length(diff);
 }
 
 vector3i vec4i_to_vec3i(const vector4i v)
@@ -271,4 +250,33 @@ vm_int_t vec4i_sum(const vector4i v)
 bool vec4i_is_zero(const vector4i v)
 {
     return v.x == 0 && v.y == 0 && v.z == 0 && v.w == 0;
+}
+
+vector4i vec4i_normalize(const vector4i v)
+{
+    vector4i res;
+    vec4i_normalize_ptr(&res, &v);
+    return res;
+}
+
+#endif /* VECMAT_INT_ONCE */
+
+/* vm_float_t in the signature: compiled per ABI width. */
+
+vector4i vec4i_lerp(const vector4i a, const vector4i b, const vm_float_t t)
+{
+    vector4i res;
+    vec4i_lerp_ptr(&res, &a, &b, t);
+    return res;
+}
+
+vm_float_t vec4i_length(const vector4i v)
+{
+    return VECMAT_SQRT(vec4i_dot(v, v));
+}
+
+vm_float_t vec4i_distance(const vector4i a, const vector4i b)
+{
+    const vector4i diff = vec4i_sub(a, b);
+    return vec4i_length(diff);
 }

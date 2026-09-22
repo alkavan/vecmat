@@ -87,10 +87,15 @@ static const double VM_RAD_TO_DEG_F64 = 57.295779513082320876798154814105;
  * Floating-point type
  ******************************************************************************/
 
+typedef float vm_float32_t;
+typedef double vm_float64_t;
+
 #ifdef VECMAT_USE_F64
-typedef double vm_float_t;
+typedef vm_float64_t vm_float_t;
+#define VECMAT_FLOAT_BITS 64
 #else
-typedef float vm_float_t;
+typedef vm_float32_t vm_float_t;
+#define VECMAT_FLOAT_BITS 32
 #endif
 
 #ifdef VECMAT_USE_F64

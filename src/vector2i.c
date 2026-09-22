@@ -3,6 +3,10 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include <vecmat.h>
+#include "features/abi_int_once.h"
+
+/* Integer-only: one copy (see features/abi_int_once.h). */
+#if VECMAT_INT_ONCE
 
 vector2i vec2i_zero(void)
 {
@@ -83,13 +87,6 @@ vector2i vec2i_abs(const vector2i v)
     return res;
 }
 
-vector2i vec2i_normalize(const vector2i v)
-{
-    vector2i res;
-    vec2i_normalize_ptr(&res, &v);
-    return res;
-}
-
 vector2i vec2i_min(const vector2i a, const vector2i b)
 {
     vector2i res;
@@ -128,41 +125,6 @@ vector2i vec2i_cross(const vector2i a, const vector2i b)
 vm_int_t vec2i_dot(const vector2i a, const vector2i b)
 {
     return a.x * b.x + a.y * b.y;
-}
-
-vm_float_t vec2i_length(const vector2i v)
-{
-    return VECMAT_SQRT(vec2i_dot(v, v));
-}
-
-vm_float_t vec2i_distance(const vector2i a, const vector2i b)
-{
-    const vm_int_t dx = a.x - b.x;
-    const vm_int_t dy = a.y - b.y;
-    return VECMAT_SQRT(dx * dx + dy * dy);
-}
-
-vm_float_t vec2i_angle(const vector2i a, const vector2i b)
-{
-    const vm_float_t dot = vec2i_dot(a, b);
-    const vm_float_t len_a = vec2i_length(a);
-    const vm_float_t len_b = vec2i_length(b);
-    if (len_a == 0.0f || len_b == 0.0f) return 0.0f;
-
-    return VECMAT_ATAN2(a.x * b.y - a.y * b.x, dot); // atan2 for signed angle
-}
-
-vm_float_t vec2i_aspect_ratio(const vector2i v)
-{
-    if (v.y == 0) return 0.0f;
-    return (vm_float_t)v.x / (vm_float_t)v.y;
-}
-
-vector2i vec2i_lerp(const vector2i a, const vector2i b, const vm_float_t t)
-{
-    vector2i res;
-    vec2i_lerp_ptr(&res, &a, &b, t);
-    return res;
 }
 
 vector2i vec2i_clamp(const vector2i v, const vector2i min, const vector2i max)
@@ -226,13 +188,6 @@ vector3i vec2i_to_vec3i(const vector2i v, const vm_int_t z)
     return res;
 }
 
-vector2 vec2i_normalize_to_vec2(const vector2i v)
-{
-    vector2 res;
-    vec2i_normalize_to_vec2_ptr(&res, &v);
-    return res;
-}
-
 vm_int_t vec2i_cross_scalar(const vector2i a, const vector2i b)
 {
     return a.x * b.y - a.y * b.x;
@@ -282,4 +237,57 @@ vm_int_t vec2i_sum(const vector2i v)
 bool vec2i_is_zero(const vector2i v)
 {
     return v.x == 0 && v.y == 0;
+}
+
+vector2i vec2i_normalize(const vector2i v)
+{
+    vector2i res;
+    vec2i_normalize_ptr(&res, &v);
+    return res;
+}
+
+#endif /* VECMAT_INT_ONCE */
+
+/* vm_float_t in the signature: compiled per ABI width. */
+
+vm_float_t vec2i_length(const vector2i v)
+{
+    return VECMAT_SQRT(vec2i_dot(v, v));
+}
+
+vm_float_t vec2i_distance(const vector2i a, const vector2i b)
+{
+    const vm_int_t dx = a.x - b.x;
+    const vm_int_t dy = a.y - b.y;
+    return VECMAT_SQRT(dx * dx + dy * dy);
+}
+
+vm_float_t vec2i_angle(const vector2i a, const vector2i b)
+{
+    const vm_float_t dot = vec2i_dot(a, b);
+    const vm_float_t len_a = vec2i_length(a);
+    const vm_float_t len_b = vec2i_length(b);
+    if (len_a == 0.0f || len_b == 0.0f) return 0.0f;
+
+    return VECMAT_ATAN2(a.x * b.y - a.y * b.x, dot); // atan2 for signed angle
+}
+
+vm_float_t vec2i_aspect_ratio(const vector2i v)
+{
+    if (v.y == 0) return 0.0f;
+    return (vm_float_t)v.x / (vm_float_t)v.y;
+}
+
+vector2i vec2i_lerp(const vector2i a, const vector2i b, const vm_float_t t)
+{
+    vector2i res;
+    vec2i_lerp_ptr(&res, &a, &b, t);
+    return res;
+}
+
+vector2 vec2i_normalize_to_vec2(const vector2i v)
+{
+    vector2 res;
+    vec2i_normalize_to_vec2_ptr(&res, &v);
+    return res;
 }

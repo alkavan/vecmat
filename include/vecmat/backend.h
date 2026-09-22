@@ -12,6 +12,7 @@
  */
 
 #include "vecmat/types.h"
+#include "vecmat/abi.h"
 
 #define VECMAT_DISPATCH_LIST(X)                                                              \
     X(vec4_add_ptr,                                                                          \

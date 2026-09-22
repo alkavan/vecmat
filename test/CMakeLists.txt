@@ -26,7 +26,12 @@ add_executable(vecmat_tests
         test_cpu.c
         test_extended.c
         test_physics.c
+        test_abi.c
 )
+if(VECMAT_USE_F64)
+    target_compile_definitions(vecmat_tests PRIVATE VECMAT_USE_F64)
+endif()
+
 if(MSVC)
     target_link_libraries(vecmat_tests PRIVATE vecmat_static)
 else()
@@ -50,6 +55,10 @@ add_executable(vecmat_benchmarks
         bench_quaternion.c
         bench_gemm.c
 )
+if(VECMAT_USE_F64)
+    target_compile_definitions(vecmat_benchmarks PRIVATE VECMAT_USE_F64)
+endif()
+
 if(MSVC)
     target_link_libraries(vecmat_benchmarks PRIVATE vecmat_static)
 else()

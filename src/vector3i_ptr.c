@@ -3,7 +3,12 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include <vecmat.h>
+#include "features/abi_int_once.h"
+
 #include <stdlib.h>
+
+/* Integer-only: one copy (see features/abi_int_once.h). */
+#if VECMAT_INT_ONCE
 
 void vec3i_add_ptr(vector3i *res, const vector3i *a, const vector3i *b)
 {
@@ -60,19 +65,6 @@ void vec3i_abs_ptr(vector3i *res, const vector3i *v)
     res->z = abs(v->z);
 }
 
-void vec3i_normalize_ptr(vector3i *res, const vector3i *v)
-{
-    const vm_float_t len = vec3i_length(*v);
-    if (len == 0.0f) {
-        *res = *v;
-        return;
-    }
-
-    res->x = (vm_int_t)(v->x / len);
-    res->y = (vm_int_t)(v->y / len);
-    res->z = (vm_int_t)(v->z / len);
-}
-
 void vec3i_cross_ptr(vector3i *res, const vector3i *a, const vector3i *b)
 {
     res->x = a->y * b->z - a->z * b->y;
@@ -101,13 +93,6 @@ void vec3i_sign_ptr(vector3i *res, const vector3i *v)
     res->z = v->z > 0 ? 1 : v->z < 0 ? -1 : 0;
 }
 
-void vec3i_lerp_ptr(vector3i *res, const vector3i *a, const vector3i *b, const vm_float_t t)
-{
-    res->x = (vm_int_t)((1.0f - t) * (vm_float_t)a->x + t * (vm_float_t)b->x);
-    res->y = (vm_int_t)((1.0f - t) * (vm_float_t)a->y + t * (vm_float_t)b->y);
-    res->z = (vm_int_t)((1.0f - t) * (vm_float_t)a->z + t * (vm_float_t)b->z);
-}
-
 void vec3i_clamp_ptr(vector3i *res, const vector3i *v, const vector3i *min, const vector3i *max)
 {
     res->x = v->x < min->x ? min->x : (v->x > max->x ? max->x : v->x);
@@ -122,6 +107,7 @@ void vec3i_clamp_ptr(vector3i *res, const vector3i *v, const vector3i *min, cons
  * @param b Divisor.
  * @return `floor(a / b)`, or 0 if `b` is 0.
  */
+
 static vm_int_t vm_div_floor3(const vm_int_t a, const vm_int_t b)
 {
     if (b == 0) {
@@ -142,6 +128,7 @@ static vm_int_t vm_div_floor3(const vm_int_t a, const vm_int_t b)
  * @param b Divisor.
  * @return Floor modulus.
  */
+
 static vm_int_t vm_mod_floor3(const vm_int_t a, const vm_int_t b)
 {
     if (b == 0) {
@@ -207,6 +194,30 @@ void vec3i_xy_ptr(vector2i *res, const vector3i *v)
 {
     res->x = v->x;
     res->y = v->y;
+}
+
+void vec3i_normalize_ptr(vector3i *res, const vector3i *v)
+{
+    const vm_float_t len = vec3i_length(*v);
+    if (len == 0.0f) {
+        *res = *v;
+        return;
+    }
+
+    res->x = (vm_int_t)(v->x / len);
+    res->y = (vm_int_t)(v->y / len);
+    res->z = (vm_int_t)(v->z / len);
+}
+
+#endif /* VECMAT_INT_ONCE */
+
+/* vm_float_t in the signature: compiled per ABI width. */
+
+void vec3i_lerp_ptr(vector3i *res, const vector3i *a, const vector3i *b, const vm_float_t t)
+{
+    res->x = (vm_int_t)((1.0f - t) * (vm_float_t)a->x + t * (vm_float_t)b->x);
+    res->y = (vm_int_t)((1.0f - t) * (vm_float_t)a->y + t * (vm_float_t)b->y);
+    res->z = (vm_int_t)((1.0f - t) * (vm_float_t)a->z + t * (vm_float_t)b->z);
 }
 
 void vec3i_normalize_to_vec3_ptr(vector3 *res, const vector3i *v)

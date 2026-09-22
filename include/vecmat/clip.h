@@ -12,6 +12,7 @@
  */
 
 #include "vecmat/types.h"
+#include "vecmat/abi.h"
 
 /**
  * @brief Constructs an orthographic projection matrix.

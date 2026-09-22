@@ -12,6 +12,7 @@
  */
 
 #include "vecmat/types.h"
+#include "vecmat/abi.h"
 
 /**
  * @brief Sparse matrix triplet (row, column, value).

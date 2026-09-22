@@ -62,9 +62,17 @@ included in the headers.
 - BSD 3-Clause License.
 - Tests use [`unitest.h`](test/unitest.h) and [`except.h`](test/except.h).
 
-### Precision is chosen at build time
-- Default: `float` and `int32_t`.
-- Optional: `double` (`VECMAT_USE_F64`), and int width 8 / 16 / 32.
+### Precision
+- Default library (`-DVECMAT_FLOAT_ABI=BOTH`) contains **both**
+  `name32` and `name64` float symbols. Embedded images can pass
+  `32` or `64` to omit the other width. Integer width is still
+  configure-time.
+- A translation unit keeps unsuffixed names (`vec4_add`, `vector4`,
+  `vm_float_t`) via [`include/vecmat/abi.h`](include/vecmat/abi.h).
+  `#define VECMAT_USE_F64` before the `#include` to take the 64-bit aliases.
+- `vm_compiled_float_bits()` reports the widths compiled into the
+  linked lib. `vm_abi_mismatch()` is non-zero only if this TU's width
+  is missing.
 
 ### Math types
 - Float vectors: 2D, 3D, 4D (`vector2` / `vector3` / `vector4`).
@@ -301,12 +309,13 @@ sees the same typedefs.
 
 **Defaults** (no flags): `vm_float_t` is `float`, `vm_int_t` is `int32_t`.
 
-| CMake flag               | Header macro         | Effect                   |
-|--------------------------|----------------------|--------------------------|
-| `-DVECMAT_USE_F64=ON`    | `VECMAT_USE_F64`     | `vm_float_t` is `double` |
-| `-DVECMAT_USE_INT8=ON`   | `VECMAT_USE_INT8`    | `vm_int_t` is `int8_t`   |
-| `-DVECMAT_USE_INT16=ON`  | `VECMAT_USE_INT16`   | `vm_int_t` is `int16_t`  |
-| `-DVECMAT_USE_INT32=ON`  | `VECMAT_USE_INT32`   | `vm_int_t` is `int32_t`  |
+| CMake flag                          | Header macro               | Effect                                                           |
+|-------------------------------------|----------------------------|------------------------------------------------------------------|
+| `-DVECMAT_FLOAT_ABI=BOTH`/`32`/`64` | `VECMAT_HAVE_ABI_32`/`_64` | Which float symbol sets are in the `.a` / `.so` (default `BOTH`) |
+| `-DVECMAT_USE_F64=ON`               | `VECMAT_USE_F64`           | This target's `vm_float_t` is `double`                           |
+| `-DVECMAT_USE_INT8=ON`              | `VECMAT_USE_INT8`          | `vm_int_t` is `int8_t`                                           |
+| `-DVECMAT_USE_INT16=ON`             | `VECMAT_USE_INT16`         | `vm_int_t` is `int16_t`                                          |
+| `-DVECMAT_USE_INT32=ON`             | `VECMAT_USE_INT32`         | `vm_int_t` is `int32_t`                                          |
 
 The integer flags are mutually exclusive. CMake will error if more than one is `ON`.
 `VECMAT_USE_F64` can be combined with any one integer flag.

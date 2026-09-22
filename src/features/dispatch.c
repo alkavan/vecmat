@@ -194,7 +194,7 @@ int vm_backend_register(const vm_backend *backend)
 /**
  * @brief One-time runtime dispatch bind (thread-safe).
  */
-void vm_cpu_init(void)
+void vm_dispatch_init(void)
 {
 #if !defined(__STDC_NO_ATOMICS__)
     if (atomic_load_explicit(&dispatch_ready, memory_order_acquire))

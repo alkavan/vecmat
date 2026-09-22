@@ -3,6 +3,10 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include <vecmat.h>
+#include "features/abi_int_once.h"
+
+/* Integer-only: one copy (see features/abi_int_once.h). */
+#if VECMAT_INT_ONCE
 
 vector3i vec3i_zero(void)
 {
@@ -100,13 +104,6 @@ vector3i vec3i_cross(const vector3i a, const vector3i b)
     return res;
 }
 
-vector3i vec3i_normalize(const vector3i v)
-{
-    vector3i res;
-    vec3i_normalize_ptr(&res, &v);
-    return res;
-}
-
 vector3i vec3i_min(const vector3i a, const vector3i b)
 {
     vector3i res;
@@ -128,13 +125,6 @@ vector3i vec3i_sign(const vector3i v)
     return res;
 }
 
-vector3i vec3i_lerp(const vector3i a, const vector3i b, const vm_float_t t)
-{
-    vector3i res;
-    vec3i_lerp_ptr(&res, &a, &b, t);
-    return res;
-}
-
 vector3i vec3i_clamp(const vector3i v, const vector3i min, const vector3i max)
 {
     vector3i res;
@@ -145,24 +135,6 @@ vector3i vec3i_clamp(const vector3i v, const vector3i min, const vector3i max)
 vm_int_t vec3i_dot(const vector3i a, const vector3i b)
 {
     return a.x * b.x + a.y * b.y + a.z * b.z;
-}
-
-vm_float_t vec3i_length(const vector3i v) {
-    return VECMAT_SQRT(vec3i_dot(v, v));
-}
-
-vm_float_t vec3i_distance(const vector3i a, const vector3i b)
-{
-    return vec3i_length(vec3i_sub(a, b));
-}
-
-vm_float_t vec3i_angle(const vector3i a, const vector3i b)
-{
-    const vm_float_t dot = vec3i_dot(a, b);
-    const vm_float_t len_a = vec3i_length(a);
-    const vm_float_t len_b = vec3i_length(b);
-    if (len_a == 0.0f || len_b == 0.0f) return 0.0f;
-    return VECMAT_ACOS(dot / (len_a * len_b));
 }
 
 vector3i vec3i_div(const vector3i a, const vector3i b)
@@ -226,13 +198,6 @@ vector2i vec3i_xy(const vector3i v)
     return res;
 }
 
-vector3 vec3i_normalize_to_vec3(const vector3i v)
-{
-    vector3 res;
-    vec3i_normalize_to_vec3_ptr(&res, &v);
-    return res;
-}
-
 vm_int_t vec3i_length_squared(const vector3i v)
 {
     return vec3i_dot(v, v);
@@ -283,4 +248,47 @@ vm_int_t vec3i_sum(const vector3i v)
 bool vec3i_is_zero(const vector3i v)
 {
     return v.x == 0 && v.y == 0 && v.z == 0;
+}
+
+vector3i vec3i_normalize(const vector3i v)
+{
+    vector3i res;
+    vec3i_normalize_ptr(&res, &v);
+    return res;
+}
+
+#endif /* VECMAT_INT_ONCE */
+
+/* vm_float_t in the signature: compiled per ABI width. */
+
+vector3i vec3i_lerp(const vector3i a, const vector3i b, const vm_float_t t)
+{
+    vector3i res;
+    vec3i_lerp_ptr(&res, &a, &b, t);
+    return res;
+}
+
+vm_float_t vec3i_length(const vector3i v) {
+    return VECMAT_SQRT(vec3i_dot(v, v));
+}
+
+vm_float_t vec3i_distance(const vector3i a, const vector3i b)
+{
+    return vec3i_length(vec3i_sub(a, b));
+}
+
+vm_float_t vec3i_angle(const vector3i a, const vector3i b)
+{
+    const vm_float_t dot = vec3i_dot(a, b);
+    const vm_float_t len_a = vec3i_length(a);
+    const vm_float_t len_b = vec3i_length(b);
+    if (len_a == 0.0f || len_b == 0.0f) return 0.0f;
+    return VECMAT_ACOS(dot / (len_a * len_b));
+}
+
+vector3 vec3i_normalize_to_vec3(const vector3i v)
+{
+    vector3 res;
+    vec3i_normalize_to_vec3_ptr(&res, &v);
+    return res;
 }

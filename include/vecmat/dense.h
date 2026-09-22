@@ -12,6 +12,7 @@
  */
 
 #include "vecmat/types.h"
+#include "vecmat/abi.h"
 
 /**
  * @brief Allocates a new matrix with the specified dimensions.
