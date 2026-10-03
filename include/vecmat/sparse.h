@@ -93,6 +93,8 @@ VEC_API bool vm_cg(const vm_spmat *A, const vm_float_t *b, vm_float_t *x,
  * Same calling convention as `vm_cg`. Jacobi / SSOR / IC0 are left
  * preconditioners; IC0 still expects an SPD-like diagonal.
  *
+ * Relative residual is `||r|| / max(||b||, ε)`.
+ *
  * @param A CSR matrix.
  * @param b Right-hand side (length A->n).
  * @param x Initial guess / solution (length A->n).
@@ -104,8 +106,6 @@ VEC_API bool vm_cg(const vm_spmat *A, const vm_float_t *b, vm_float_t *x,
  * @return true if converged, false otherwise.
  *
  * @see https://www.ctcms.nist.gov/~langer/oof2man/RegisteredClass-StabilizedBiConjugateGradient.html
- *
- * Relative residual is `||r|| / max(||b||, ε)`.
  */
 VEC_API bool vm_bicgstab(const vm_spmat *A, const vm_float_t *b, vm_float_t *x,
     vm_float_t tol, int max_iter, vm_ksp_prec_t pre_cond, vm_ksp_info *info);

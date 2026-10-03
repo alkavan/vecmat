@@ -693,24 +693,6 @@ bool vm_cg(const vm_spmat *A, const vm_float_t *b, vm_float_t *x,
     return ok;
 }
 
-/**
- * @brief BiCGSTAB for general (possibly nonsymmetric) A x = b.
- *
- * Same calling convention as `vm_cg`. Jacobi / SSOR / IC0 are left
- * preconditioners; IC0 still expects an SPD-like diagonal.
- *
- * @param A CSR matrix.
- * @param b Right-hand side (length A->n).
- * @param x Initial guess / solution (length A->n).
- * @param tol Relative residual tolerance (≤0 picks a default).
- * @param max_iter Max iterations (≤0 defaults to 2n).
- * @param pre_cond NONE, JACOBI, SSOR, or IC0.
- * @param info Optional solver stats (may be NULL).
- *
- * @return true if converged, false otherwise.
- *
- * @see https://www.ctcms.nist.gov/~langer/oof2man/RegisteredClass-StabilizedBiConjugateGradient.html
- */
 bool vm_bicgstab(const vm_spmat *A, const vm_float_t *b, vm_float_t *x,
                  vm_float_t tol, int max_iter, const vm_ksp_prec_t pre_cond, vm_ksp_info *info)
 {
@@ -863,14 +845,6 @@ static vm_float_t *vm_mat_at(const vm_mat *m, const int r, const int c)
     return &m->data[r + c * m->rows];
 }
 
-/**
- * @brief In-place dense Cholesky A = L Lᵀ (lower triangle overwritten).
- *
- * `A` must be square SPD. The strict upper triangle is left untouched.
- *
- * @param A Square dense matrix (destroyed / factored in place).
- * @return true on success, false if not SPD or invalid input.
- */
 bool vm_chol_factor(vm_mat *A)
 {
     if (!A || !A->data || A->rows <= 0 || A->rows != A->cols) {

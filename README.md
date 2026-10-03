@@ -135,110 +135,12 @@ Windows shared builds export with `VEC_API`. Float exports are `name32` /
 
 ## Numerics extras
 
-Scientific work defines `VECMAT_USE_F64` before the include. `-DVECMAT_USE_F64=ON`
-does that for this build's tests and benchmarks; it does not drop `name32`.
-
-### GEMM
-BLAS-style dense multiply `C = alpha * op(A) * op(B) + beta * C`.
-Row-major and column-major layouts.
-
-- `vm_gemm` / `vm_gemm_ref` / `vm_gemm_ex` (optional bias and/or ReLU)
-- `vm_gemm_batch` / `vm_gemm_strided_batch` (shared-`B` packs once)
-- `vm_im2col` unfolds an NCHW image into a GEMM-ready panel
-
-Packed 8×8 ukernel, TLS pack workspace `MC=NC=KC=128`, persistent thread
-pool. Cap threads with `vm_gemm_set_threads(n)` or `VECMAT_GEMM_THREADS`.
-fp16 / bf16 are not in this release. This is not a BLAS.
-
-Contract: `vm_gemm` matches `vm_gemm_ref` for trans / no-trans, row / col,
-odd sizes, `beta ≠ 0`, and batch shared-`B`, on a size band of about 32–512.
-
-### Dense linear algebra
-Heap `vm_mat` (M×N, column-major). LU with partial pivoting, Householder
-QR, thin one-sided Jacobi SVD, Cholesky. Scale-aware cutoffs
-`tol = n * VECMAT_EPSILON * max|A|`. Rank-deficient work returns `false`
-(an `ok` flag), not a silent NaN. Integer `matNi_inverse` is **truncated**,
-not modular inverse — the declaration says so.
-
-### Sparse systems
-- `vm_spmat` — square CSR from triplets
-- `vm_spmv`, `vm_cg` (SPD), `vm_bicgstab` (nonsymmetric)
-- Left preconditioners: Jacobi, SSOR (ω = 1), IC(0) (falls back to Jacobi
-  on pivot breakdown)
-- `vm_ksp_info` reports `iters`, `rel_res`, `ok`
-- Relative residual is `||r|| / max(||b||, ε)`
-
-### Time integration and grid primitives
-- `vm_euler_semi`, `vm_verlet`, `vm_rk2` / `vm_rk4`, `vm_cfl_dt`
-- `vm_rigid_step` — symplectic Euler on `(x, v, q, ω)`
-- MAC operators and an assembled 5-/7-point Laplacian
-
-### Computer graphics (core)
-
-#### Clip-space helpers
-Build projection and view matrices for different graphics APIs and depth conventions.
-
-**Perspective projections** — camera frustum matrices (radians; `_deg` if FOV is in degrees).
-The unsuffixed `mat4_perspective` / `mat4_perspective_fov` / `mat4_perspective_infinite`
-helpers also take radians. Use `mat4_perspective_deg` (and friends) for degrees:
-- `mat4_perspective_clip` / `mat4_perspective_clip_deg`
-- `mat4_perspective_rh_no` / `mat4_perspective_rh_no_deg`
-- `mat4_perspective_rh_zo` / `mat4_perspective_rh_zo_deg`
-- `mat4_perspective_lh_zo` / `mat4_perspective_lh_zo_deg`
-- `mat4_perspective_lh_no` / `mat4_perspective_lh_no_deg`
-
-**Orthographic projections** — parallel projection matrices from frustum bounds:
-- `mat4_ortho_clip`
-- `mat4_ortho_rh_no`
-- `mat4_ortho_rh_zo`
-- `mat4_ortho_lh_zo`
-- `mat4_ortho_lh_no`
-
-**Look-at view matrices** — world-to-view transforms from eye, target, and up:
-- `mat4_look_at_clip`
-- `mat4_look_at_rh`
-- `mat4_look_at_lh`
-
-**Look-from-direction view matrices** — the same basis as look-at,
-but the camera aims along a direction (FPS / fly camera, no target point):
-- `mat4_look_from_dir` / `mat4_look_from_dir_clip`
-- `mat4_look_from_dir_rh` / `mat4_look_from_dir_lh`
-- `quat_look` / `quat_look_clip` — orientation whose local −Z (RH) or +Z (LH) aims along the direction
-- `quat_from_to` — shortest rotation taking one vector onto another
-
-**Infinite / reverse-Z projections** — infinite far plane,
-optionally with reversed depth (near → 1, infinity → 0 on ZO):
-- `mat4_perspective_infinite` stays historic OpenGL `RH_NO`
-- `mat4_perspective_infinite_clip` — infinite and any clip convention (`*_ZO` is infinite and zero-to-one)
-- `mat4_infinite_reverse_z` — modern-engine preset: infinite + RH + ZO + reversed depth
-- `mat4_infinite_reverse_z_clip` — same mapping for the other clip conventions
-
-**Viewport, world ↔ window** — NDC to a pixel box and back.
-Geometric `vec3_project` (onto a direction) is unchanged:
-- `mat4_viewport` / `mat4_viewport_depth`
-- `vec3_world_to_window` / `vec3_window_to_world`
-- `vec3_world_to_window_clip` / `vec3_window_to_world_clip`
-
-**Affine inverse and normal matrices** — skip the 4×4 adjugate when the transform is `[A t; 0 1]`:
-- `mat4_inverse_affine` — invert the 3×3 linear part and apply it to the translation
-- `mat3_normal` / `mat4_normal` — inverse-transpose of the 3×3 for transforming normals
-
-**Clip conventions** — handedness + depth range selectors used by the `*_clip` helpers:
-- `VM_CLIP_RH_NO` — right-handed, clip z in `[-1, 1]` (OpenGL-style)
-- `VM_CLIP_RH_ZO` — right-handed, clip z in `[0, 1]` (Vulkan-style)
-- `VM_CLIP_LH_ZO` — left-handed, clip z in `[0, 1]` (Direct3D-style)
-- `VM_CLIP_LH_NO` — left-handed, clip z in `[-1, 1]`
-
-#### Rotation helpers
-Build 4×4 rotation matrices from axis angles in radians
-(`mat4_rotation` / `mat4_rotation_x` / `mat4_rotation_y` / `mat4_rotation_z`).
-Use `*_deg` or `VM_DEG(...)` when the angle is in degrees:
-- `mat4_rotation_x` / `mat4_rotation_x_deg`
-- `mat4_rotation_y` / `mat4_rotation_y_deg`
-- `mat4_rotation_z` / `mat4_rotation_z_deg`
-- `mat4_rotation` / `mat4_rotation_deg`
+Heap matrices, GEMM, sparse solvers, integrators, and the clip-space helpers
+are in [Numerics extras](doc/numerics.md).
 
 ## Documentation
+
+Guides, also built as pages on the docs site:
 
 * [Online Documentation](https://docs.tekfed.org/vecmat/latest/)
 
@@ -362,7 +264,7 @@ Integer macros must match the linked library. `VECMAT_USE_F64` is per TU.
 ## Contributing
 
 We don't have any complicated rules for contributing (for now); we only expect
-people to comply with the project [Philosophy](#Philosophy) and the contract
+people to comply with the project _Philosophy_ and the contract
 above.
 
 ### Artificial Intelligence Guidelines and Transparency
@@ -383,133 +285,6 @@ above.
 
 ## Usage and Examples
 
-Vectors and matrices are plain C structs. Components are available as named
-fields (`.x` / `.y` / `.z` / `.w`, or `m11`, `m21`, …) and as a flat `.v[]`
-array. Prefer the value constructors for everyday code.
-
-### Individual element access
-
-```c
-vector3 p;
-p.x = 1.0f;               // same as p.v[0]
-p.v[1] = 2.0f;            // same as p.y
-printf("%f\n", p.z);
-```
-
-```c
-matrix3 mat;
-mat.v[0] = 1.0f;          // same as mat.m11 (column-major)
-printf("%f\n", mat.m21);  // same as mat.v[1]
-```
-
-### Initializing a vector
-
-```c
-vector3 p     = vec3(1.0f, 2.0f, 3.0f);
-vector2 q     = vec2(4.0f, 5.0f);
-vector3i grid = vec3i(8, 16, 24);
-
-vector3 origin = vec3_zero();
-vector3 ones   = vec3_one();
-vector3 fill   = vec3_splat(0.5f);
-
-vector3 named = { .x = 1.0f, .y = 0.0f, .z = 0.0f };
-vector4 homog = { .v = {1.0f, 2.0f, 3.0f, 1.0f} };
-
-vec3_assign_xyz(&p, 0.0f, 1.0f, 0.0f);
-vector3 lifted = vec3_from_vec2(q, 0.0f);
-```
-
-The same pattern exists for `vector2` / `vector4` and the integer types
-(`vecN_zero`, `vecN_one`, `vecN_splat`, plus `vec2i` / `vec3i`).
-
-### Initializing a matrix
-
-```c
-matrix3 ident = {
-    .m11 = 1.0f, .m21 = 0.0f, .m31 = 0.0f,
-    .m12 = 0.0f, .m22 = 1.0f, .m32 = 0.0f,
-    .m13 = 0.0f, .m23 = 0.0f, .m33 = 1.0f
-};
-
-matrix3 also = { .v = {1,0,0,  0,1,0,  0,0,1} };
-```
-
-### Accessing matrix elements
-
-#### Accessing elements by name
-```c
-float determinant(const matrix3 *mat) {
-    float det =
-        mat->m11 * (mat->m22 * mat->m33 - mat->m23 * mat->m32)
-      - mat->m12 * (mat->m21 * mat->m33 - mat->m23 * mat->m31)
-      + mat->m13 * (mat->m21 * mat->m32 - mat->m22 * mat->m31);
-    return det;
-}
-```
-
-#### Accessing elements by index
-```c
-matrix3 mat;
-for (int i = 0; i < 9; i++) {
-    mat.v[i] *= 2.0f;  // Scale all elements by 2
-}
-```
-
----
-
-## Implementing Common Vector And Matrix Operations
-
-### Vector Operations Examples
-
-A function for general linear transformation to the vector:
-```c
-void transform(vector3 *out, const matrix3 *mat, const vector3 *vec) {
-    out->x = mat->m11 * vec->x + mat->m12 * vec->y + mat->m13 * vec->z;
-    out->y = mat->m21 * vec->x + mat->m22 * vec->y + mat->m23 * vec->z;
-    out->z = mat->m31 * vec->x + mat->m32 * vec->y + mat->m33 * vec->z;
-}
-```
-
-A function to translate a vector by adding a translation offset:
-```c
-void translate(vector3 *out, const vector3 *vec, const vector3 *translation) {
-    out->x = vec->x + translation->x;
-    out->y = vec->y + translation->y;
-    out->z = vec->z + translation->z;
-}
-```
-
-### Matrix Operations Examples
-
-You can write a function to multiply two matrix3 instances.
-Using the array access makes it easier to implement with nested loops:
-```c
-void multiply(matrix3 *result, const matrix3 *a, const matrix3 *b) {
-    for (int c = 0; c < 3; c++) {      /* columns of result / of B */
-        for (int r = 0; r < 3; r++) {  /* rows of result / of A */
-            float sum = 0.0f;
-            for (int k = 0; k < 3; k++) {
-                sum += a->v[k * 3 + r] * b->v[c * 3 + k];  /* column-major */
-            }
-            result->v[c * 3 + r] = sum;
-        }
-    }
-}
-```
-
-This creates a matrix4 that can apply rotation/scaling (from matrix3) followed by translation:
-```c
-void affine_matrix(matrix4 *out, const matrix3 *linear, const vector3 *translation) {
-    // Copy the 3x3 linear part (columns 1-3)
-    out->m11 = linear->m11; out->m21 = linear->m21; out->m31 = linear->m31; out->m41 = 0.0f;
-    out->m12 = linear->m12; out->m22 = linear->m22; out->m32 = linear->m32; out->m42 = 0.0f;
-    out->m13 = linear->m13; out->m23 = linear->m23; out->m33 = linear->m33; out->m43 = 0.0f;
-
-    // Set translation in the fourth column
-    out->m14 = translation->x;
-    out->m24 = translation->y;
-    out->m34 = translation->z;
-    out->m44 = 1.0f;
-}
-```
+* [Basic usage](doc/basic-usage.md) — include, values, and an affine model matrix.
+* [Vector usage](doc/vector-usage.md) — constructors, slide / reflect, a particle step.
+* [Matrix usage](doc/matrix-usage.md) — column-major layout, `mat4_trs`, a camera.
