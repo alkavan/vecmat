@@ -78,7 +78,7 @@ jobs:
             msystem: ''
             msys_packages: ''
 
-          # Windows x86_64 (MinGW: current CMake uses GCC flags and -lm)
+          # Windows x86_64 (UCRT64 GCC: CMake uses GCC flags and -lm)
           - os: windows
             arch: x86_64
             precision: f32
@@ -87,8 +87,8 @@ jobs:
             run_benchmarks: false
             runner: windows-latest
             shell: 'msys2 {0}'
-            msystem: MINGW64
-            msys_packages: mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake mingw-w64-x86_64-ninja zip
+            msystem: UCRT64
+            msys_packages: mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-cmake mingw-w64-ucrt-x86_64-ninja zip
 
           - os: windows
             arch: x86_64
@@ -98,8 +98,8 @@ jobs:
             run_benchmarks: false
             runner: windows-latest
             shell: 'msys2 {0}'
-            msystem: MINGW64
-            msys_packages: mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake mingw-w64-x86_64-ninja zip
+            msystem: UCRT64
+            msys_packages: mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-cmake mingw-w64-ucrt-x86_64-ninja zip
 
           # Windows aarch64
           - os: windows
