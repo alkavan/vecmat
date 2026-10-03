@@ -12,6 +12,7 @@
  */
 
 #include "vecmat/types.h"
+#include "vecmat/abi.h"
 
 /**
  * @brief Semi-implicit Euler: `v += a dt`, then `x += v dt`.

@@ -3,6 +3,10 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include <vecmat.h>
+#include "features/abi_int_once.h"
+
+/* Integer-only: one copy (see features/abi_int_once.h). */
+#if VECMAT_INT_ONCE
 
 void mat4i_identity_ptr(matrix4i *res)
 {
@@ -50,6 +54,32 @@ void mat4i_transpose_ptr(matrix4i *res, const matrix4i *m)
     *res = r;
 }
 
+void mat4i_mul_vec4i_ptr(vector4i *res, const matrix4i *m, const vector4i *v)
+{
+    const vm_int_t x = v->x;
+    const vm_int_t y = v->y;
+    const vm_int_t z = v->z;
+    const vm_int_t w = v->w;
+    res->x = m->m11 * x + m->m12 * y + m->m13 * z + m->m14 * w;
+    res->y = m->m21 * x + m->m22 * y + m->m23 * z + m->m24 * w;
+    res->z = m->m31 * x + m->m32 * y + m->m33 * z + m->m34 * w;
+    res->w = m->m41 * x + m->m42 * y + m->m43 * z + m->m44 * w;
+}
+
+void mat4i_mul_vec3i_ptr(vector3i *res, const matrix4i *m, const vector3i *v, const vm_int_t w)
+{
+    const vm_int_t x = v->x;
+    const vm_int_t y = v->y;
+    const vm_int_t z = v->z;
+    res->x = m->m11 * x + m->m12 * y + m->m13 * z + m->m14 * w;
+    res->y = m->m21 * x + m->m22 * y + m->m23 * z + m->m24 * w;
+    res->z = m->m31 * x + m->m32 * y + m->m33 * z + m->m34 * w;
+}
+
+#endif /* VECMAT_INT_ONCE */
+
+/* Divides through vm_float_t: compiled per ABI width (name32 / name64). */
+
 void mat4i_inverse_ptr(matrix4i *res, const matrix4i *m)
 {
     int inv[16];
@@ -82,33 +112,11 @@ void mat4i_inverse_ptr(matrix4i *res, const matrix4i *m)
         return;
     }
 
-    const double fdet = 1.0f / (vm_float_t)det;
+    const vm_float_t fdet = (vm_float_t)1 / (vm_float_t)det;
 
     matrix4i result;
     for (int i = 0; i < 16; i++) {
-        result.v[i] = (int)(inv[i] * fdet);
+        result.v[i] = (vm_int_t)((vm_float_t)inv[i] * fdet);
     }
     *res = result;
-}
-
-void mat4i_mul_vec4i_ptr(vector4i *res, const matrix4i *m, const vector4i *v)
-{
-    const vm_int_t x = v->x;
-    const vm_int_t y = v->y;
-    const vm_int_t z = v->z;
-    const vm_int_t w = v->w;
-    res->x = m->m11 * x + m->m12 * y + m->m13 * z + m->m14 * w;
-    res->y = m->m21 * x + m->m22 * y + m->m23 * z + m->m24 * w;
-    res->z = m->m31 * x + m->m32 * y + m->m33 * z + m->m34 * w;
-    res->w = m->m41 * x + m->m42 * y + m->m43 * z + m->m44 * w;
-}
-
-void mat4i_mul_vec3i_ptr(vector3i *res, const matrix4i *m, const vector3i *v, const vm_int_t w)
-{
-    const vm_int_t x = v->x;
-    const vm_int_t y = v->y;
-    const vm_int_t z = v->z;
-    res->x = m->m11 * x + m->m12 * y + m->m13 * z + m->m14 * w;
-    res->y = m->m21 * x + m->m22 * y + m->m23 * z + m->m24 * w;
-    res->z = m->m31 * x + m->m32 * y + m->m33 * z + m->m34 * w;
 }

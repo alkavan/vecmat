@@ -3,6 +3,10 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include <vecmat.h>
+#include "features/abi_int_once.h"
+
+/* Integer-only: one copy (see features/abi_int_once.h). */
+#if VECMAT_INT_ONCE
 
 matrix4i mat4i_identity(void)
 {
@@ -22,13 +26,6 @@ matrix4i mat4i_transpose(const matrix4i m)
 {
     matrix4i res;
     mat4i_transpose_ptr(&res, &m);
-    return res;
-}
-
-matrix4i mat4i_inverse(const matrix4i m)
-{
-    matrix4i res;
-    mat4i_inverse_ptr(&res, &m);
     return res;
 }
 
@@ -60,5 +57,16 @@ vector3i mat4i_mul_vec3i(const matrix4i m, const vector3i v, const vm_int_t w)
 {
     vector3i res;
     mat4i_mul_vec3i_ptr(&res, &m, &v, w);
+    return res;
+}
+
+#endif /* VECMAT_INT_ONCE */
+
+/* Divides through vm_float_t: compiled per ABI width (name32 / name64). */
+
+matrix4i mat4i_inverse(const matrix4i m)
+{
+    matrix4i res;
+    mat4i_inverse_ptr(&res, &m);
     return res;
 }

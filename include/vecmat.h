@@ -39,6 +39,7 @@
     VECMAT_STR(VECMAT_VERSION_MINOR) "." VECMAT_STR(VECMAT_VERSION_PATCH)
 
 #include "vecmat/config.h"
+#include "vecmat/abi.h"
 #include "vecmat/types.h"
 #include "vecmat/cpu.h"
 #include "vecmat/backend.h"

@@ -59,4 +59,17 @@ VEC_API const char *vm_cpu_name(vm_cpu_features_t features);
  */
 VEC_API void vm_cpu_init(void);
 
+/**
+ * @brief Float widths compiled into this library (`32`, `64`, or `32|64`).
+ */
+VEC_API unsigned vm_compiled_float_bits(void);
+
+/**
+ * @brief Non-zero when this TU's `VECMAT_FLOAT_BITS` is missing from the linked lib.
+ */
+static inline int vm_abi_mismatch(void)
+{
+    return (vm_compiled_float_bits() & (unsigned)VECMAT_FLOAT_BITS) == 0u;
+}
+
 #endif //VECMAT_CPU_H

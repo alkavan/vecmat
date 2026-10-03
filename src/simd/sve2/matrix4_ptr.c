@@ -8,55 +8,65 @@
 
 #if defined(VECMAT_USE_F64)
 
+/* Four doubles may not fit in one SVE register. Chunk by svcntd(). */
+
 void mat4_mul_ptr_sve2(matrix4 *res, const matrix4 *a, const matrix4 *b)
 {
-    const svbool_t pg = svwhilelt_b64((uint64_t)0, (uint64_t)4);
     matrix4 tmp;
-    const svfloat64_t a0 = svld1_f64(pg, &a->v[0]);
-    const svfloat64_t a1 = svld1_f64(pg, &a->v[4]);
-    const svfloat64_t a2 = svld1_f64(pg, &a->v[8]);
-    const svfloat64_t a3 = svld1_f64(pg, &a->v[12]);
-    for (int c = 0; c < 4; c++) {
-        svfloat64_t col = svmul_n_f64_z(pg, a0, b->v[c * 4 + 0]);
-        col = svmla_n_f64_z(pg, col, a1, b->v[c * 4 + 1]);
-        col = svmla_n_f64_z(pg, col, a2, b->v[c * 4 + 2]);
-        col = svmla_n_f64_z(pg, col, a3, b->v[c * 4 + 3]);
-        svst1_f64(pg, &tmp.v[c * 4], col);
+    for (uint64_t i = 0; i < 4; i += svcntd()) {
+        const svbool_t pg = svwhilelt_b64(i, (uint64_t)4);
+        const svfloat64_t a0 = svld1_f64(pg, &a->v[0 + i]);
+        const svfloat64_t a1 = svld1_f64(pg, &a->v[4 + i]);
+        const svfloat64_t a2 = svld1_f64(pg, &a->v[8 + i]);
+        const svfloat64_t a3 = svld1_f64(pg, &a->v[12 + i]);
+        for (int c = 0; c < 4; c++) {
+            svfloat64_t col = svmul_n_f64_z(pg, a0, b->v[c * 4 + 0]);
+            col = svmla_n_f64_z(pg, col, a1, b->v[c * 4 + 1]);
+            col = svmla_n_f64_z(pg, col, a2, b->v[c * 4 + 2]);
+            col = svmla_n_f64_z(pg, col, a3, b->v[c * 4 + 3]);
+            svst1_f64(pg, &tmp.v[c * 4 + i], col);
+        }
     }
     memcpy(res->v, tmp.v, sizeof(tmp.v));
 }
 
 void mat4_transpose_ptr_sve2(matrix4 *res, const matrix4 *m)
 {
-    const svbool_t pg = svwhilelt_b64((uint64_t)0, (uint64_t)4);
-    const svuint64_t idx = svindex_u64(0, 4);
     matrix4 tmp;
-    svst1_f64(pg, &tmp.v[0],  svld1_gather_u64index_f64(pg, &m->v[0], idx));
-    svst1_f64(pg, &tmp.v[4],  svld1_gather_u64index_f64(pg, &m->v[1], idx));
-    svst1_f64(pg, &tmp.v[8],  svld1_gather_u64index_f64(pg, &m->v[2], idx));
-    svst1_f64(pg, &tmp.v[12], svld1_gather_u64index_f64(pg, &m->v[3], idx));
+    for (uint64_t i = 0; i < 4; i += svcntd()) {
+        const svbool_t pg = svwhilelt_b64(i, (uint64_t)4);
+        const svuint64_t idx = svindex_u64(i * 4, 4);
+        svst1_f64(pg, &tmp.v[i],      svld1_gather_u64index_f64(pg, &m->v[0], idx));
+        svst1_f64(pg, &tmp.v[4 + i],  svld1_gather_u64index_f64(pg, &m->v[1], idx));
+        svst1_f64(pg, &tmp.v[8 + i],  svld1_gather_u64index_f64(pg, &m->v[2], idx));
+        svst1_f64(pg, &tmp.v[12 + i], svld1_gather_u64index_f64(pg, &m->v[3], idx));
+    }
     memcpy(res->v, tmp.v, sizeof(tmp.v));
 }
 
 void mat4_mul_vec4_ptr_sve2(vector4 *res, const matrix4 *m, const vector4 *v)
 {
-    const svbool_t pg = svwhilelt_b64((uint64_t)0, (uint64_t)4);
-    svfloat64_t r = svmul_n_f64_z(pg, svld1_f64(pg, &m->v[0]), v->x);
-    r = svmla_n_f64_z(pg, r, svld1_f64(pg, &m->v[4]), v->y);
-    r = svmla_n_f64_z(pg, r, svld1_f64(pg, &m->v[8]), v->z);
-    r = svmla_n_f64_z(pg, r, svld1_f64(pg, &m->v[12]), v->w);
-    svst1_f64(pg, res->v, r);
+    for (uint64_t i = 0; i < 4; i += svcntd()) {
+        const svbool_t pg = svwhilelt_b64(i, (uint64_t)4);
+        svfloat64_t r = svmul_n_f64_z(pg, svld1_f64(pg, &m->v[0 + i]), v->x);
+        r = svmla_n_f64_z(pg, r, svld1_f64(pg, &m->v[4 + i]), v->y);
+        r = svmla_n_f64_z(pg, r, svld1_f64(pg, &m->v[8 + i]), v->z);
+        r = svmla_n_f64_z(pg, r, svld1_f64(pg, &m->v[12 + i]), v->w);
+        svst1_f64(pg, res->v + i, r);
+    }
 }
 
 void mat4_mul_vec3_ptr_sve2(vector3 *res, const matrix4 *m, const vector3 *v, vm_float_t w)
 {
-    const svbool_t pg = svwhilelt_b64((uint64_t)0, (uint64_t)4);
-    svfloat64_t r = svmul_n_f64_z(pg, svld1_f64(pg, &m->v[0]), v->x);
-    r = svmla_n_f64_z(pg, r, svld1_f64(pg, &m->v[4]), v->y);
-    r = svmla_n_f64_z(pg, r, svld1_f64(pg, &m->v[8]), v->z);
-    r = svmla_n_f64_z(pg, r, svld1_f64(pg, &m->v[12]), w);
     double t[4];
-    svst1_f64(pg, t, r);
+    for (uint64_t i = 0; i < 4; i += svcntd()) {
+        const svbool_t pg = svwhilelt_b64(i, (uint64_t)4);
+        svfloat64_t r = svmul_n_f64_z(pg, svld1_f64(pg, &m->v[0 + i]), v->x);
+        r = svmla_n_f64_z(pg, r, svld1_f64(pg, &m->v[4 + i]), v->y);
+        r = svmla_n_f64_z(pg, r, svld1_f64(pg, &m->v[8 + i]), v->z);
+        r = svmla_n_f64_z(pg, r, svld1_f64(pg, &m->v[12 + i]), w);
+        svst1_f64(pg, t + i, r);
+    }
     res->x = t[0];
     res->y = t[1];
     res->z = t[2];

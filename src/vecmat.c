@@ -36,21 +36,6 @@ bool vec4_eq(const vector4 a, const vector4 b)
         && VECMAT_FABS(a.w - b.w) < VECMAT_EPSILON;
 }
 
-bool vec2i_eq(const vector2i a, const vector2i b)
-{
-    return a.x == b.x && a.y == b.y;
-}
-
-bool vec3i_eq(const vector3i a, const vector3i b)
-{
-    return a.x == b.x && a.y == b.y && a.z == b.z;
-}
-
-bool vec4i_eq(const vector4i a, const vector4i b)
-{
-    return a.x == b.x && a.y == b.y && a.z == b.z && a.w == b.w;
-}
-
 bool mat2_eq(const matrix2 a, const matrix2 b)
 {
     for (int i = 0; i < 4; i++) {
@@ -71,30 +56,6 @@ bool mat4_eq(const matrix4 a, const matrix4 b)
 {
     for (int i = 0; i < 16; i++) {
         if (VECMAT_FABS(a.v[i] - b.v[i]) >= VECMAT_EPSILON) return false;
-    }
-    return true;
-}
-
-bool mat2i_eq(const matrix2i a, const matrix2i b)
-{
-    for (int i = 0; i < 4; i++) {
-        if (a.v[i] != b.v[i]) return false;
-    }
-    return true;
-}
-
-bool mat3i_eq(const matrix3i a, const matrix3i b)
-{
-    for (int i = 0; i < 9; i++) {
-        if (a.v[i] != b.v[i]) return false;
-    }
-    return true;
-}
-
-bool mat4i_eq(const matrix4i a, const matrix4i b)
-{
-    for (int i = 0; i < 16; i++) {
-        if (a.v[i] != b.v[i]) return false;
     }
     return true;
 }
@@ -133,29 +94,6 @@ void vec2_add_assign(vector2 *dest, const vector2 *src)
 vector2 vec2_from(const vector2i *v)
 {
     return (vector2){ .x = (vm_float_t)v->x, .y = (vm_float_t)v->y };
-}
-
-vector2i vec2i(const vm_int_t x, const vm_int_t y)
-{
-    return (vector2i){ .x = x, .y = y };
-}
-
-void vec2i_assign(vector2i *dest, const vector2i *src)
-{
-    dest->x = src->x;
-    dest->y = src->y;
-}
-
-void vec2i_assign_xy(vector2i *dest, const vm_int_t x, const vm_int_t y)
-{
-    dest->x = x;
-    dest->y = y;
-}
-
-void vec2i_add_assign(vector2i *dest, const vector2i *src)
-{
-    dest->x += src->x;
-    dest->y += src->y;
 }
 
 vector2i vec2i_from(const vector2 *v)
@@ -206,32 +144,6 @@ vector3 vec3_from(const vector3i *v)
         .y = (vm_float_t)v->y,
         .z = (vm_float_t)v->z
     };
-}
-
-vector3i vec3i(const vm_int_t x, const vm_int_t y, const vm_int_t z)
-{
-    return (vector3i){ .x = x, .y = y, .z = z };
-}
-
-void vec3i_assign(vector3i *dest, const vector3i *src)
-{
-    dest->x = src->x;
-    dest->y = src->y;
-    dest->z = src->z;
-}
-
-void vec3i_assign_xyz(vector3i *dest, const vm_int_t x, const vm_int_t y, const vm_int_t z)
-{
-    dest->x = x;
-    dest->y = y;
-    dest->z = z;
-}
-
-void vec3i_add_assign(vector3i *dest, const vector3i *src)
-{
-    dest->x += src->x;
-    dest->y += src->y;
-    dest->z += src->z;
 }
 
 vector3i vec3i_from(const vector3 *v)

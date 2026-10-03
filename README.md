@@ -62,9 +62,18 @@ included in the headers.
 - BSD 3-Clause License.
 - Tests use [`unitest.h`](test/unitest.h) and [`except.h`](test/except.h).
 
-### Precision is chosen at build time
-- Default: `float` and `int32_t`.
-- Optional: `double` (`VECMAT_USE_F64`), and int width 8 / 16 / 32.
+### Precision
+- One library exports both float widths. Float symbols are `name32` and `name64`
+  (`vec4_add32`, `vec4_add64`).
+- `-DVECMAT_FLOAT_ABI=32` or `64` omits the other set. Integer names and
+  `vm_cpu_*` have no width suffix.
+- Call sites keep `vec4_add` and `vector4`. Those names are the 32-bit symbols
+  unless `VECMAT_USE_F64` is defined before the `#include`. `vector4` is that
+  translation unit's width.
+- Integer width is configure-time (`vm_int_t`). It is separate from the float width.
+- `vm_compiled_float_bits()` reports which float widths are in the linked 
+  library. `vm_abi_mismatch()` is non-zero when this translation unit's width is
+  not one of them.
 
 ### Math types
 - Float vectors: 2D, 3D, 4D (`vector2` / `vector3` / `vector4`).
@@ -109,20 +118,25 @@ idempotent. Concurrent first-use of dispatched kernels is safe.
 | AVX2 (FMA)   | `VECMAT_ENABLE_AVX2`    | ON on x86-64  | same set; lerp / mat4 / quat use FMA                                                     | compiled + typically selected on GitHub x86-64 runners                        |
 | AVX-512F     | `VECMAT_ENABLE_AVX512F` | ON on x86-64  | same set                                                                                 | compiled on x86-64 jobs; **runtime only if the host has AVX-512F**            |
 | NEON / ASIMD | `VECMAT_ENABLE_NEON`    | ON on AArch64 | same dispatched set (one Armv8-A ASIMD schedule, not A53/A55-tuned)                      | compiled + run on Linux aarch64 and Windows ARM64 jobs                        |
-| SVE          | `VECMAT_ENABLE_SVE`     | ON on AArch64 | same dispatched set                                                                      | **compile-tested** on aarch64 jobs; selected only if `AT_HWCAP` reports SVE   |
-| SVE2         | `VECMAT_ENABLE_SVE2`    | ON on AArch64 | same dispatched set                                                                      | **compile-tested** on aarch64 jobs; selected only if `AT_HWCAP2` reports SVE2 |
+| SVE          | `VECMAT_ENABLE_SVE`     | ON on AArch64 | same dispatched set; f64 walks `svcntd()` chunks                                         | **compile-tested** on aarch64 jobs; selected only if `AT_HWCAP` reports SVE   |
+| SVE2         | `VECMAT_ENABLE_SVE2`    | ON on AArch64 | same dispatched set; f64 walks `svcntd()` chunks                                         | **compile-tested** on aarch64 jobs; selected only if `AT_HWCAP2` reports SVE2 |
 
 **Pre-AVX x86** runs scalar kernels. There is no SSE backend.
+SVE and SVE2 f64 `vec4` / `mat4` kernels cover four doubles in `svcntd()` chunks,
+so a 128-bit core takes two passes and a 256-bit core takes one. f64 `quat_mul`
+uses the scalar formula: `svtbl` needs all four lanes in one register. MSVC has
+no SVE intrinsics, so those kernels are off on MSVC for both widths.
 
 MSVC ARM64 jobs compile and run tests. There is no force-ISA job yet
 (`VECMAT_FORCE_ISA` coming in 0.5.x).
 
-Windows shared builds export with `VEC_API`; the names themselves are
-unsuffixed.
+Windows shared builds export with `VEC_API`. Float exports are `name32` /
+`name64`. Integer names and `vm_cpu_*` stay unsuffixed.
 
 ## Numerics extras
 
-Scientific work should configure `-DVECMAT_USE_F64=ON`.
+Scientific work defines `VECMAT_USE_F64` before the include. `-DVECMAT_USE_F64=ON`
+does that for this build's tests and benchmarks; it does not drop `name32`.
 
 ### GEMM
 BLAS-style dense multiply `C = alpha * op(A) * op(B) + beta * C`.
@@ -294,22 +308,25 @@ isn't top-level — and you still want `cmake --install` to install it.
 
 ### Scalar precision flags
 
-`vm_float_t` and `vm_int_t` are selected at compile time. Pass the matching CMake
-options when configuring Vecmat. The options become **public** compile definitions
-on `vecmat::vecmat` and `vecmat::vecmat_static`, so anything that links the library
-sees the same typedefs.
+Integer width is selected when configuring the library and published on
+`vecmat::vecmat`. Float width is per translation unit: a `BOTH` library
+holds both symbol sets, and a TU picks the 64-bit aliases with
+`VECMAT_USE_F64`. `-DVECMAT_USE_F64=ON` applies that to this build's tests
+and benchmarks. It does not omit `name32`; pass `-DVECMAT_FLOAT_ABI=64` for that.
 
-**Defaults** (no flags): `vm_float_t` is `float`, `vm_int_t` is `int32_t`.
+**Defaults** (no flags): unsuffixed float names are the 32-bit symbols,
+`vm_int_t` is `int32_t`.
 
-| CMake flag               | Header macro         | Effect                   |
-|--------------------------|----------------------|--------------------------|
-| `-DVECMAT_USE_F64=ON`    | `VECMAT_USE_F64`     | `vm_float_t` is `double` |
-| `-DVECMAT_USE_INT8=ON`   | `VECMAT_USE_INT8`    | `vm_int_t` is `int8_t`   |
-| `-DVECMAT_USE_INT16=ON`  | `VECMAT_USE_INT16`   | `vm_int_t` is `int16_t`  |
-| `-DVECMAT_USE_INT32=ON`  | `VECMAT_USE_INT32`   | `vm_int_t` is `int32_t`  |
+| CMake flag                          | Header macro               | Effect                                                           |
+|-------------------------------------|----------------------------|------------------------------------------------------------------|
+| `-DVECMAT_FLOAT_ABI=BOTH`/`32`/`64` | `VECMAT_HAVE_ABI_32`/`_64` | Which float symbol sets are in the `.a` / `.so` (default `BOTH`) |
+| `-DVECMAT_USE_F64=ON`               | `VECMAT_USE_F64`           | This TU's unsuffixed float names alias `name64`                  |
+| `-DVECMAT_USE_INT8=ON`              | `VECMAT_USE_INT8`          | `vm_int_t` is `int8_t`                                           |
+| `-DVECMAT_USE_INT16=ON`             | `VECMAT_USE_INT16`         | `vm_int_t` is `int16_t`                                          |
+| `-DVECMAT_USE_INT32=ON`             | `VECMAT_USE_INT32`         | `vm_int_t` is `int32_t`                                          |
 
 The integer flags are mutually exclusive. CMake will error if more than one is `ON`.
-`VECMAT_USE_F64` can be combined with any one integer flag.
+Integer width must match the library. Float width does not: a `BOTH` lib accepts both.
 
 Configure from the command line:
 
@@ -340,8 +357,7 @@ cc -DVECMAT_USE_F64 -DVECMAT_USE_INT16 ...
 #include <vecmat.h>
 ```
 
-The library and every translation unit that includes `vecmat.h` must use the same
-set of macros, or the types will not match at link time.
+Integer macros must match the linked library. `VECMAT_USE_F64` is per TU.
 
 ## Contributing
 

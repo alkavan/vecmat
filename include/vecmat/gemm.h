@@ -12,6 +12,7 @@
  */
 
 #include "vecmat/types.h"
+#include "vecmat/abi.h"
 
 /**
  * @brief C = alpha * op(A) * op(B) + beta * C for dense float panels.

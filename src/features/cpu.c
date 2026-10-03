@@ -6,6 +6,22 @@
 
 #include <vecmat.h>
 
+#if defined(VECMAT_RUNTIME_DISPATCH)
+#if defined(VECMAT_HAVE_ABI_32)
+void vm_dispatch_init32(void);
+const vm_backend *vm_backend_best32(void);
+#endif
+#if defined(VECMAT_HAVE_ABI_64)
+void vm_dispatch_init64(void);
+const vm_backend *vm_backend_best64(void);
+#endif
+#if defined(VECMAT_HAVE_ABI_32)
+#define VM_CPU_BACKEND_BEST vm_backend_best32
+#elif defined(VECMAT_HAVE_ABI_64)
+#define VM_CPU_BACKEND_BEST vm_backend_best64
+#endif
+#endif
+
 #if !defined(__STDC_NO_ATOMICS__)
 #include <stdatomic.h>
 #endif
@@ -326,7 +342,7 @@ vm_cpu_features_t vm_cpu_runtime_features(void)
 vm_cpu_features_t vm_cpu_selected_features(void)
 {
 #if defined(VECMAT_RUNTIME_DISPATCH)
-    const vm_backend *backend = vm_backend_best();
+    const vm_backend *backend = VM_CPU_BACKEND_BEST();
 
     if (backend) {
         const vm_cpu_features_t bits =
@@ -362,7 +378,7 @@ const char *vm_cpu_name(const vm_cpu_features_t features)
 {
 #if defined(VECMAT_RUNTIME_DISPATCH)
     {
-        const vm_backend *backend = vm_backend_best();
+        const vm_backend *backend = VM_CPU_BACKEND_BEST();
         if (backend) {
             vm_cpu_features_t bits =
                 (vm_cpu_features_t)(backend->features & 0xffffffffu);
@@ -392,18 +408,46 @@ const char *vm_cpu_name(const vm_cpu_features_t features)
     return "none";
 }
 
-#if !defined(VECMAT_RUNTIME_DISPATCH)
-/**
- * @brief No-op dispatch init; still warms the runtime feature cache.
- */
+unsigned vm_compiled_float_bits(void)
+{
+    unsigned bits = 0;
+#if defined(VECMAT_HAVE_ABI_32)
+    bits |= 32u;
+#endif
+#if defined(VECMAT_HAVE_ABI_64)
+    bits |= 64u;
+#endif
+    if (bits == 0)
+        bits = (unsigned)VECMAT_FLOAT_BITS;
+    return bits;
+}
+
 void vm_cpu_init(void)
 {
     (void)vm_cpu_runtime_features();
+#if defined(VECMAT_RUNTIME_DISPATCH)
+#if defined(VECMAT_HAVE_ABI_32)
+    vm_dispatch_init32();
+#endif
+#if defined(VECMAT_HAVE_ABI_64)
+    vm_dispatch_init64();
+#endif
+#endif
 }
 
-int vm_backend_register(const vm_backend *backend)
+#if !defined(VECMAT_RUNTIME_DISPATCH)
+#if defined(VECMAT_HAVE_ABI_32)
+int vm_backend_register32(const vm_backend *backend)
 {
     (void)backend;
     return VM_BACKEND_ERR_NODISPATCH;
 }
+#endif
+#if defined(VECMAT_HAVE_ABI_64)
+int vm_backend_register64(const vm_backend *backend)
+{
+    (void)backend;
+    return VM_BACKEND_ERR_NODISPATCH;
+}
+#endif
 #endif

@@ -224,19 +224,19 @@ jobs:
 
       - name: Build tests and benchmarks
         if: matrix.run_tests && matrix.toolchain != 'msvc'
-        run: cmake --build build --parallel --target vecmat_tests vecmat_benchmarks
+        run: cmake --build build --parallel --target vecmat_tests vecmat_benchmarks vecmat_abi_both vecmat_abi_mismatch
 
       - name: Build tests and benchmarks (MSVC)
         if: matrix.run_tests && matrix.toolchain == 'msvc'
-        run: cmake --build build --config Release --parallel --target vecmat_tests vecmat_benchmarks
+        run: cmake --build build --config Release --parallel --target vecmat_tests vecmat_benchmarks vecmat_abi_both vecmat_abi_mismatch
 
       - name: Run tests
         if: matrix.run_tests && matrix.toolchain != 'msvc'
-        run: ./build/test/vecmat_tests
+        run: ./build/test/vecmat_tests && ./build/test/vecmat_abi_both && ./build/test/vecmat_abi_mismatch
 
       - name: Run tests (MSVC)
         if: matrix.run_tests && matrix.toolchain == 'msvc'
-        run: ./build/test/Release/vecmat_tests.exe
+        run: ./build/test/Release/vecmat_tests.exe; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; ./build/test/Release/vecmat_abi_both.exe; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; ./build/test/Release/vecmat_abi_mismatch.exe
 
       - name: Run benchmarks
         if: matrix.run_benchmarks && matrix.toolchain != 'msvc'

@@ -71,6 +71,7 @@ VECMAT_DISPATCH_LIST(VECMAT_DECL_SVE2)
 #undef VECMAT_DECL_SVE2
 
 const vm_backend *vm_backend_best(void);
+void vm_dispatch_init(void);
 
 #endif /* VECMAT_RUNTIME_DISPATCH */
 
