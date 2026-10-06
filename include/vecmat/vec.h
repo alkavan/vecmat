@@ -4828,4 +4828,1063 @@ VEC_API bool vec3i_eq(vector3i a, vector3i b);
  */
 VEC_API bool vec4i_eq(vector4i a, vector4i b);
 
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * @name Scalar-query pointer adapters
+ *
+ * Header-only `_ptr` forms for functions that return a scalar or bool.
+ * The by-value function is the body. Pointers must not be NULL.
+ * These are not SIMD kernels and are not exported from the library.
+ * @{
+ */
+
+/**
+ * @brief Pointer adapter for vec2_dot(). Same result as the by-value function.
+ *
+ * @param a Must not be NULL.
+ * @param b Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec2_dot
+ */
+static inline vm_float_t vec2_dot_ptr(const vector2 *a, const vector2 *b)
+{
+    return vec2_dot(*a, *b);
+}
+
+/**
+ * @brief Pointer adapter for vec2_length(). Same result as the by-value function.
+ *
+ * @param v Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec2_length
+ */
+static inline vm_float_t vec2_length_ptr(const vector2 *v)
+{
+    return vec2_length(*v);
+}
+
+/**
+ * @brief Pointer adapter for vec2_length_squared(). Same result as the by-value function.
+ *
+ * @param v Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec2_length_squared
+ */
+static inline vm_float_t vec2_length_squared_ptr(const vector2 *v)
+{
+    return vec2_length_squared(*v);
+}
+
+/**
+ * @brief Pointer adapter for vec2_length_manhattan(). Same result as the by-value function.
+ *
+ * @param v Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec2_length_manhattan
+ */
+static inline vm_float_t vec2_length_manhattan_ptr(const vector2 *v)
+{
+    return vec2_length_manhattan(*v);
+}
+
+/**
+ * @brief Pointer adapter for vec2_length_chebyshev(). Same result as the by-value function.
+ *
+ * @param v Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec2_length_chebyshev
+ */
+static inline vm_float_t vec2_length_chebyshev_ptr(const vector2 *v)
+{
+    return vec2_length_chebyshev(*v);
+}
+
+/**
+ * @brief Pointer adapter for vec2_aspect_ratio(). Same result as the by-value function.
+ *
+ * @param v Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec2_aspect_ratio
+ */
+static inline vm_float_t vec2_aspect_ratio_ptr(const vector2 *v)
+{
+    return vec2_aspect_ratio(*v);
+}
+
+/**
+ * @brief Pointer adapter for vec2_distance(). Same result as the by-value function.
+ *
+ * @param a Must not be NULL.
+ * @param b Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec2_distance
+ */
+static inline vm_float_t vec2_distance_ptr(const vector2 *a, const vector2 *b)
+{
+    return vec2_distance(*a, *b);
+}
+
+/**
+ * @brief Pointer adapter for vec2_distance_squared(). Same result as the by-value function.
+ *
+ * @param a Must not be NULL.
+ * @param b Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec2_distance_squared
+ */
+static inline vm_float_t vec2_distance_squared_ptr(const vector2 *a, const vector2 *b)
+{
+    return vec2_distance_squared(*a, *b);
+}
+
+/**
+ * @brief Pointer adapter for vec2_angle(). Same result as the by-value function.
+ *
+ * @param a Must not be NULL.
+ * @param b Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec2_angle
+ */
+static inline vm_float_t vec2_angle_ptr(const vector2 *a, const vector2 *b)
+{
+    return vec2_angle(*a, *b);
+}
+
+/**
+ * @brief Pointer adapter for vec2_cross_scalar(). Same result as the by-value function.
+ *
+ * @param a Must not be NULL.
+ * @param b Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec2_cross_scalar
+ */
+static inline vm_float_t vec2_cross_scalar_ptr(const vector2 *a, const vector2 *b)
+{
+    return vec2_cross_scalar(*a, *b);
+}
+
+/**
+ * @brief Pointer adapter for vec2_heading(). Same result as the by-value function.
+ *
+ * @param v Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec2_heading
+ */
+static inline vm_float_t vec2_heading_ptr(const vector2 *v)
+{
+    return vec2_heading(*v);
+}
+
+/**
+ * @brief Pointer adapter for vec2_heading_deg(). Same result as the by-value function.
+ *
+ * @param v Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec2_heading_deg
+ */
+static inline vm_float_t vec2_heading_deg_ptr(const vector2 *v)
+{
+    return vec2_heading_deg(*v);
+}
+
+/**
+ * @brief Pointer adapter for vec2_min_component(). Same result as the by-value function.
+ *
+ * @param v Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec2_min_component
+ */
+static inline vm_float_t vec2_min_component_ptr(const vector2 *v)
+{
+    return vec2_min_component(*v);
+}
+
+/**
+ * @brief Pointer adapter for vec2_max_component(). Same result as the by-value function.
+ *
+ * @param v Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec2_max_component
+ */
+static inline vm_float_t vec2_max_component_ptr(const vector2 *v)
+{
+    return vec2_max_component(*v);
+}
+
+/**
+ * @brief Pointer adapter for vec2_sum(). Same result as the by-value function.
+ *
+ * @param v Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec2_sum
+ */
+static inline vm_float_t vec2_sum_ptr(const vector2 *v)
+{
+    return vec2_sum(*v);
+}
+
+/**
+ * @brief Pointer adapter for vec2_is_zero(). Same result as the by-value function.
+ *
+ * @param v Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec2_is_zero
+ */
+static inline bool vec2_is_zero_ptr(const vector2 *v)
+{
+    return vec2_is_zero(*v);
+}
+
+/**
+ * @brief Pointer adapter for vec2_is_normalized(). Same result as the by-value function.
+ *
+ * @param v Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec2_is_normalized
+ */
+static inline bool vec2_is_normalized_ptr(const vector2 *v)
+{
+    return vec2_is_normalized(*v);
+}
+
+/**
+ * @brief Pointer adapter for vec2_near(). Same result as the by-value function.
+ *
+ * @param a Must not be NULL.
+ * @param b Must not be NULL.
+ * @param eps Passed through to vec2_near().
+ * @return Same value as the by-value function.
+ * @see vec2_near
+ */
+static inline bool vec2_near_ptr(const vector2 *a, const vector2 *b, const vm_float_t eps)
+{
+    return vec2_near(*a, *b, eps);
+}
+
+/**
+ * @brief Pointer adapter for vec3_dot(). Same result as the by-value function.
+ *
+ * @param a Must not be NULL.
+ * @param b Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec3_dot
+ */
+static inline vm_float_t vec3_dot_ptr(const vector3 *a, const vector3 *b)
+{
+    return vec3_dot(*a, *b);
+}
+
+/**
+ * @brief Pointer adapter for vec3_length(). Same result as the by-value function.
+ *
+ * @param v Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec3_length
+ */
+static inline vm_float_t vec3_length_ptr(const vector3 *v)
+{
+    return vec3_length(*v);
+}
+
+/**
+ * @brief Pointer adapter for vec3_length_squared(). Same result as the by-value function.
+ *
+ * @param v Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec3_length_squared
+ */
+static inline vm_float_t vec3_length_squared_ptr(const vector3 *v)
+{
+    return vec3_length_squared(*v);
+}
+
+/**
+ * @brief Pointer adapter for vec3_length_manhattan(). Same result as the by-value function.
+ *
+ * @param v Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec3_length_manhattan
+ */
+static inline vm_float_t vec3_length_manhattan_ptr(const vector3 *v)
+{
+    return vec3_length_manhattan(*v);
+}
+
+/**
+ * @brief Pointer adapter for vec3_length_chebyshev(). Same result as the by-value function.
+ *
+ * @param v Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec3_length_chebyshev
+ */
+static inline vm_float_t vec3_length_chebyshev_ptr(const vector3 *v)
+{
+    return vec3_length_chebyshev(*v);
+}
+
+/**
+ * @brief Pointer adapter for vec3_distance(). Same result as the by-value function.
+ *
+ * @param a Must not be NULL.
+ * @param b Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec3_distance
+ */
+static inline vm_float_t vec3_distance_ptr(const vector3 *a, const vector3 *b)
+{
+    return vec3_distance(*a, *b);
+}
+
+/**
+ * @brief Pointer adapter for vec3_distance_squared(). Same result as the by-value function.
+ *
+ * @param a Must not be NULL.
+ * @param b Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec3_distance_squared
+ */
+static inline vm_float_t vec3_distance_squared_ptr(const vector3 *a, const vector3 *b)
+{
+    return vec3_distance_squared(*a, *b);
+}
+
+/**
+ * @brief Pointer adapter for vec3_angle(). Same result as the by-value function.
+ *
+ * @param a Must not be NULL.
+ * @param b Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec3_angle
+ */
+static inline vm_float_t vec3_angle_ptr(const vector3 *a, const vector3 *b)
+{
+    return vec3_angle(*a, *b);
+}
+
+/**
+ * @brief Pointer adapter for vec3_signed_angle(). Same result as the by-value function.
+ *
+ * @param a Must not be NULL.
+ * @param b Must not be NULL.
+ * @param axis Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec3_signed_angle
+ */
+static inline vm_float_t vec3_signed_angle_ptr(const vector3 *a, const vector3 *b, const vector3 *axis)
+{
+    return vec3_signed_angle(*a, *b, *axis);
+}
+
+/**
+ * @brief Pointer adapter for vec3_min_component(). Same result as the by-value function.
+ *
+ * @param v Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec3_min_component
+ */
+static inline vm_float_t vec3_min_component_ptr(const vector3 *v)
+{
+    return vec3_min_component(*v);
+}
+
+/**
+ * @brief Pointer adapter for vec3_max_component(). Same result as the by-value function.
+ *
+ * @param v Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec3_max_component
+ */
+static inline vm_float_t vec3_max_component_ptr(const vector3 *v)
+{
+    return vec3_max_component(*v);
+}
+
+/**
+ * @brief Pointer adapter for vec3_sum(). Same result as the by-value function.
+ *
+ * @param v Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec3_sum
+ */
+static inline vm_float_t vec3_sum_ptr(const vector3 *v)
+{
+    return vec3_sum(*v);
+}
+
+/**
+ * @brief Pointer adapter for vec3_is_zero(). Same result as the by-value function.
+ *
+ * @param v Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec3_is_zero
+ */
+static inline bool vec3_is_zero_ptr(const vector3 *v)
+{
+    return vec3_is_zero(*v);
+}
+
+/**
+ * @brief Pointer adapter for vec3_is_normalized(). Same result as the by-value function.
+ *
+ * @param v Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec3_is_normalized
+ */
+static inline bool vec3_is_normalized_ptr(const vector3 *v)
+{
+    return vec3_is_normalized(*v);
+}
+
+/**
+ * @brief Pointer adapter for vec3_near(). Same result as the by-value function.
+ *
+ * @param a Must not be NULL.
+ * @param b Must not be NULL.
+ * @param eps Passed through to vec3_near().
+ * @return Same value as the by-value function.
+ * @see vec3_near
+ */
+static inline bool vec3_near_ptr(const vector3 *a, const vector3 *b, const vm_float_t eps)
+{
+    return vec3_near(*a, *b, eps);
+}
+
+/**
+ * @brief Pointer adapter for vec4_dot(). Same result as the by-value function.
+ *
+ * @param a Must not be NULL.
+ * @param b Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec4_dot
+ */
+static inline vm_float_t vec4_dot_ptr(const vector4 *a, const vector4 *b)
+{
+    return vec4_dot(*a, *b);
+}
+
+/**
+ * @brief Pointer adapter for vec4_length(). Same result as the by-value function.
+ *
+ * @param v Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec4_length
+ */
+static inline vm_float_t vec4_length_ptr(const vector4 *v)
+{
+    return vec4_length(*v);
+}
+
+/**
+ * @brief Pointer adapter for vec4_length_squared(). Same result as the by-value function.
+ *
+ * @param v Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec4_length_squared
+ */
+static inline vm_float_t vec4_length_squared_ptr(const vector4 *v)
+{
+    return vec4_length_squared(*v);
+}
+
+/**
+ * @brief Pointer adapter for vec4_distance(). Same result as the by-value function.
+ *
+ * @param a Must not be NULL.
+ * @param b Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec4_distance
+ */
+static inline vm_float_t vec4_distance_ptr(const vector4 *a, const vector4 *b)
+{
+    return vec4_distance(*a, *b);
+}
+
+/**
+ * @brief Pointer adapter for vec4_distance_squared(). Same result as the by-value function.
+ *
+ * @param a Must not be NULL.
+ * @param b Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec4_distance_squared
+ */
+static inline vm_float_t vec4_distance_squared_ptr(const vector4 *a, const vector4 *b)
+{
+    return vec4_distance_squared(*a, *b);
+}
+
+/**
+ * @brief Pointer adapter for vec4_is_zero(). Same result as the by-value function.
+ *
+ * @param v Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec4_is_zero
+ */
+static inline bool vec4_is_zero_ptr(const vector4 *v)
+{
+    return vec4_is_zero(*v);
+}
+
+/**
+ * @brief Pointer adapter for vec4_is_normalized(). Same result as the by-value function.
+ *
+ * @param v Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec4_is_normalized
+ */
+static inline bool vec4_is_normalized_ptr(const vector4 *v)
+{
+    return vec4_is_normalized(*v);
+}
+
+/**
+ * @brief Pointer adapter for vec4_near(). Same result as the by-value function.
+ *
+ * @param a Must not be NULL.
+ * @param b Must not be NULL.
+ * @param eps Passed through to vec4_near().
+ * @return Same value as the by-value function.
+ * @see vec4_near
+ */
+static inline bool vec4_near_ptr(const vector4 *a, const vector4 *b, const vm_float_t eps)
+{
+    return vec4_near(*a, *b, eps);
+}
+
+/**
+ * @brief Pointer adapter for vec2i_dot(). Same result as the by-value function.
+ *
+ * @param a Must not be NULL.
+ * @param b Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec2i_dot
+ */
+static inline vm_int_t vec2i_dot_ptr(const vector2i *a, const vector2i *b)
+{
+    return vec2i_dot(*a, *b);
+}
+
+/**
+ * @brief Pointer adapter for vec2i_cross_scalar(). Same result as the by-value function.
+ *
+ * @param a Must not be NULL.
+ * @param b Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec2i_cross_scalar
+ */
+static inline vm_int_t vec2i_cross_scalar_ptr(const vector2i *a, const vector2i *b)
+{
+    return vec2i_cross_scalar(*a, *b);
+}
+
+/**
+ * @brief Pointer adapter for vec2i_length_squared(). Same result as the by-value function.
+ *
+ * @param v Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec2i_length_squared
+ */
+static inline vm_int_t vec2i_length_squared_ptr(const vector2i *v)
+{
+    return vec2i_length_squared(*v);
+}
+
+/**
+ * @brief Pointer adapter for vec2i_distance_squared(). Same result as the by-value function.
+ *
+ * @param a Must not be NULL.
+ * @param b Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec2i_distance_squared
+ */
+static inline vm_int_t vec2i_distance_squared_ptr(const vector2i *a, const vector2i *b)
+{
+    return vec2i_distance_squared(*a, *b);
+}
+
+/**
+ * @brief Pointer adapter for vec2i_length_manhattan(). Same result as the by-value function.
+ *
+ * @param v Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec2i_length_manhattan
+ */
+static inline vm_int_t vec2i_length_manhattan_ptr(const vector2i *v)
+{
+    return vec2i_length_manhattan(*v);
+}
+
+/**
+ * @brief Pointer adapter for vec2i_length_chebyshev(). Same result as the by-value function.
+ *
+ * @param v Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec2i_length_chebyshev
+ */
+static inline vm_int_t vec2i_length_chebyshev_ptr(const vector2i *v)
+{
+    return vec2i_length_chebyshev(*v);
+}
+
+/**
+ * @brief Pointer adapter for vec2i_min_component(). Same result as the by-value function.
+ *
+ * @param v Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec2i_min_component
+ */
+static inline vm_int_t vec2i_min_component_ptr(const vector2i *v)
+{
+    return vec2i_min_component(*v);
+}
+
+/**
+ * @brief Pointer adapter for vec2i_max_component(). Same result as the by-value function.
+ *
+ * @param v Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec2i_max_component
+ */
+static inline vm_int_t vec2i_max_component_ptr(const vector2i *v)
+{
+    return vec2i_max_component(*v);
+}
+
+/**
+ * @brief Pointer adapter for vec2i_sum(). Same result as the by-value function.
+ *
+ * @param v Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec2i_sum
+ */
+static inline vm_int_t vec2i_sum_ptr(const vector2i *v)
+{
+    return vec2i_sum(*v);
+}
+
+/**
+ * @brief Pointer adapter for vec2i_length(). Same result as the by-value function.
+ *
+ * @param v Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec2i_length
+ */
+static inline vm_float_t vec2i_length_ptr(const vector2i *v)
+{
+    return vec2i_length(*v);
+}
+
+/**
+ * @brief Pointer adapter for vec2i_distance(). Same result as the by-value function.
+ *
+ * @param a Must not be NULL.
+ * @param b Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec2i_distance
+ */
+static inline vm_float_t vec2i_distance_ptr(const vector2i *a, const vector2i *b)
+{
+    return vec2i_distance(*a, *b);
+}
+
+/**
+ * @brief Pointer adapter for vec2i_angle(). Same result as the by-value function.
+ *
+ * @param a Must not be NULL.
+ * @param b Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec2i_angle
+ */
+static inline vm_float_t vec2i_angle_ptr(const vector2i *a, const vector2i *b)
+{
+    return vec2i_angle(*a, *b);
+}
+
+/**
+ * @brief Pointer adapter for vec2i_aspect_ratio(). Same result as the by-value function.
+ *
+ * @param v Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec2i_aspect_ratio
+ */
+static inline vm_float_t vec2i_aspect_ratio_ptr(const vector2i *v)
+{
+    return vec2i_aspect_ratio(*v);
+}
+
+/**
+ * @brief Pointer adapter for vec2i_is_zero(). Same result as the by-value function.
+ *
+ * @param v Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec2i_is_zero
+ */
+static inline bool vec2i_is_zero_ptr(const vector2i *v)
+{
+    return vec2i_is_zero(*v);
+}
+
+/**
+ * @brief Pointer adapter for vec3i_dot(). Same result as the by-value function.
+ *
+ * @param a Must not be NULL.
+ * @param b Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec3i_dot
+ */
+static inline vm_int_t vec3i_dot_ptr(const vector3i *a, const vector3i *b)
+{
+    return vec3i_dot(*a, *b);
+}
+
+/**
+ * @brief Pointer adapter for vec3i_length_squared(). Same result as the by-value function.
+ *
+ * @param v Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec3i_length_squared
+ */
+static inline vm_int_t vec3i_length_squared_ptr(const vector3i *v)
+{
+    return vec3i_length_squared(*v);
+}
+
+/**
+ * @brief Pointer adapter for vec3i_distance_squared(). Same result as the by-value function.
+ *
+ * @param a Must not be NULL.
+ * @param b Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec3i_distance_squared
+ */
+static inline vm_int_t vec3i_distance_squared_ptr(const vector3i *a, const vector3i *b)
+{
+    return vec3i_distance_squared(*a, *b);
+}
+
+/**
+ * @brief Pointer adapter for vec3i_length_manhattan(). Same result as the by-value function.
+ *
+ * @param v Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec3i_length_manhattan
+ */
+static inline vm_int_t vec3i_length_manhattan_ptr(const vector3i *v)
+{
+    return vec3i_length_manhattan(*v);
+}
+
+/**
+ * @brief Pointer adapter for vec3i_length_chebyshev(). Same result as the by-value function.
+ *
+ * @param v Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec3i_length_chebyshev
+ */
+static inline vm_int_t vec3i_length_chebyshev_ptr(const vector3i *v)
+{
+    return vec3i_length_chebyshev(*v);
+}
+
+/**
+ * @brief Pointer adapter for vec3i_min_component(). Same result as the by-value function.
+ *
+ * @param v Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec3i_min_component
+ */
+static inline vm_int_t vec3i_min_component_ptr(const vector3i *v)
+{
+    return vec3i_min_component(*v);
+}
+
+/**
+ * @brief Pointer adapter for vec3i_max_component(). Same result as the by-value function.
+ *
+ * @param v Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec3i_max_component
+ */
+static inline vm_int_t vec3i_max_component_ptr(const vector3i *v)
+{
+    return vec3i_max_component(*v);
+}
+
+/**
+ * @brief Pointer adapter for vec3i_sum(). Same result as the by-value function.
+ *
+ * @param v Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec3i_sum
+ */
+static inline vm_int_t vec3i_sum_ptr(const vector3i *v)
+{
+    return vec3i_sum(*v);
+}
+
+/**
+ * @brief Pointer adapter for vec3i_length(). Same result as the by-value function.
+ *
+ * @param v Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec3i_length
+ */
+static inline vm_float_t vec3i_length_ptr(const vector3i *v)
+{
+    return vec3i_length(*v);
+}
+
+/**
+ * @brief Pointer adapter for vec3i_distance(). Same result as the by-value function.
+ *
+ * @param a Must not be NULL.
+ * @param b Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec3i_distance
+ */
+static inline vm_float_t vec3i_distance_ptr(const vector3i *a, const vector3i *b)
+{
+    return vec3i_distance(*a, *b);
+}
+
+/**
+ * @brief Pointer adapter for vec3i_angle(). Same result as the by-value function.
+ *
+ * @param a Must not be NULL.
+ * @param b Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec3i_angle
+ */
+static inline vm_float_t vec3i_angle_ptr(const vector3i *a, const vector3i *b)
+{
+    return vec3i_angle(*a, *b);
+}
+
+/**
+ * @brief Pointer adapter for vec3i_is_zero(). Same result as the by-value function.
+ *
+ * @param v Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec3i_is_zero
+ */
+static inline bool vec3i_is_zero_ptr(const vector3i *v)
+{
+    return vec3i_is_zero(*v);
+}
+
+/**
+ * @brief Pointer adapter for vec4i_dot(). Same result as the by-value function.
+ *
+ * @param a Must not be NULL.
+ * @param b Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec4i_dot
+ */
+static inline vm_int_t vec4i_dot_ptr(const vector4i *a, const vector4i *b)
+{
+    return vec4i_dot(*a, *b);
+}
+
+/**
+ * @brief Pointer adapter for vec4i_length_squared(). Same result as the by-value function.
+ *
+ * @param v Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec4i_length_squared
+ */
+static inline vm_int_t vec4i_length_squared_ptr(const vector4i *v)
+{
+    return vec4i_length_squared(*v);
+}
+
+/**
+ * @brief Pointer adapter for vec4i_distance_squared(). Same result as the by-value function.
+ *
+ * @param a Must not be NULL.
+ * @param b Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec4i_distance_squared
+ */
+static inline vm_int_t vec4i_distance_squared_ptr(const vector4i *a, const vector4i *b)
+{
+    return vec4i_distance_squared(*a, *b);
+}
+
+/**
+ * @brief Pointer adapter for vec4i_length_manhattan(). Same result as the by-value function.
+ *
+ * @param v Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec4i_length_manhattan
+ */
+static inline vm_int_t vec4i_length_manhattan_ptr(const vector4i *v)
+{
+    return vec4i_length_manhattan(*v);
+}
+
+/**
+ * @brief Pointer adapter for vec4i_length_chebyshev(). Same result as the by-value function.
+ *
+ * @param v Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec4i_length_chebyshev
+ */
+static inline vm_int_t vec4i_length_chebyshev_ptr(const vector4i *v)
+{
+    return vec4i_length_chebyshev(*v);
+}
+
+/**
+ * @brief Pointer adapter for vec4i_min_component(). Same result as the by-value function.
+ *
+ * @param v Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec4i_min_component
+ */
+static inline vm_int_t vec4i_min_component_ptr(const vector4i *v)
+{
+    return vec4i_min_component(*v);
+}
+
+/**
+ * @brief Pointer adapter for vec4i_max_component(). Same result as the by-value function.
+ *
+ * @param v Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec4i_max_component
+ */
+static inline vm_int_t vec4i_max_component_ptr(const vector4i *v)
+{
+    return vec4i_max_component(*v);
+}
+
+/**
+ * @brief Pointer adapter for vec4i_sum(). Same result as the by-value function.
+ *
+ * @param v Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec4i_sum
+ */
+static inline vm_int_t vec4i_sum_ptr(const vector4i *v)
+{
+    return vec4i_sum(*v);
+}
+
+/**
+ * @brief Pointer adapter for vec4i_length(). Same result as the by-value function.
+ *
+ * @param v Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec4i_length
+ */
+static inline vm_float_t vec4i_length_ptr(const vector4i *v)
+{
+    return vec4i_length(*v);
+}
+
+/**
+ * @brief Pointer adapter for vec4i_distance(). Same result as the by-value function.
+ *
+ * @param a Must not be NULL.
+ * @param b Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec4i_distance
+ */
+static inline vm_float_t vec4i_distance_ptr(const vector4i *a, const vector4i *b)
+{
+    return vec4i_distance(*a, *b);
+}
+
+/**
+ * @brief Pointer adapter for vec4i_is_zero(). Same result as the by-value function.
+ *
+ * @param v Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec4i_is_zero
+ */
+static inline bool vec4i_is_zero_ptr(const vector4i *v)
+{
+    return vec4i_is_zero(*v);
+}
+
+/**
+ * @brief Pointer adapter for vec2_eq(). Same result as the by-value function.
+ *
+ * @param a Must not be NULL.
+ * @param b Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec2_eq
+ */
+static inline bool vec2_eq_ptr(const vector2 *a, const vector2 *b)
+{
+    return vec2_eq(*a, *b);
+}
+
+/**
+ * @brief Pointer adapter for vec3_eq(). Same result as the by-value function.
+ *
+ * @param a Must not be NULL.
+ * @param b Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec3_eq
+ */
+static inline bool vec3_eq_ptr(const vector3 *a, const vector3 *b)
+{
+    return vec3_eq(*a, *b);
+}
+
+/**
+ * @brief Pointer adapter for vec4_eq(). Same result as the by-value function.
+ *
+ * @param a Must not be NULL.
+ * @param b Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec4_eq
+ */
+static inline bool vec4_eq_ptr(const vector4 *a, const vector4 *b)
+{
+    return vec4_eq(*a, *b);
+}
+
+/**
+ * @brief Pointer adapter for vec2i_eq(). Same result as the by-value function.
+ *
+ * @param a Must not be NULL.
+ * @param b Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec2i_eq
+ */
+static inline bool vec2i_eq_ptr(const vector2i *a, const vector2i *b)
+{
+    return vec2i_eq(*a, *b);
+}
+
+/**
+ * @brief Pointer adapter for vec3i_eq(). Same result as the by-value function.
+ *
+ * @param a Must not be NULL.
+ * @param b Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec3i_eq
+ */
+static inline bool vec3i_eq_ptr(const vector3i *a, const vector3i *b)
+{
+    return vec3i_eq(*a, *b);
+}
+
+/**
+ * @brief Pointer adapter for vec4i_eq(). Same result as the by-value function.
+ *
+ * @param a Must not be NULL.
+ * @param b Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see vec4i_eq
+ */
+static inline bool vec4i_eq_ptr(const vector4i *a, const vector4i *b)
+{
+    return vec4i_eq(*a, *b);
+}
+
+/** @} */
+
 #endif //VECMAT_VEC_H

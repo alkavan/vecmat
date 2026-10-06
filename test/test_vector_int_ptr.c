@@ -325,3 +325,76 @@ TEST_CASE(vec4i_parity_ptr, "[vector4i_ptr]") {
     vec4i_add_scalar_ptr(&res, &b, 1);
     REQUIRE(vec4i_eq(res, (vector4i){.x = 3, .y = 4, .z = 6, .w = 5}));
 }
+
+TEST_CASE(vec2i_scalar_query_ptr_test, "[vector2i_ptr]") {
+    const vector2i a = {.x = 3, .y = 4};
+    const vector2i b = {.x = 1, .y = 0};
+    const vector2i z = {.x = 0, .y = 0};
+
+    REQUIRE(vec2i_dot_ptr(&a, &b) == vec2i_dot(a, b));
+    REQUIRE(vec2i_dot_ptr(&a, &b) == 3);
+    REQUIRE(vec2i_cross_scalar_ptr(&a, &b) == vec2i_cross_scalar(a, b));
+    REQUIRE(vec2i_length_squared_ptr(&a) == vec2i_length_squared(a));
+    REQUIRE(vec2i_distance_squared_ptr(&z, &a) == vec2i_distance_squared(z, a));
+    REQUIRE(vec2i_length_manhattan_ptr(&a) == vec2i_length_manhattan(a));
+    REQUIRE(vec2i_length_chebyshev_ptr(&a) == vec2i_length_chebyshev(a));
+    REQUIRE(vec2i_min_component_ptr(&a) == vec2i_min_component(a));
+    REQUIRE(vec2i_max_component_ptr(&a) == vec2i_max_component(a));
+    REQUIRE(vec2i_sum_ptr(&a) == vec2i_sum(a));
+    REQUIRE(VECMAT_EQ(vec2i_length_ptr(&a), vec2i_length(a), EPSILON));
+    REQUIRE(VECMAT_EQ(vec2i_length_ptr(&a), 5.0f, EPSILON));
+    REQUIRE(VECMAT_EQ(vec2i_distance_ptr(&z, &a), vec2i_distance(z, a), EPSILON));
+    REQUIRE(VECMAT_EQ(vec2i_angle_ptr(&a, &b), vec2i_angle(a, b), EPSILON));
+    REQUIRE(VECMAT_EQ(vec2i_aspect_ratio_ptr(&a), vec2i_aspect_ratio(a), EPSILON));
+    REQUIRE(vec2i_is_zero_ptr(&z) == vec2i_is_zero(z));
+    REQUIRE(vec2i_is_zero_ptr(&a) == false);
+    REQUIRE(vec2i_eq_ptr(&a, &a) == vec2i_eq(a, a));
+    REQUIRE(vec2i_eq_ptr(&a, &b) == false);
+}
+
+TEST_CASE(vec3i_scalar_query_ptr_test, "[vector3i_ptr]") {
+    const vector3i a = {.x = 3, .y = 4, .z = 0};
+    const vector3i b = {.x = 0, .y = 1, .z = 0};
+    const vector3i z = {.x = 0, .y = 0, .z = 0};
+
+    REQUIRE(vec3i_dot_ptr(&a, &b) == vec3i_dot(a, b));
+    REQUIRE(vec3i_dot_ptr(&a, &b) == 4);
+    REQUIRE(vec3i_length_squared_ptr(&a) == vec3i_length_squared(a));
+    REQUIRE(vec3i_distance_squared_ptr(&z, &a) == vec3i_distance_squared(z, a));
+    REQUIRE(vec3i_length_manhattan_ptr(&a) == vec3i_length_manhattan(a));
+    REQUIRE(vec3i_length_chebyshev_ptr(&a) == vec3i_length_chebyshev(a));
+    REQUIRE(vec3i_min_component_ptr(&a) == vec3i_min_component(a));
+    REQUIRE(vec3i_max_component_ptr(&a) == vec3i_max_component(a));
+    REQUIRE(vec3i_sum_ptr(&a) == vec3i_sum(a));
+    REQUIRE(VECMAT_EQ(vec3i_length_ptr(&a), vec3i_length(a), EPSILON));
+    REQUIRE(VECMAT_EQ(vec3i_length_ptr(&a), 5.0f, EPSILON));
+    REQUIRE(VECMAT_EQ(vec3i_distance_ptr(&z, &a), vec3i_distance(z, a), EPSILON));
+    REQUIRE(VECMAT_EQ(vec3i_angle_ptr(&a, &b), vec3i_angle(a, b), EPSILON));
+    REQUIRE(vec3i_is_zero_ptr(&z) == vec3i_is_zero(z));
+    REQUIRE(vec3i_is_zero_ptr(&a) == false);
+    REQUIRE(vec3i_eq_ptr(&a, &a) == vec3i_eq(a, a));
+    REQUIRE(vec3i_eq_ptr(&a, &b) == false);
+}
+
+TEST_CASE(vec4i_scalar_query_ptr_test, "[vector4i_ptr]") {
+    const vector4i a = {.x = 1, .y = 2, .z = 2, .w = 4};
+    const vector4i b = {.x = 0, .y = 0, .z = 0, .w = 1};
+    const vector4i z = {.x = 0, .y = 0, .z = 0, .w = 0};
+
+    REQUIRE(vec4i_dot_ptr(&a, &b) == vec4i_dot(a, b));
+    REQUIRE(vec4i_dot_ptr(&a, &b) == 4);
+    REQUIRE(vec4i_length_squared_ptr(&a) == vec4i_length_squared(a));
+    REQUIRE(vec4i_distance_squared_ptr(&z, &a) == vec4i_distance_squared(z, a));
+    REQUIRE(vec4i_length_manhattan_ptr(&a) == vec4i_length_manhattan(a));
+    REQUIRE(vec4i_length_chebyshev_ptr(&a) == vec4i_length_chebyshev(a));
+    REQUIRE(vec4i_min_component_ptr(&a) == vec4i_min_component(a));
+    REQUIRE(vec4i_max_component_ptr(&a) == vec4i_max_component(a));
+    REQUIRE(vec4i_sum_ptr(&a) == vec4i_sum(a));
+    REQUIRE(VECMAT_EQ(vec4i_length_ptr(&a), vec4i_length(a), EPSILON));
+    REQUIRE(VECMAT_EQ(vec4i_length_ptr(&a), 5.0f, EPSILON));
+    REQUIRE(VECMAT_EQ(vec4i_distance_ptr(&z, &a), vec4i_distance(z, a), EPSILON));
+    REQUIRE(vec4i_is_zero_ptr(&z) == vec4i_is_zero(z));
+    REQUIRE(vec4i_is_zero_ptr(&a) == false);
+    REQUIRE(vec4i_eq_ptr(&a, &a) == vec4i_eq(a, a));
+    REQUIRE(vec4i_eq_ptr(&a, &b) == false);
+}

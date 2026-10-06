@@ -754,3 +754,87 @@ TEST_CASE(vec_ptr_edge_cases, "[vector_ptr]") {
     REQUIRE(VECMAT_EQ(result4.z, 0.0f, EPSILON));
     REQUIRE(VECMAT_EQ(result4.w, 0.0f, EPSILON));
 }
+
+TEST_CASE(vec2_scalar_query_ptr_test, "[vector2_ptr]") {
+    const vector2 a = {.x = 3.0f, .y = 4.0f};
+    const vector2 b = {.x = 1.0f, .y = 0.0f};
+    const vector2 z = {.x = 0.0f, .y = 0.0f};
+
+    REQUIRE(VECMAT_EQ(vec2_dot_ptr(&a, &b), vec2_dot(a, b), EPSILON));
+    REQUIRE(VECMAT_EQ(vec2_dot_ptr(&a, &b), 3.0f, EPSILON));
+    REQUIRE(VECMAT_EQ(vec2_length_ptr(&a), vec2_length(a), EPSILON));
+    REQUIRE(VECMAT_EQ(vec2_length_ptr(&a), 5.0f, EPSILON));
+    REQUIRE(VECMAT_EQ(vec2_length_squared_ptr(&a), vec2_length_squared(a), EPSILON));
+    REQUIRE(VECMAT_EQ(vec2_length_manhattan_ptr(&a), vec2_length_manhattan(a), EPSILON));
+    REQUIRE(VECMAT_EQ(vec2_length_chebyshev_ptr(&a), vec2_length_chebyshev(a), EPSILON));
+    REQUIRE(VECMAT_EQ(vec2_aspect_ratio_ptr(&a), vec2_aspect_ratio(a), EPSILON));
+    REQUIRE(VECMAT_EQ(vec2_distance_ptr(&z, &a), vec2_distance(z, a), EPSILON));
+    REQUIRE(VECMAT_EQ(vec2_distance_squared_ptr(&z, &a), vec2_distance_squared(z, a), EPSILON));
+    REQUIRE(VECMAT_EQ(vec2_angle_ptr(&a, &b), vec2_angle(a, b), EPSILON));
+    REQUIRE(VECMAT_EQ(vec2_cross_scalar_ptr(&a, &b), vec2_cross_scalar(a, b), EPSILON));
+    REQUIRE(VECMAT_EQ(vec2_heading_ptr(&b), vec2_heading(b), EPSILON));
+    REQUIRE(VECMAT_EQ(vec2_heading_deg_ptr(&b), vec2_heading_deg(b), EPSILON));
+    REQUIRE(VECMAT_EQ(vec2_min_component_ptr(&a), vec2_min_component(a), EPSILON));
+    REQUIRE(VECMAT_EQ(vec2_max_component_ptr(&a), vec2_max_component(a), EPSILON));
+    REQUIRE(VECMAT_EQ(vec2_sum_ptr(&a), vec2_sum(a), EPSILON));
+    REQUIRE(vec2_is_zero_ptr(&z) == vec2_is_zero(z));
+    REQUIRE(vec2_is_zero_ptr(&a) == false);
+    REQUIRE(vec2_is_normalized_ptr(&b) == vec2_is_normalized(b));
+    REQUIRE(vec2_is_normalized_ptr(&a) == false);
+    REQUIRE(vec2_near_ptr(&a, &a, EPSILON) == vec2_near(a, a, EPSILON));
+    REQUIRE(vec2_near_ptr(&a, &b, EPSILON) == false);
+    REQUIRE(vec2_eq_ptr(&a, &a) == vec2_eq(a, a));
+    REQUIRE(vec2_eq_ptr(&a, &b) == false);
+}
+
+TEST_CASE(vec3_scalar_query_ptr_test, "[vector3_ptr]") {
+    const vector3 a = {.x = 3.0f, .y = 4.0f, .z = 0.0f};
+    const vector3 b = {.x = 0.0f, .y = 1.0f, .z = 0.0f};
+    const vector3 axis = {.x = 0.0f, .y = 0.0f, .z = 1.0f};
+    const vector3 z = {.x = 0.0f, .y = 0.0f, .z = 0.0f};
+
+    REQUIRE(VECMAT_EQ(vec3_dot_ptr(&a, &b), vec3_dot(a, b), EPSILON));
+    REQUIRE(VECMAT_EQ(vec3_dot_ptr(&a, &b), 4.0f, EPSILON));
+    REQUIRE(VECMAT_EQ(vec3_length_ptr(&a), vec3_length(a), EPSILON));
+    REQUIRE(VECMAT_EQ(vec3_length_ptr(&a), 5.0f, EPSILON));
+    REQUIRE(VECMAT_EQ(vec3_length_squared_ptr(&a), vec3_length_squared(a), EPSILON));
+    REQUIRE(VECMAT_EQ(vec3_length_manhattan_ptr(&a), vec3_length_manhattan(a), EPSILON));
+    REQUIRE(VECMAT_EQ(vec3_length_chebyshev_ptr(&a), vec3_length_chebyshev(a), EPSILON));
+    REQUIRE(VECMAT_EQ(vec3_distance_ptr(&z, &a), vec3_distance(z, a), EPSILON));
+    REQUIRE(VECMAT_EQ(vec3_distance_squared_ptr(&z, &a), vec3_distance_squared(z, a), EPSILON));
+    REQUIRE(VECMAT_EQ(vec3_angle_ptr(&a, &b), vec3_angle(a, b), EPSILON));
+    REQUIRE(VECMAT_EQ(vec3_signed_angle_ptr(&a, &b, &axis), vec3_signed_angle(a, b, axis), EPSILON));
+    REQUIRE(VECMAT_EQ(vec3_min_component_ptr(&a), vec3_min_component(a), EPSILON));
+    REQUIRE(VECMAT_EQ(vec3_max_component_ptr(&a), vec3_max_component(a), EPSILON));
+    REQUIRE(VECMAT_EQ(vec3_sum_ptr(&a), vec3_sum(a), EPSILON));
+    REQUIRE(vec3_is_zero_ptr(&z) == vec3_is_zero(z));
+    REQUIRE(vec3_is_zero_ptr(&a) == false);
+    REQUIRE(vec3_is_normalized_ptr(&b) == vec3_is_normalized(b));
+    REQUIRE(vec3_is_normalized_ptr(&a) == false);
+    REQUIRE(vec3_near_ptr(&a, &a, EPSILON) == vec3_near(a, a, EPSILON));
+    REQUIRE(vec3_near_ptr(&a, &b, EPSILON) == false);
+    REQUIRE(vec3_eq_ptr(&a, &a) == vec3_eq(a, a));
+    REQUIRE(vec3_eq_ptr(&a, &b) == false);
+}
+
+TEST_CASE(vec4_scalar_query_ptr_test, "[vector4_ptr]") {
+    const vector4 a = {.x = 1.0f, .y = 2.0f, .z = 2.0f, .w = 4.0f};
+    const vector4 b = {.x = 0.0f, .y = 0.0f, .z = 0.0f, .w = 1.0f};
+    const vector4 z = {.x = 0.0f, .y = 0.0f, .z = 0.0f, .w = 0.0f};
+
+    REQUIRE(VECMAT_EQ(vec4_dot_ptr(&a, &b), vec4_dot(a, b), EPSILON));
+    REQUIRE(VECMAT_EQ(vec4_dot_ptr(&a, &b), 4.0f, EPSILON));
+    REQUIRE(VECMAT_EQ(vec4_length_ptr(&a), vec4_length(a), EPSILON));
+    REQUIRE(VECMAT_EQ(vec4_length_ptr(&a), 5.0f, EPSILON));
+    REQUIRE(VECMAT_EQ(vec4_length_squared_ptr(&a), vec4_length_squared(a), EPSILON));
+    REQUIRE(VECMAT_EQ(vec4_distance_ptr(&z, &a), vec4_distance(z, a), EPSILON));
+    REQUIRE(VECMAT_EQ(vec4_distance_squared_ptr(&z, &a), vec4_distance_squared(z, a), EPSILON));
+    REQUIRE(vec4_is_zero_ptr(&z) == vec4_is_zero(z));
+    REQUIRE(vec4_is_zero_ptr(&a) == false);
+    REQUIRE(vec4_is_normalized_ptr(&b) == vec4_is_normalized(b));
+    REQUIRE(vec4_is_normalized_ptr(&a) == false);
+    REQUIRE(vec4_near_ptr(&a, &a, EPSILON) == vec4_near(a, a, EPSILON));
+    REQUIRE(vec4_near_ptr(&a, &b, EPSILON) == false);
+    REQUIRE(vec4_eq_ptr(&a, &a) == vec4_eq(a, a));
+    REQUIRE(vec4_eq_ptr(&a, &b) == false);
+}

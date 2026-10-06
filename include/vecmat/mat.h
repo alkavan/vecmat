@@ -1487,4 +1487,167 @@ VEC_API bool mat3i_eq(matrix3i a, matrix3i b);
  */
 VEC_API bool mat4i_eq(matrix4i a, matrix4i b);
 
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * @name Scalar-query pointer adapters
+ *
+ * Header-only `_ptr` forms for functions that return a scalar or bool.
+ * The by-value function is the body. Pointers must not be NULL.
+ * These are not SIMD kernels and are not exported from the library.
+ * @{
+ */
+
+/**
+ * @brief Pointer adapter for mat2_determinant(). Same result as the by-value function.
+ *
+ * @param m Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see mat2_determinant
+ */
+static inline vm_float_t mat2_determinant_ptr(const matrix2 *m)
+{
+    return mat2_determinant(*m);
+}
+
+/**
+ * @brief Pointer adapter for mat3_determinant(). Same result as the by-value function.
+ *
+ * @param m Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see mat3_determinant
+ */
+static inline vm_float_t mat3_determinant_ptr(const matrix3 *m)
+{
+    return mat3_determinant(*m);
+}
+
+/**
+ * @brief Pointer adapter for mat4_determinant(). Same result as the by-value function.
+ *
+ * @param m Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see mat4_determinant
+ */
+static inline vm_float_t mat4_determinant_ptr(const matrix4 *m)
+{
+    return mat4_determinant(*m);
+}
+
+/**
+ * @brief Pointer adapter for mat2i_determinant(). Same result as the by-value function.
+ *
+ * @param m Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see mat2i_determinant
+ */
+static inline vm_int_t mat2i_determinant_ptr(const matrix2i *m)
+{
+    return mat2i_determinant(*m);
+}
+
+/**
+ * @brief Pointer adapter for mat3i_determinant(). Same result as the by-value function.
+ *
+ * @param m Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see mat3i_determinant
+ */
+static inline vm_int_t mat3i_determinant_ptr(const matrix3i *m)
+{
+    return mat3i_determinant(*m);
+}
+
+/**
+ * @brief Pointer adapter for mat4i_determinant(). Same result as the by-value function.
+ *
+ * @param m Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see mat4i_determinant
+ */
+static inline vm_int_t mat4i_determinant_ptr(const matrix4i *m)
+{
+    return mat4i_determinant(*m);
+}
+
+/**
+ * @brief Pointer adapter for mat2_eq(). Same result as the by-value function.
+ *
+ * @param a Must not be NULL.
+ * @param b Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see mat2_eq
+ */
+static inline bool mat2_eq_ptr(const matrix2 *a, const matrix2 *b)
+{
+    return mat2_eq(*a, *b);
+}
+
+/**
+ * @brief Pointer adapter for mat3_eq(). Same result as the by-value function.
+ *
+ * @param a Must not be NULL.
+ * @param b Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see mat3_eq
+ */
+static inline bool mat3_eq_ptr(const matrix3 *a, const matrix3 *b)
+{
+    return mat3_eq(*a, *b);
+}
+
+/**
+ * @brief Pointer adapter for mat4_eq(). Same result as the by-value function.
+ *
+ * @param a Must not be NULL.
+ * @param b Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see mat4_eq
+ */
+static inline bool mat4_eq_ptr(const matrix4 *a, const matrix4 *b)
+{
+    return mat4_eq(*a, *b);
+}
+
+/**
+ * @brief Pointer adapter for mat2i_eq(). Same result as the by-value function.
+ *
+ * @param a Must not be NULL.
+ * @param b Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see mat2i_eq
+ */
+static inline bool mat2i_eq_ptr(const matrix2i *a, const matrix2i *b)
+{
+    return mat2i_eq(*a, *b);
+}
+
+/**
+ * @brief Pointer adapter for mat3i_eq(). Same result as the by-value function.
+ *
+ * @param a Must not be NULL.
+ * @param b Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see mat3i_eq
+ */
+static inline bool mat3i_eq_ptr(const matrix3i *a, const matrix3i *b)
+{
+    return mat3i_eq(*a, *b);
+}
+
+/**
+ * @brief Pointer adapter for mat4i_eq(). Same result as the by-value function.
+ *
+ * @param a Must not be NULL.
+ * @param b Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see mat4i_eq
+ */
+static inline bool mat4i_eq_ptr(const matrix4i *a, const matrix4i *b)
+{
+    return mat4i_eq(*a, *b);
+}
+
+/** @} */
+
 #endif //VECMAT_MAT_H

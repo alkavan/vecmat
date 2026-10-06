@@ -90,6 +90,9 @@ included in the headers.
 ## Fast path
 
 The **real work** lives in `_ptr` functions (pointers in, pointers out).
+Scalar queries (`length`, `dot`, `distance`, `angle`, determinants, equality)
+keep the by-value function as the body. Their `_ptr` names are header adapters:
+same result, inputs passed by pointer, not exported kernels.
 
 **Selection order:**
 `registered backends (by priority) → SVE2 → SVE → NEON → AVX-512F → AVX2 → AVX → scalar`
@@ -182,7 +185,7 @@ if(NOT TARGET vecmat::vecmat)
     include(FetchContent)
     FetchContent_Declare(vecmat
         GIT_REPOSITORY https://github.com/alkavan/vecmat.git
-        GIT_TAG v0.3.3
+        GIT_TAG v0.3.4
     )
     FetchContent_MakeAvailable(vecmat)
 endif()

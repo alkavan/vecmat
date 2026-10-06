@@ -542,4 +542,57 @@ VEC_API void quat_integrate_ptr(quaternion *res, const quaternion *q, const vect
  */
 VEC_API bool quat_eq(quaternion a, quaternion b);
 
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * @name Scalar-query pointer adapters
+ *
+ * Header-only `_ptr` forms for functions that return a scalar or bool.
+ * The by-value function is the body. Pointers must not be NULL.
+ * These are not SIMD kernels and are not exported from the library.
+ * @{
+ */
+
+/**
+ * @brief Pointer adapter for quat_dot(). Same result as the by-value function.
+ *
+ * @param a Must not be NULL.
+ * @param b Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see quat_dot
+ */
+static inline vm_float_t quat_dot_ptr(const quaternion *a, const quaternion *b)
+{
+    return quat_dot(*a, *b);
+}
+
+/**
+ * @brief Pointer adapter for quat_near(). Same result as the by-value function.
+ *
+ * @param a Must not be NULL.
+ * @param b Must not be NULL.
+ * @param eps Passed through to quat_near().
+ * @return Same value as the by-value function.
+ * @see quat_near
+ */
+static inline bool quat_near_ptr(const quaternion *a, const quaternion *b, vm_float_t eps)
+{
+    return quat_near(*a, *b, eps);
+}
+
+/**
+ * @brief Pointer adapter for quat_eq(). Same result as the by-value function.
+ *
+ * @param a Must not be NULL.
+ * @param b Must not be NULL.
+ * @return Same value as the by-value function.
+ * @see quat_eq
+ */
+static inline bool quat_eq_ptr(const quaternion *a, const quaternion *b)
+{
+    return quat_eq(*a, *b);
+}
+
+/** @} */
+
 #endif //VECMAT_QUAT_H

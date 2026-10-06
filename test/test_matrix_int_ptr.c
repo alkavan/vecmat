@@ -293,3 +293,29 @@ TEST_CASE(mat4i_mul_vec3i_ptr_test, "[matrix4i_ptr]")
     mat4i_mul_vec3i_ptr(&res, &t, &dir, 0);
     REQUIRE(vec3i_eq(res, dir));
 }
+
+TEST_CASE(mati_scalar_query_ptr_test, "[matrixi_ptr]") {
+    const matrix2i a2 = {.m11 = 1, .m21 = 2, .m12 = 3, .m22 = 4};
+    const matrix2i b2 = mat2i_identity();
+    const matrix3i a3 = {
+        .m11 = 1, .m21 = 2, .m31 = 3,
+        .m12 = 0, .m22 = 1, .m32 = 4,
+        .m13 = 5, .m23 = 6, .m33 = 0
+    };
+    const matrix3i b3 = mat3i_identity();
+    const matrix4i a4 = mat4i_identity();
+    matrix4i b4 = mat4i_identity();
+    b4.m11 = 2;
+
+    REQUIRE(mat2i_determinant_ptr(&a2) == mat2i_determinant(a2));
+    REQUIRE(mat2i_determinant_ptr(&a2) == -2);
+    REQUIRE(mat3i_determinant_ptr(&a3) == mat3i_determinant(a3));
+    REQUIRE(mat4i_determinant_ptr(&a4) == mat4i_determinant(a4));
+    REQUIRE(mat4i_determinant_ptr(&a4) == 1);
+    REQUIRE(mat2i_eq_ptr(&a2, &a2) == mat2i_eq(a2, a2));
+    REQUIRE(mat2i_eq_ptr(&a2, &b2) == false);
+    REQUIRE(mat3i_eq_ptr(&a3, &a3) == mat3i_eq(a3, a3));
+    REQUIRE(mat3i_eq_ptr(&a3, &b3) == false);
+    REQUIRE(mat4i_eq_ptr(&a4, &a4) == mat4i_eq(a4, a4));
+    REQUIRE(mat4i_eq_ptr(&a4, &b4) == false);
+}

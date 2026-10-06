@@ -471,3 +471,30 @@ TEST_CASE(mat4_trs_extract_ptr_test, "[matrix4_ptr]") {
     REQUIRE(vec3_near(es, s, EPSILON));
     REQUIRE(quat_near(er, q, EPSILON) || quat_near(er, (quaternion){.x = -q.x, .y = -q.y, .z = -q.z, .w = -q.w}, EPSILON));
 }
+
+TEST_CASE(mat_scalar_query_ptr_test, "[matrix_ptr]") {
+    const matrix2 a2 = {.m11 = 1.0f, .m21 = 2.0f, .m12 = 3.0f, .m22 = 4.0f};
+    const matrix2 b2 = mat2_identity();
+    const matrix3 a3 = {
+        .m11 = 1.0f, .m21 = 2.0f, .m31 = 3.0f,
+        .m12 = 0.0f, .m22 = 1.0f, .m32 = 4.0f,
+        .m13 = 5.0f, .m23 = 6.0f, .m33 = 0.0f
+    };
+    const matrix3 b3 = mat3_identity();
+    const matrix4 a4 = mat4_identity();
+    matrix4 b4 = mat4_identity();
+    b4.m11 = 2.0f;
+
+    REQUIRE(VECMAT_EQ(mat2_determinant_ptr(&a2), mat2_determinant(a2), EPSILON));
+    REQUIRE(VECMAT_EQ(mat2_determinant_ptr(&a2), -2.0f, EPSILON));
+    REQUIRE(VECMAT_EQ(mat3_determinant_ptr(&a3), mat3_determinant(a3), EPSILON));
+    REQUIRE(VECMAT_EQ(mat3_determinant_ptr(&a3), 1.0f, EPSILON));
+    REQUIRE(VECMAT_EQ(mat4_determinant_ptr(&a4), mat4_determinant(a4), EPSILON));
+    REQUIRE(VECMAT_EQ(mat4_determinant_ptr(&a4), 1.0f, EPSILON));
+    REQUIRE(mat2_eq_ptr(&a2, &a2) == mat2_eq(a2, a2));
+    REQUIRE(mat2_eq_ptr(&a2, &b2) == false);
+    REQUIRE(mat3_eq_ptr(&a3, &a3) == mat3_eq(a3, a3));
+    REQUIRE(mat3_eq_ptr(&a3, &b3) == false);
+    REQUIRE(mat4_eq_ptr(&a4, &a4) == mat4_eq(a4, a4));
+    REQUIRE(mat4_eq_ptr(&a4, &b4) == false);
+}

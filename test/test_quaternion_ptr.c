@@ -84,3 +84,16 @@ TEST_CASE(quat_rotate_and_slerp_ptr_test, "[quaternion_ptr]") {
     quat_to_euler_ptr(&euler, &q);
     REQUIRE(VECMAT_EQ(euler.z, VM_RAD(M_PI_2), EPSILON));
 }
+
+TEST_CASE(quat_scalar_query_ptr_test, "[quaternion_ptr]") {
+    const quaternion a = {.x = 1.0f, .y = 2.0f, .z = 3.0f, .w = 4.0f};
+    const quaternion b = quat_identity();
+    const quaternion z = {.x = 0.0f, .y = 0.0f, .z = 0.0f, .w = 0.0f};
+
+    REQUIRE(VECMAT_EQ(quat_dot_ptr(&a, &b), quat_dot(a, b), EPSILON));
+    REQUIRE(VECMAT_EQ(quat_dot_ptr(&a, &b), 4.0f, EPSILON));
+    REQUIRE(quat_near_ptr(&a, &a, EPSILON) == quat_near(a, a, EPSILON));
+    REQUIRE(quat_near_ptr(&a, &z, EPSILON) == false);
+    REQUIRE(quat_eq_ptr(&b, &b) == quat_eq(b, b));
+    REQUIRE(quat_eq_ptr(&a, &b) == false);
+}
