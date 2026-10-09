@@ -7,7 +7,9 @@ picker prefers that table over the compiled ISA.
 Cortex-A53 / A55 tuning is supported. It lives in the `vendors/` submodule
 at `vendors/arm/cortex-a5x`, not in the core library. The in-tree NEON row
 is the generic Armv8-A schedule. `vendors/` may hold other module types
-later; only backends are loaded, and only the names in `VECMAT_MODULES`.
+later. `VECMAT_MODULES` loads two kinds, and only the names listed there.
+A backend registers a complete `_ptr` table. A width module does not: it
+overrides a slot on a core width such as fp16, and the core owns the type.
 Identity, extra HWCAP bits, and the tuned kernels stay in that backend.
 There is no `vm_cpu_part()` in the base library: the backend probes, then
 registers `VM_CPU_BACKEND`.
@@ -20,7 +22,7 @@ The base library keeps this surface:
 - `vm_backend_modules_register()` — test and benchmark hook, generated, not a library export
 - `VECMAT_FORCE_ISA` — override the compiled/runtime pick when no backend is registered
 - `VECMAT_MODULES` — paths under `vendors/`, e.g. `arm/cortex-a5x`
-- `VECMAT_BACKEND_PATH` — extra roots if the submodule is not checked out
+- `VECMAT_MODULES_PATH` — extra roots if the submodule is not checked out
 
 ## Layout
 
@@ -44,8 +46,9 @@ vendors/arm/cortex-a5x
 ```
 
 `module.cmake` is the only file the top-level build includes. It must set
-`VECMAT_MODULE_KIND` to `backend`. A missing file, or any other kind, is
-`Unknown Vecmat backend`. Use `CMAKE_CURRENT_LIST_DIR` for its own sources.
+`VECMAT_MODULE_KIND` to `backend` or `width`. A missing file, or any other
+kind, is `Unknown Vecmat module`. Use `CMAKE_CURRENT_LIST_DIR` for its own
+sources.
 `.gitignore` ignores `*.cmake`; `!vendors/**/module.cmake` keeps a
 not-yet-submoduled drop tracked.
 
@@ -62,9 +65,7 @@ cmake --build build
 ```
 
 `VECMAT_MODULES` entries are paths relative to `vendors/` (or to each
-`VECMAT_BACKEND_PATH` root). Pass `arm/cortex-a5x`, not `cortex-a5x`.
-`VECMAT_BACKEND_PATH` is only needed when the submodule is not checked out.
-
+`VECMAT_MODULES_PATH` root).
 `module.cmake` appends:
 
 - `VECMAT_MODULE_HOOKS` — called from `vecmat_add_float_objects`, once per
@@ -74,6 +75,15 @@ cmake --build build
 - `VECMAT_MODULE_TEST_SOURCES` / `VECMAT_MODULE_BENCH_SOURCES` — extra
   files compiled into `vecmat_tests` and `vecmat_benchmarks`. They live in
   the vendor tree. The mains do not include a backend header.
+
+A width module sets `VECMAT_MODULE_KIND` to `width`. It does not fill
+`vm_backend_ops` and must not append to `VECMAT_MODULE_HOOKS` or the
+backend register lists; the loader rejects that. It appends to the lists
+for the width it implements (`VECMAT_FP16_MODULE_HOOKS`,
+`VECMAT_FP16_MODULE_REGISTER_CALLS`). Those lists are consumed only by
+that width's object lib. The module's own `module.cmake` errors if that
+width's switch is off. The kind does not mean the module defines the
+storage type. See `doc/fp16.md`.
 
 ```cmake
 string(APPEND VECMAT_MODULE_REGISTER_INCLUDES "#include <vecmat_cortex_a5x.h>\n")

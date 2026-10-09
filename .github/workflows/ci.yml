@@ -121,7 +121,7 @@ jobs:
       # Shipped library is BOTH. VECMAT_USE_F64 is not set, so this TU is f32.
       - name: Configure
         if: matrix.toolchain != 'msvc'
-        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DVECMAT_FLOAT_ABI=BOTH -DVECMAT_BUILD_TESTS=${{ matrix.run_tests }} -DVECMAT_INSTALL=ON -DVECMAT_RUNTIME_DISPATCH=ON
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DVECMAT_FLOAT_ABI=BOTH -DVECMAT_BUILD_TESTS=${{ matrix.run_tests }} -DVECMAT_INSTALL=ON -DVECMAT_RUNTIME_DISPATCH=ON -DVECMAT_ENABLE_FP16=ON
 
       # Self-contained: vswhere (shipped with VS) picks the CMake generator for
       # whatever Visual Studio the image has (2022 or 2026). No extra actions.
@@ -138,7 +138,7 @@ jobs:
           }
           $arch = if ('${{ matrix.arch }}' -eq 'aarch64') { 'ARM64' } else { 'x64' }
           Write-Host "CMake generator: $gen -A $arch"
-          cmake -S . -B build -G $gen -A $arch -DVECMAT_FLOAT_ABI=BOTH -DVECMAT_BUILD_TESTS=${{ matrix.run_tests }} -DVECMAT_INSTALL=ON -DVECMAT_RUNTIME_DISPATCH=ON
+          cmake -S . -B build -G $gen -A $arch -DVECMAT_FLOAT_ABI=BOTH -DVECMAT_BUILD_TESTS=${{ matrix.run_tests }} -DVECMAT_INSTALL=ON -DVECMAT_RUNTIME_DISPATCH=ON -DVECMAT_ENABLE_FP16=ON
 
       - name: Build shared and static
         if: matrix.toolchain != 'msvc'
@@ -175,7 +175,7 @@ jobs:
       # Same BOTH library, f64 aliases. Not installed.
       - name: Configure f64 tests
         if: matrix.run_tests && matrix.toolchain != 'msvc'
-        run: cmake -S . -B build-f64 -G Ninja -DCMAKE_BUILD_TYPE=Release -DVECMAT_FLOAT_ABI=BOTH -DVECMAT_USE_F64=ON -DVECMAT_BUILD_TESTS=ON -DVECMAT_INSTALL=OFF -DVECMAT_RUNTIME_DISPATCH=ON
+        run: cmake -S . -B build-f64 -G Ninja -DCMAKE_BUILD_TYPE=Release -DVECMAT_FLOAT_ABI=BOTH -DVECMAT_USE_F64=ON -DVECMAT_BUILD_TESTS=ON -DVECMAT_INSTALL=OFF -DVECMAT_RUNTIME_DISPATCH=ON -DVECMAT_ENABLE_FP16=ON
 
       - name: Configure f64 tests (MSVC)
         if: matrix.run_tests && matrix.toolchain == 'msvc'
@@ -188,7 +188,7 @@ jobs:
             default { throw "No CMake generator mapped for Visual Studio '$year'" }
           }
           $arch = if ('${{ matrix.arch }}' -eq 'aarch64') { 'ARM64' } else { 'x64' }
-          cmake -S . -B build-f64 -G $gen -A $arch -DVECMAT_FLOAT_ABI=BOTH -DVECMAT_USE_F64=ON -DVECMAT_BUILD_TESTS=ON -DVECMAT_INSTALL=OFF -DVECMAT_RUNTIME_DISPATCH=ON
+          cmake -S . -B build-f64 -G $gen -A $arch -DVECMAT_FLOAT_ABI=BOTH -DVECMAT_USE_F64=ON -DVECMAT_BUILD_TESTS=ON -DVECMAT_INSTALL=OFF -DVECMAT_RUNTIME_DISPATCH=ON -DVECMAT_ENABLE_FP16=ON
 
       - name: Build and run f64 tests
         if: matrix.run_tests && matrix.toolchain != 'msvc'
@@ -212,10 +212,10 @@ jobs:
       - name: Build slim 32 and 64
         if: matrix.run_slim
         run: |
-          cmake -S . -B build-32 -G Ninja -DCMAKE_BUILD_TYPE=Release -DVECMAT_FLOAT_ABI=32 -DVECMAT_BUILD_TESTS=ON -DVECMAT_INSTALL=OFF -DVECMAT_RUNTIME_DISPATCH=ON
+          cmake -S . -B build-32 -G Ninja -DCMAKE_BUILD_TYPE=Release -DVECMAT_FLOAT_ABI=32 -DVECMAT_BUILD_TESTS=ON -DVECMAT_INSTALL=OFF -DVECMAT_RUNTIME_DISPATCH=ON -DVECMAT_ENABLE_FP16=ON
           cmake --build build-32 --parallel --target vecmat_tests
           ./build-32/test/vecmat_tests
-          cmake -S . -B build-64 -G Ninja -DCMAKE_BUILD_TYPE=Release -DVECMAT_FLOAT_ABI=64 -DVECMAT_USE_F64=ON -DVECMAT_BUILD_TESTS=ON -DVECMAT_INSTALL=OFF -DVECMAT_RUNTIME_DISPATCH=ON
+          cmake -S . -B build-64 -G Ninja -DCMAKE_BUILD_TYPE=Release -DVECMAT_FLOAT_ABI=64 -DVECMAT_USE_F64=ON -DVECMAT_BUILD_TESTS=ON -DVECMAT_INSTALL=OFF -DVECMAT_RUNTIME_DISPATCH=ON -DVECMAT_ENABLE_FP16=ON
           cmake --build build-64 --parallel --target vecmat_tests
           ./build-64/test/vecmat_tests
 
@@ -302,7 +302,7 @@ jobs:
         run: |
           cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
             -DVECMAT_FLOAT_ABI=BOTH -DVECMAT_BUILD_TESTS=ON \
-            -DVECMAT_INSTALL=OFF -DVECMAT_RUNTIME_DISPATCH=ON
+            -DVECMAT_INSTALL=OFF -DVECMAT_RUNTIME_DISPATCH=ON -DVECMAT_ENABLE_FP16=ON
           cmake --build build --parallel --target vecmat_tests
 
       - name: Run forced ISA
@@ -324,7 +324,7 @@ jobs:
         run: |
           cmake -S . -B build-sve -G Ninja -DCMAKE_BUILD_TYPE=Release \
             -DVECMAT_FLOAT_ABI=BOTH -DVECMAT_BUILD_TESTS=OFF \
-            -DVECMAT_INSTALL=OFF -DVECMAT_RUNTIME_DISPATCH=ON \
+            -DVECMAT_INSTALL=OFF -DVECMAT_RUNTIME_DISPATCH=ON -DVECMAT_ENABLE_FP16=ON \
             -DVECMAT_ENABLE_SVE=ON -DVECMAT_ENABLE_SVE2=ON
           cmake --build build-sve --parallel --target vecmat_static
 

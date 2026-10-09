@@ -65,14 +65,14 @@ option(VECMAT_ENABLE_AVX512F "Compile AVX-512F kernels (x86-64)" ${_vecmat_x86})
 option(VECMAT_ENABLE_NEON "Compile NEON / ASIMD kernels (AArch64)" ${_vecmat_arm64})
 option(VECMAT_ENABLE_SVE "Compile SVE kernels (AArch64)" ${_vecmat_arm64})
 option(VECMAT_ENABLE_SVE2 "Compile SVE2 kernels (AArch64)" ${_vecmat_arm64})
+option(VECMAT_ENABLE_FP16 "IEEE binary16 width" OFF)
 
-# Optional CPU backends. Empty by default, so they are not part of the shipped
-# library. vendors/ is a git submodule. It may hold other module types as well;
-# only backends are loaded, and only the names listed here. An entry is a path
-# under vendors/ or VECMAT_BACKEND_PATH, e.g. arm/cortex-a5x.
+# Optional modules. Empty by default, so they are not part of the shipped
+# library. vendors/ is a git submodule. An entry is a path under vendors/
+# or VECMAT_MODULES_PATH, e.g. arm/cortex-a5x. A module is a backend or a width.
 set(VECMAT_MODULES "" CACHE STRING
-    "Optional backends to build (e.g. arm/cortex-a5x). See doc/cpu-backends.md.")
-set(VECMAT_BACKEND_PATH "" CACHE STRING
+    "Optional modules to build (e.g. arm/cortex-a5x). See doc/cpu-backends.md.")
+set(VECMAT_MODULES_PATH "" CACHE STRING
     "Extra roots searched for <vendor>/<name>/module.cmake.")
 set(VECMAT_MODULE_HOOKS "")
 set(VECMAT_MODULE_TEST_HOOKS "")
@@ -80,9 +80,12 @@ set(VECMAT_MODULE_REGISTER_INCLUDES "")
 set(VECMAT_MODULE_REGISTER_CALLS "")
 set(VECMAT_MODULE_TEST_SOURCES "")
 set(VECMAT_MODULE_BENCH_SOURCES "")
+set(VECMAT_FP16_MODULE_HOOKS "")
+set(VECMAT_FP16_MODULE_REGISTER_INCLUDES "")
+set(VECMAT_FP16_MODULE_REGISTER_CALLS "")
 foreach(_vecmat_mod IN LISTS VECMAT_MODULES)
     set(_vecmat_mod_cmake "")
-    foreach(_vecmat_root "${CMAKE_CURRENT_SOURCE_DIR}/vendors" ${VECMAT_BACKEND_PATH})
+    foreach(_vecmat_root "${CMAKE_CURRENT_SOURCE_DIR}/vendors" ${VECMAT_MODULES_PATH})
         if(EXISTS "${_vecmat_root}/${_vecmat_mod}/module.cmake")
             set(_vecmat_mod_cmake "${_vecmat_root}/${_vecmat_mod}/module.cmake")
             break()
@@ -90,15 +93,29 @@ foreach(_vecmat_mod IN LISTS VECMAT_MODULES)
     endforeach()
     if(NOT _vecmat_mod_cmake)
         message(FATAL_ERROR
-            "Unknown Vecmat backend '${_vecmat_mod}' "
-            "(vendors/${_vecmat_mod}/module.cmake or VECMAT_BACKEND_PATH)")
+            "Unknown Vecmat module '${_vecmat_mod}' "
+            "(vendors/${_vecmat_mod}/module.cmake or VECMAT_MODULES_PATH)")
     endif()
+    set(_vecmat_backend_hooks "${VECMAT_MODULE_HOOKS}")
+    set(_vecmat_backend_includes "${VECMAT_MODULE_REGISTER_INCLUDES}")
+    set(_vecmat_backend_calls "${VECMAT_MODULE_REGISTER_CALLS}")
     unset(VECMAT_MODULE_KIND)
     include("${_vecmat_mod_cmake}")
-    if(NOT VECMAT_MODULE_KIND STREQUAL "backend")
+    if(VECMAT_MODULE_KIND STREQUAL "backend")
+        # Attaches to the f32/f64 object libs and vm_backend_modules_register().
+    elseif(VECMAT_MODULE_KIND STREQUAL "width")
+        if(NOT VECMAT_MODULE_HOOKS STREQUAL _vecmat_backend_hooks
+                OR NOT VECMAT_MODULE_REGISTER_INCLUDES STREQUAL _vecmat_backend_includes
+                OR NOT VECMAT_MODULE_REGISTER_CALLS STREQUAL _vecmat_backend_calls)
+            message(FATAL_ERROR
+                "Width module '${_vecmat_mod}' appended to a backend list. "
+                "Use that width's lists (VECMAT_FP16_MODULE_HOOKS, ...).")
+        endif()
+    else()
         message(FATAL_ERROR
-            "Unknown Vecmat backend '${_vecmat_mod}' "
-            "(module.cmake set VECMAT_MODULE_KIND='${VECMAT_MODULE_KIND}', expected 'backend')")
+            "Unknown Vecmat module '${_vecmat_mod}' "
+            "(module.cmake set VECMAT_MODULE_KIND='${VECMAT_MODULE_KIND}', "
+            "expected 'backend' or 'width')")
     endif()
 endforeach()
 file(WRITE "${CMAKE_BINARY_DIR}/vecmat_module_register.c"
@@ -108,6 +125,14 @@ void vm_backend_modules_register(void)
 {
 ${VECMAT_MODULE_REGISTER_CALLS}}
 ")
+if(VECMAT_ENABLE_FP16)
+    file(WRITE "${CMAKE_BINARY_DIR}/vecmat_fp16_register.c"
+"${VECMAT_FP16_MODULE_REGISTER_INCLUDES}
+void vm_fp16_modules_register(void)
+{
+${VECMAT_FP16_MODULE_REGISTER_CALLS}}
+")
+endif()
 unset(_vecmat_mod_cmake)
 
 if(VECMAT_ENABLE_AVX AND NOT _vecmat_x86)
@@ -422,6 +447,24 @@ function(vecmat_add_float_objects name bits extra_private_defs)
     endforeach()
 endfunction()
 
+function(vecmat_add_fp16_objects name extra_private_defs)
+    add_library(${name} OBJECT
+            src/width/fp16_scalar.c
+            src/width/gemm_fp16f32_ref.c
+            ${CMAKE_BINARY_DIR}/vecmat_fp16_register.c)
+    target_include_directories(${name} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+    target_compile_definitions(${name} PRIVATE
+            _USE_MATH_DEFINES
+            VECMAT_ENABLE_FP16
+            ${extra_private_defs})
+    if(NOT MSVC)
+        target_compile_options(${name} PRIVATE -fno-strict-aliasing)
+    endif()
+    foreach(_vecmat_hook IN LISTS VECMAT_FP16_MODULE_HOOKS)
+        cmake_language(CALL ${_vecmat_hook} ${name})
+    endforeach()
+endfunction()
+
 set(_vecmat_float_objs)
 if(VECMAT_BUILD_ABI_32)
     vecmat_add_float_objects(vecmat_f32_shared_objs 32 "VEC_BUILD_SHARED")
@@ -438,6 +481,16 @@ if(VECMAT_BUILD_ABI_64)
     list(APPEND _vecmat_float_objs vecmat_f64_shared_objs vecmat_f64_static_objs)
     target_sources(vecmat_shared PRIVATE $<TARGET_OBJECTS:vecmat_f64_shared_objs>)
     target_sources(vecmat_static PRIVATE $<TARGET_OBJECTS:vecmat_f64_static_objs>)
+endif()
+
+if(VECMAT_ENABLE_FP16)
+    vecmat_add_fp16_objects(vecmat_fp16_shared_objs "VEC_BUILD_SHARED")
+    vecmat_add_fp16_objects(vecmat_fp16_static_objs "")
+    set_target_properties(vecmat_fp16_shared_objs PROPERTIES POSITION_INDEPENDENT_CODE ON)
+    target_sources(vecmat_shared PRIVATE $<TARGET_OBJECTS:vecmat_fp16_shared_objs>)
+    target_sources(vecmat_static PRIVATE $<TARGET_OBJECTS:vecmat_fp16_static_objs>)
+    target_compile_definitions(vecmat_shared PUBLIC VECMAT_ENABLE_FP16)
+    target_compile_definitions(vecmat_static PUBLIC VECMAT_ENABLE_FP16)
 endif()
 
 if(Threads_FOUND)
@@ -497,9 +550,16 @@ if(VECMAT_INSTALL)
             INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
     )
 
-    install(DIRECTORY include/
-            DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-    )
+    if(VECMAT_ENABLE_FP16)
+        install(DIRECTORY include/
+                DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+        )
+    else()
+        install(DIRECTORY include/
+                DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+                PATTERN "fp16.h" EXCLUDE
+        )
+    endif()
 
     install(EXPORT vecmatTargets
             FILE vecmatTargets.cmake

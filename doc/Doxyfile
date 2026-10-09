@@ -109,11 +109,12 @@ INPUT                  = ../include \
                          ../test/except.h \
                          ../test/unitest.h \
                          ../README.md \
-                         numerics.md \
                          basic-usage.md \
                          vector-usage.md \
                          matrix-usage.md \
-                         cpu-backends.md
+                         numerics.md \
+                         cpu-backends.md \
+                         fp16.md
 INPUT_ENCODING         = UTF-8
 FILE_PATTERNS          = *.c \
                          *.h \

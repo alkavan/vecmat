@@ -150,7 +150,7 @@ still wins.
 
 **Cortex-A53 / A55 tuning is supported that way.** The schedule is not in this
 repository. Check `vecmat-vendors/` out beside this tree and pass
-`-DVECMAT_BACKEND_PATH=../vecmat-vendors -DVECMAT_MODULES=arm/cortex-a5x`.
+`-DVECMAT_MODULES_PATH=../vecmat-vendors -DVECMAT_MODULES=arm/cortex-a5x`.
 `vendors/` is not a submodule here. The NEON row above is the in-tree Armv8-A
 schedule. Tests and benchmarks call `vm_backend_modules_register()` and do not
 include a backend header. A backend may append `VECMAT_MODULE_TEST_SOURCES` and
@@ -294,8 +294,9 @@ Integer macros must match the linked library. `VECMAT_USE_F64` is per TU.
 | `VECMAT_RUNTIME_DISPATCH`                | ON, except MSVC                         | Build the ISA probes and the dispatched kernels. OFF leaves scalar bodies only.          |
 | `VECMAT_ENABLE_AVX` / `AVX2` / `AVX512F` | ON on x86-64                            | Compile that kernel set. Ignored off x86-64. See the ISA matrix.                         |
 | `VECMAT_ENABLE_NEON` / `SVE` / `SVE2`    | ON on AArch64                           | Compile that kernel set. SVE/SVE2 are ignored on MSVC. See the ISA matrix.               |
-| `VECMAT_MODULES`                         | empty                                   | Backend paths such as `arm/cortex-a5x`, relative to `vendors/` or `VECMAT_BACKEND_PATH`. |
-| `VECMAT_BACKEND_PATH`                    | empty                                   | Extra root for those paths when `vendors/` is not checked out.                           |
+| `VECMAT_MODULES`                         | empty                                   | Backend paths such as `arm/cortex-a5x`, relative to `vendors/` or `VECMAT_MODULES_PATH`. |
+| `VECMAT_MODULES_PATH`                    | empty                                   | Extra root for those paths when `vendors/` is not checked out.                           |
+| `VECMAT_ENABLE_FP16`                     | OFF                                     | IEEE binary16 and `vm_gemm_fp16f32`. See `doc/fp16.md`. Not a `vm_float_t` width.        |
 | `VECMAT_BUILD_TESTS`                     | ON when Vecmat is the top-level project | Build `vecmat_tests` and `vecmat_benchmarks`.                                            |
 | `VECMAT_INSTALL`                         | ON when Vecmat is the top-level project | Generate the install rules.                                                              |
 | `WITH_THREAD_SAFETY`                     | OFF                                     | Define `DYNVEC_THREAD_SAFE` on the library.                                              |
