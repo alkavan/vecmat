@@ -3,6 +3,8 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 #include <vecmat.h>
 #include "unitest.h"
 
@@ -29,22 +31,31 @@ TEST_CASE(cpu_features_test, "[cpu]") {
             selected == VM_CPU_NEON ||
             selected == VM_CPU_SVE ||
             selected == VM_CPU_AVX512F ||
-            selected == VM_CPU_SVE2);
-    REQUIRE((selected & compiled) == selected);
-    REQUIRE((selected & runtime) == selected);
+            selected == VM_CPU_SVE2 ||
+            selected == VM_CPU_BACKEND);
+    REQUIRE((selected & compiled) == selected || selected == VM_CPU_BACKEND);
+    REQUIRE((selected & runtime) == selected || selected == VM_CPU_BACKEND);
     REQUIRE(vm_cpu_name(selected) != NULL);
     REQUIRE(vm_cpu_name(VM_CPU_SCALAR)[0] == 's');
     REQUIRE(vm_cpu_name(VM_CPU_AVX512F)[0] == 'a');
 
-    if ((compiled & VM_CPU_AVX512F) && (runtime & VM_CPU_AVX512F))
-        REQUIRE(selected == VM_CPU_AVX512F);
-    if ((compiled & VM_CPU_SVE2) && (runtime & VM_CPU_SVE2))
-        REQUIRE(selected == VM_CPU_SVE2);
-    if ((compiled & VM_CPU_NEON) && (runtime & VM_CPU_NEON) &&
-        (compiled & VM_CPU_SVE) == 0 && (runtime & VM_CPU_SVE) == 0)
-        REQUIRE(selected == VM_CPU_NEON);
+    if (selected != VM_CPU_BACKEND) {
+        const char *forced = getenv("VECMAT_FORCE_ISA");
+        if (forced && forced[0] != '\0' && strcmp(forced, "avx512") != 0)
+            REQUIRE(strcmp(vm_cpu_name(selected), forced) == 0);
+        else {
+            if ((compiled & VM_CPU_AVX512F) && (runtime & VM_CPU_AVX512F))
+                REQUIRE(selected == VM_CPU_AVX512F);
+            if ((compiled & VM_CPU_SVE2) && (runtime & VM_CPU_SVE2))
+                REQUIRE(selected == VM_CPU_SVE2);
+            if ((compiled & VM_CPU_NEON) && (runtime & VM_CPU_NEON) &&
+                (compiled & VM_CPU_SVE) == 0 && (runtime & VM_CPU_SVE) == 0)
+                REQUIRE(selected == VM_CPU_NEON);
+        }
+    }
     REQUIRE(vm_cpu_name(VM_CPU_SVE2)[0] == 's');
     REQUIRE(vm_cpu_name(VM_CPU_NEON)[0] == 'n');
+    REQUIRE(vm_cpu_note() == NULL || vm_cpu_note()[0] != '\0');
 }
 
 TEST_CASE(cpu_dispatched_vec4_add_matches_scalar_shape, "[cpu][vector4]") {

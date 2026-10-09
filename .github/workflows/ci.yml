@@ -255,6 +255,79 @@ jobs:
             dist/*.zip
           if-no-files-found: error
 
+  # Run only an ISA this runner can execute. avx512f runs when the host
+  # advertises it. SVE/SVE2 stay compile-tested: forcing them here would
+  # SIGILL on ubuntu-24.04-arm.
+  force-isa:
+    name: force-${{ matrix.isa }}-${{ matrix.arch }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - isa: scalar
+            arch: x86_64
+            runner: ubuntu-24.04
+            run: true
+          - isa: avx
+            arch: x86_64
+            runner: ubuntu-24.04
+            run: true
+          - isa: avx2
+            arch: x86_64
+            runner: ubuntu-24.04
+            run: true
+          - isa: avx512f
+            arch: x86_64
+            runner: ubuntu-24.04
+            run: host
+          - isa: scalar
+            arch: aarch64
+            runner: ubuntu-24.04-arm
+            run: true
+          - isa: neon
+            arch: aarch64
+            runner: ubuntu-24.04-arm
+            run: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Install Linux packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build cmake build-essential
+
+      - name: Configure and build
+        run: |
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
+            -DVECMAT_FLOAT_ABI=BOTH -DVECMAT_BUILD_TESTS=ON \
+            -DVECMAT_INSTALL=OFF -DVECMAT_RUNTIME_DISPATCH=ON
+          cmake --build build --parallel --target vecmat_tests
+
+      - name: Run forced ISA
+        env:
+          VECMAT_FORCE_ISA: ${{ matrix.isa }}
+        run: |
+          set -euo pipefail
+          if [ "${{ matrix.run }}" = "host" ]; then
+            if ! grep -qw avx512f /proc/cpuinfo; then
+              echo "avx512f compile-tested; host has no avx512f"
+              exit 0
+            fi
+          fi
+          ./build/test/vecmat_tests
+
+      # SVE/SVE2: compile the kernels, do not select them. Permanent label.
+      - name: Compile-test SVE and SVE2
+        if: matrix.arch == 'aarch64' && matrix.isa == 'neon'
+        run: |
+          cmake -S . -B build-sve -G Ninja -DCMAKE_BUILD_TYPE=Release \
+            -DVECMAT_FLOAT_ABI=BOTH -DVECMAT_BUILD_TESTS=OFF \
+            -DVECMAT_INSTALL=OFF -DVECMAT_RUNTIME_DISPATCH=ON \
+            -DVECMAT_ENABLE_SVE=ON -DVECMAT_ENABLE_SVE2=ON
+          cmake --build build-sve --parallel --target vecmat_static
+
   release:
     name: Release ${{ github.ref_name }}
     needs: build

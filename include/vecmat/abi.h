@@ -343,6 +343,7 @@
 #define vm_dispatch_init vm_dispatch_init64
 #define vm_backend_best vm_backend_best64
 #define vm_backend_register vm_backend_register64
+#define vm_backend_builtin vm_backend_builtin64
 #define mat4_ortho mat4_ortho64
 #define mat4_look_at mat4_look_at64
 #define mat4_perspective mat4_perspective64
@@ -1252,6 +1253,7 @@
 #define vm_dispatch_init vm_dispatch_init32
 #define vm_backend_best vm_backend_best32
 #define vm_backend_register vm_backend_register32
+#define vm_backend_builtin vm_backend_builtin32
 #define mat4_ortho mat4_ortho32
 #define mat4_look_at mat4_look_at32
 #define mat4_perspective mat4_perspective32

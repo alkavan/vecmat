@@ -42,6 +42,10 @@ VEC_API vm_cpu_features_t vm_cpu_runtime_features(void);
 
 /**
  * @brief ISA the picker bound: registered backend, else best compiled-and-runtime.
+ *
+ * `VECMAT_FORCE_ISA=scalar|avx|avx2|avx512f|neon|sve|sve2` overrides the
+ * compiled/runtime pick when that ISA is compiled in. A registered backend
+ * still wins. The override is read once, on the first probe.
  */
 VEC_API vm_cpu_features_t vm_cpu_selected_features(void);
 
@@ -58,6 +62,18 @@ VEC_API const char *vm_cpu_name(vm_cpu_features_t features);
  * the first-use race; kernels themselves call this on first use.
  */
 VEC_API void vm_cpu_init(void);
+
+/**
+ * @brief Optional one-line note set by a registered module.
+ *
+ * NULL until a module calls `vm_cpu_set_note()`. The pointer is not copied.
+ */
+VEC_API const char *vm_cpu_note(void);
+
+/**
+ * @brief Attach a module note for banners. Pass NULL to clear.
+ */
+VEC_API void vm_cpu_set_note(const char *note);
 
 /**
  * @brief Float widths compiled into this library (`32`, `64`, or `32|64`).

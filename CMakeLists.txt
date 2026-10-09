@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 cmake_minimum_required(VERSION 3.21)
-project(vecmat LANGUAGES C VERSION 0.3.4)
+project(vecmat LANGUAGES C VERSION 0.3.5)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -66,6 +66,50 @@ option(VECMAT_ENABLE_AVX512F "Compile AVX-512F kernels (x86-64)" ${_vecmat_x86})
 option(VECMAT_ENABLE_NEON "Compile NEON / ASIMD kernels (AArch64)" ${_vecmat_arm64})
 option(VECMAT_ENABLE_SVE "Compile SVE kernels (AArch64)" ${_vecmat_arm64})
 option(VECMAT_ENABLE_SVE2 "Compile SVE2 kernels (AArch64)" ${_vecmat_arm64})
+
+# Optional CPU backends. Empty by default, so they are not part of the shipped
+# library. vendors/ is a git submodule. It may hold other module types as well;
+# only backends are loaded, and only the names listed here. An entry is a path
+# under vendors/ or VECMAT_BACKEND_PATH, e.g. arm/cortex-a5x.
+set(VECMAT_MODULES "" CACHE STRING
+    "Optional backends to build (e.g. arm/cortex-a5x). See doc/cpu-backends.md.")
+set(VECMAT_BACKEND_PATH "" CACHE STRING
+    "Extra roots searched for <vendor>/<name>/module.cmake.")
+set(VECMAT_MODULE_HOOKS "")
+set(VECMAT_MODULE_TEST_HOOKS "")
+set(VECMAT_MODULE_REGISTER_INCLUDES "")
+set(VECMAT_MODULE_REGISTER_CALLS "")
+set(VECMAT_MODULE_TEST_SOURCES "")
+set(VECMAT_MODULE_BENCH_SOURCES "")
+foreach(_vecmat_mod IN LISTS VECMAT_MODULES)
+    set(_vecmat_mod_cmake "")
+    foreach(_vecmat_root "${CMAKE_CURRENT_SOURCE_DIR}/vendors" ${VECMAT_BACKEND_PATH})
+        if(EXISTS "${_vecmat_root}/${_vecmat_mod}/module.cmake")
+            set(_vecmat_mod_cmake "${_vecmat_root}/${_vecmat_mod}/module.cmake")
+            break()
+        endif()
+    endforeach()
+    if(NOT _vecmat_mod_cmake)
+        message(FATAL_ERROR
+            "Unknown Vecmat backend '${_vecmat_mod}' "
+            "(vendors/${_vecmat_mod}/module.cmake or VECMAT_BACKEND_PATH)")
+    endif()
+    unset(VECMAT_MODULE_KIND)
+    include("${_vecmat_mod_cmake}")
+    if(NOT VECMAT_MODULE_KIND STREQUAL "backend")
+        message(FATAL_ERROR
+            "Unknown Vecmat backend '${_vecmat_mod}' "
+            "(module.cmake set VECMAT_MODULE_KIND='${VECMAT_MODULE_KIND}', expected 'backend')")
+    endif()
+endforeach()
+file(WRITE "${CMAKE_BINARY_DIR}/vecmat_module_register.c"
+"#include <vecmat.h>
+${VECMAT_MODULE_REGISTER_INCLUDES}
+void vm_backend_modules_register(void)
+{
+${VECMAT_MODULE_REGISTER_CALLS}}
+")
+unset(_vecmat_mod_cmake)
 
 if(VECMAT_ENABLE_AVX AND NOT _vecmat_x86)
     message(WARNING "VECMAT_ENABLE_AVX ignored on non-x86 (${CMAKE_SYSTEM_PROCESSOR})")
@@ -278,8 +322,10 @@ function(vecmat_add_float_objects name bits extra_private_defs)
         target_compile_options(${name} PRIVATE -fno-strict-aliasing)
     endif()
     if(VECMAT_RUNTIME_DISPATCH)
-        target_sources(${name} PRIVATE src/features/dispatch.c)
+        target_sources(${name} PRIVATE src/features/dispatch.c src/features/backend_builtin.c)
         target_compile_definitions(${name} PRIVATE VECMAT_RUNTIME_DISPATCH)
+    else()
+        target_sources(${name} PRIVATE src/features/backend_builtin.c)
     endif()
     if(VECMAT_ENABLE_AVX)
         target_sources(${name} PRIVATE
@@ -377,6 +423,9 @@ function(vecmat_add_float_objects name bits extra_private_defs)
                 PROPERTIES COMPILE_OPTIONS "-march=armv8-a+sve2")
         target_compile_definitions(${name} PRIVATE VECMAT_ENABLE_SVE2)
     endif()
+    foreach(_vecmat_hook IN LISTS VECMAT_MODULE_HOOKS)
+        cmake_language(CALL ${_vecmat_hook} ${name})
+    endforeach()
 endfunction()
 
 set(_vecmat_float_objs)
@@ -437,6 +486,9 @@ endif()
 
 if(VECMAT_BUILD_TESTS)
     add_subdirectory(test)
+    foreach(_vecmat_hook IN LISTS VECMAT_MODULE_TEST_HOOKS)
+        cmake_language(CALL ${_vecmat_hook})
+    endforeach()
 endif()
 
 if(VECMAT_INSTALL)

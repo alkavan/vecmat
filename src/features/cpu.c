@@ -6,6 +6,9 @@
 
 #include <vecmat.h>
 
+#include <stdlib.h>
+#include <string.h>
+
 #if defined(VECMAT_RUNTIME_DISPATCH)
 #if defined(VECMAT_HAVE_ABI_32)
 void vm_dispatch_init32(void);
@@ -57,6 +60,7 @@ const vm_backend *vm_backend_best64(void);
 #endif
 
 static vm_cpu_features_t runtime_cache;
+static const char *module_note;
 #if !defined(__STDC_NO_ATOMICS__)
 static atomic_int runtime_cached;
 static atomic_flag runtime_lock = ATOMIC_FLAG_INIT;
@@ -185,6 +189,29 @@ static int vm_cpu_probe_avx512f(void)
     return (ebx & (1u << 16)) != 0; /* AVX512F */
 }
 #endif /* VECMAT_ARCH_X86 */
+
+static vm_cpu_features_t vm_force_isa(void)
+{
+    const char *name = getenv("VECMAT_FORCE_ISA");
+
+    if (!name || name[0] == '\0')
+        return 0;
+    if (strcmp(name, "scalar") == 0)
+        return VM_CPU_SCALAR;
+    if (strcmp(name, "avx") == 0)
+        return VM_CPU_AVX;
+    if (strcmp(name, "avx2") == 0)
+        return VM_CPU_AVX2;
+    if (strcmp(name, "avx512f") == 0 || strcmp(name, "avx512") == 0)
+        return VM_CPU_AVX512F;
+    if (strcmp(name, "neon") == 0)
+        return VM_CPU_NEON;
+    if (strcmp(name, "sve") == 0)
+        return VM_CPU_SVE;
+    if (strcmp(name, "sve2") == 0)
+        return VM_CPU_SVE2;
+    return 0;
+}
 
 /**
  * @brief Probes AArch64 Advanced SIMD (NEON).
@@ -350,22 +377,29 @@ vm_cpu_features_t vm_cpu_selected_features(void)
         return bits != 0 ? bits : VM_CPU_BACKEND;
     }
 #endif
-    const vm_cpu_features_t have =
-        vm_cpu_compiled_features() & vm_cpu_runtime_features();
+    {
+        const vm_cpu_features_t compiled = vm_cpu_compiled_features();
+        const vm_cpu_features_t forced = vm_force_isa();
+        const vm_cpu_features_t have = compiled & vm_cpu_runtime_features();
 
-    if (have & VM_CPU_SVE2)
-        return VM_CPU_SVE2;
-    if (have & VM_CPU_SVE)
-        return VM_CPU_SVE;
-    if (have & VM_CPU_NEON)
-        return VM_CPU_NEON;
-    if (have & VM_CPU_AVX512F)
-        return VM_CPU_AVX512F;
-    if (have & VM_CPU_AVX2)
-        return VM_CPU_AVX2;
-    if (have & VM_CPU_AVX)
-        return VM_CPU_AVX;
-    return VM_CPU_SCALAR;
+        /* A registered backend already returned. Force wins over the picker. */
+        if (forced != 0 && (forced & compiled) == forced)
+            return forced;
+
+        if (have & VM_CPU_SVE2)
+            return VM_CPU_SVE2;
+        if (have & VM_CPU_SVE)
+            return VM_CPU_SVE;
+        if (have & VM_CPU_NEON)
+            return VM_CPU_NEON;
+        if (have & VM_CPU_AVX512F)
+            return VM_CPU_AVX512F;
+        if (have & VM_CPU_AVX2)
+            return VM_CPU_AVX2;
+        if (have & VM_CPU_AVX)
+            return VM_CPU_AVX;
+        return VM_CPU_SCALAR;
+    }
 }
 
 /**
@@ -406,6 +440,16 @@ const char *vm_cpu_name(const vm_cpu_features_t features)
     if (features & VM_CPU_SCALAR)
         return "scalar";
     return "none";
+}
+
+const char *vm_cpu_note(void)
+{
+    return module_note;
+}
+
+void vm_cpu_set_note(const char *note)
+{
+    module_note = note;
 }
 
 unsigned vm_compiled_float_bits(void)

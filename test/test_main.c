@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include "unitest.h"
+#include "module_register.h"
 #include <vecmat.h>
 
 // Epsilon
@@ -24,5 +25,9 @@ struct benchmark_node* benchmark_head = NULL;
 int main(int argc, char *argv[])
 {
     printf("Vecmat %s — A simple math and linear algebra library.\n", VECMAT_VERSION);
+    vm_backend_modules_register();
+    vm_cpu_init();
+    if (vm_cpu_note())
+        printf("%s\n", vm_cpu_note());
     return run_tests();
 }

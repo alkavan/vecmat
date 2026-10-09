@@ -13,6 +13,7 @@
 
 #include "vecmat/types.h"
 #include "vecmat/abi.h"
+#include "vecmat/cpu.h"
 
 #define VECMAT_DISPATCH_LIST(X)                                                              \
     X(vec4_add_ptr,                                                                          \
@@ -98,7 +99,7 @@ typedef struct vm_backend_ops {
  * not `dlopen`.
  */
 typedef struct vm_backend {
-    const char *name;            /**< Non-NULL stable name (`neon_a55`, ...) */
+    const char *name;            /**< Non-NULL stable name (`cortex-a55`, ...) */
     uint64_t features;           /**< ISA bits and/or private feature bits. */
     int priority;                /**< Higher wins among registered backends. */
     const vm_backend_ops *ops;   /**< Complete table; no NULL slots. */
@@ -124,5 +125,15 @@ enum {
  * @return `VM_BACKEND_OK` or a negative `VM_BACKEND_ERR_*` code.
  */
 VEC_API int vm_backend_register(const vm_backend *backend);
+
+/**
+ * @brief Built-in op table for a compiled ISA, or NULL.
+ *
+ * Optional CPU backends copy this and override slots, then call
+ * `vm_backend_register()`. The table matches this TU's float width.
+ * They are not part of the default library. Cortex-A53 / A55 tuning lives
+ * in the vendors submodule (`vendors/arm/cortex-a5x`). See `doc/cpu-backends.md`.
+ */
+VEC_API const vm_backend_ops *vm_backend_builtin(vm_cpu_features_t isa);
 
 #endif //VECMAT_BACKEND_H

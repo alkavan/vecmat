@@ -12,6 +12,7 @@ set(CMAKE_C_EXTENSIONS ON)
 # Tests
 add_executable(vecmat_tests
         test_main.c
+        ${CMAKE_BINARY_DIR}/vecmat_module_register.c
         test_vector_float.c
         test_vector_int.c
         test_matrix_float.c
@@ -27,6 +28,7 @@ add_executable(vecmat_tests
         test_extended.c
         test_physics.c
         test_abi.c
+        ${VECMAT_MODULE_TEST_SOURCES}
 )
 if(VECMAT_USE_F64)
     target_compile_definitions(vecmat_tests PRIVATE VECMAT_USE_F64)
@@ -75,10 +77,12 @@ endif()
 # Benchmarks
 add_executable(vecmat_benchmarks
         bench_main.c
+        ${CMAKE_BINARY_DIR}/vecmat_module_register.c
         bench_vector_float.c
         bench_matrix_float.c
         bench_quaternion.c
         bench_gemm.c
+        ${VECMAT_MODULE_BENCH_SOURCES}
 )
 if(VECMAT_USE_F64)
     target_compile_definitions(vecmat_benchmarks PRIVATE VECMAT_USE_F64)

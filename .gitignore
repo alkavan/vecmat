@@ -61,3 +61,7 @@ cmake-build-*
 
 # Python
 .venv
+
+# Project vendors/modules
+!module.cmake
+vendors/

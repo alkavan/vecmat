@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include "unitest.h"
+#include "module_register.h"
 #include <vecmat.h>
 
 // Epsilon
@@ -26,6 +27,7 @@ int main(int argc, char *argv[])
     (void)argc;
     (void)argv;
 
+    vm_backend_modules_register();
     vm_cpu_init();
     printf("Vecmat %s Benchmarks (selected=%s  compiled=%s  runtime=%s  precision=%s)\n",
         VECMAT_VERSION,
@@ -38,6 +40,8 @@ int main(int argc, char *argv[])
            "f32"
 #endif
     );
+    if (vm_cpu_note())
+        printf("%s\n", vm_cpu_note());
 
     const double total_time = run_benchmarks();
     printf("All benchmarks completed in %.9lf seconds \n", total_time);

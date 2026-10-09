@@ -120,20 +120,43 @@ idempotent. Concurrent first-use of dispatched kernels is safe.
 | AVX          | `VECMAT_ENABLE_AVX`     | ON on x86-64  | dispatched vec4 maps, mat4 mul / transpose / mul_vec, quat mul / normalize, GEMM ukernel | compiled + run on Linux / Windows x86-64 when the host has AVX                |
 | AVX2 (FMA)   | `VECMAT_ENABLE_AVX2`    | ON on x86-64  | same set; lerp / mat4 / quat use FMA                                                     | compiled + typically selected on GitHub x86-64 runners                        |
 | AVX-512F     | `VECMAT_ENABLE_AVX512F` | ON on x86-64  | same set                                                                                 | compiled on x86-64 jobs; **runtime only if the host has AVX-512F**            |
-| NEON / ASIMD | `VECMAT_ENABLE_NEON`    | ON on AArch64 | same dispatched set (one Armv8-A ASIMD schedule, not A53/A55-tuned)                      | compiled + run on Linux aarch64 and Windows ARM64 jobs                        |
-| SVE          | `VECMAT_ENABLE_SVE`     | ON on AArch64 | same dispatched set; f64 walks `svcntd()` chunks                                         | **compile-tested** on aarch64 jobs; selected only if `AT_HWCAP` reports SVE   |
-| SVE2         | `VECMAT_ENABLE_SVE2`    | ON on AArch64 | same dispatched set; f64 walks `svcntd()` chunks                                         | **compile-tested** on aarch64 jobs; selected only if `AT_HWCAP2` reports SVE2 |
+| NEON / ASIMD | `VECMAT_ENABLE_NEON`    | ON on AArch64 | same dispatched set (in-tree Armv8-A ASIMD schedule)                                     | compiled + run on Linux aarch64 and Windows ARM64 jobs                        |
+| SVE          | `VECMAT_ENABLE_SVE`     | ON on AArch64 | same dispatched set; f64 walks `svcntd()` chunks                                         | **compile-tested only** (permanent; no native or qemu run job)                |
+| SVE2         | `VECMAT_ENABLE_SVE2`    | ON on AArch64 | same dispatched set; f64 walks `svcntd()` chunks                                         | **compile-tested only** (permanent; no native or qemu run job)                |
 
-**Pre-AVX x86** runs scalar kernels. There is no SSE backend.
-SVE and SVE2 f64 `vec4` / `mat4` kernels cover four doubles in `svcntd()` chunks,
+**x86 floor is AVX.** Pre-AVX x86 runs scalar kernels. There is no SSE
+backend, and none will be added for completeness.
+
+**Supported means a green job with that label.** A native run counts.
+A qemu run counts only when the label says qemu. SVE and SVE2 stay
+compile-tested, so they are not supported. Force-ISA jobs run `scalar` on
+every platform, `avx` and `avx2` on x86-64, and `neon` on AArch64.
+`avx512f` runs only when the host advertises it; otherwise that job is
+compile-tested. `VECMAT_FORCE_ISA` does not make an uncompiled ISA selectable.
+
+**SVE and SVE2 kernels:** SVE and SVE2 f64 `vec4` / `mat4` kernels cover four doubles in `svcntd()` chunks,
 so a 128-bit core takes two passes and a 256-bit core takes one. f64 `quat_mul`
 uses the scalar formula: `svtbl` needs all four lanes in one register. MSVC has
 no SVE intrinsics, so those kernels are off on MSVC for both widths.
 
-MSVC ARM64 jobs compile and run tests. There is no force-ISA job yet
-(`VECMAT_FORCE_ISA` coming in 0.5.x).
+**MSVC ARM64 jobs compile and run tests.** `VECMAT_FORCE_ISA`
+(`scalar`, `avx`, `avx2`, `avx512f`, `neon`, `sve`, `sve2`) overrides the
+compiled/runtime pick when that ISA is compiled in. A registered backend
+still wins.
 
-Windows shared builds export with `VEC_API`. Float exports are `name32` /
+**Optional CPU backends are not in the default library.** They register through
+`vm_backend_register()` and can be left out of a build. The docs contain some examples:
+* [How to add CPU Backends](doc/cpu-backends.md)
+
+**Cortex-A53 / A55 tuning is supported that way.** The schedule is not in this
+repository. Check `vecmat-vendors/` out beside this tree and pass
+`-DVECMAT_BACKEND_PATH=../vecmat-vendors -DVECMAT_MODULES=arm/cortex-a5x`.
+`vendors/` is not a submodule here. The NEON row above is the in-tree Armv8-A
+schedule. Tests and benchmarks call `vm_backend_modules_register()` and do not
+include a backend header. A backend may append `VECMAT_MODULE_TEST_SOURCES` and
+`VECMAT_MODULE_BENCH_SOURCES`; those files live in the vendor tree.
+
+**Windows shared builds export with `VEC_API`.** Float exports are `name32` /
 `name64`. Integer names and `vm_cpu_*` stay unsuffixed.
 
 ## Numerics extras
@@ -185,7 +208,7 @@ if(NOT TARGET vecmat::vecmat)
     include(FetchContent)
     FetchContent_Declare(vecmat
         GIT_REPOSITORY https://github.com/alkavan/vecmat.git
-        GIT_TAG v0.3.4
+        GIT_TAG v0.3.5
     )
     FetchContent_MakeAvailable(vecmat)
 endif()
