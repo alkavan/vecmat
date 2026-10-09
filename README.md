@@ -208,7 +208,7 @@ if(NOT TARGET vecmat::vecmat)
     include(FetchContent)
     FetchContent_Declare(vecmat
         GIT_REPOSITORY https://github.com/alkavan/vecmat.git
-        GIT_TAG v0.3.5
+        GIT_TAG v0.3.6
     )
     FetchContent_MakeAvailable(vecmat)
 endif()
@@ -286,6 +286,22 @@ cc -DVECMAT_USE_F64 -DVECMAT_USE_INT16 ...
 ```
 
 Integer macros must match the linked library. `VECMAT_USE_F64` is per TU.
+
+### Other CMake options
+
+| CMake flag                               | Default                                 | Effect                                                                                   |
+|------------------------------------------|-----------------------------------------|------------------------------------------------------------------------------------------|
+| `VECMAT_RUNTIME_DISPATCH`                | ON, except MSVC                         | Build the ISA probes and the dispatched kernels. OFF leaves scalar bodies only.          |
+| `VECMAT_ENABLE_AVX` / `AVX2` / `AVX512F` | ON on x86-64                            | Compile that kernel set. Ignored off x86-64. See the ISA matrix.                         |
+| `VECMAT_ENABLE_NEON` / `SVE` / `SVE2`    | ON on AArch64                           | Compile that kernel set. SVE/SVE2 are ignored on MSVC. See the ISA matrix.               |
+| `VECMAT_MODULES`                         | empty                                   | Backend paths such as `arm/cortex-a5x`, relative to `vendors/` or `VECMAT_BACKEND_PATH`. |
+| `VECMAT_BACKEND_PATH`                    | empty                                   | Extra root for those paths when `vendors/` is not checked out.                           |
+| `VECMAT_BUILD_TESTS`                     | ON when Vecmat is the top-level project | Build `vecmat_tests` and `vecmat_benchmarks`.                                            |
+| `VECMAT_INSTALL`                         | ON when Vecmat is the top-level project | Generate the install rules.                                                              |
+| `WITH_THREAD_SAFETY`                     | OFF                                     | Define `DYNVEC_THREAD_SAFE` on the library.                                              |
+
+`VECMAT_BUILD_ABI_32` and `VECMAT_BUILD_ABI_64` are derived from `VECMAT_FLOAT_ABI`. Do not set them. `VECMAT_FORCE_ISA`
+and `VECMAT_GEMM_THREADS` are environment variables, not CMake options.
 
 ## Contributing
 

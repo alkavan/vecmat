@@ -15,8 +15,8 @@
 
 DOXYFILE_ENCODING      = UTF-8
 PROJECT_NAME           = "Vecmat"
-PROJECT_NUMBER         = 0.3.5
-PROJECT_BRIEF          = "Version 0.3.5"
+PROJECT_NUMBER         = 0.3.6
+PROJECT_BRIEF          = "Version 0.3.6"
 PROJECT_LOGO           =
 OUTPUT_DIRECTORY       = .
 CREATE_SUBDIRS         = NO
@@ -197,6 +197,8 @@ PREDEFINED             = VECMAT_USE_F64= \
                          VECMAT_USE_INT8= \
                          VECMAT_USE_INT16= \
                          VECMAT_USE_INT32=1 \
+                         VECMAT_HAVE_ABI_32=1 \
+                         VECMAT_HAVE_ABI_64=1 \
                          VECMAT_RUNTIME_DISPATCH= \
                          VECMAT_ENABLE_AVX= \
                          VECMAT_ENABLE_AVX2= \
@@ -204,6 +206,8 @@ PREDEFINED             = VECMAT_USE_F64= \
                          VECMAT_ENABLE_NEON= \
                          VECMAT_ENABLE_SVE= \
                          VECMAT_ENABLE_SVE2= \
+                         DYNVEC_THREAD_SAFE= \
+                         VECMAT_HAS_THREADS= \
                          VEC_API= \
                          VEC_BUILD_SHARED=
 EXPAND_AS_DEFINED      =

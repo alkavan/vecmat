@@ -17,10 +17,10 @@ The base library keeps this surface:
 - `vm_backend_register()` / `VM_CPU_BACKEND` — a registered table wins
 - `vm_backend_builtin()` — copy a compiled ISA table and override slots
 - `vm_cpu_set_note()` / `vm_cpu_note()` — one extra banner line, printed only if set
+- `vm_backend_modules_register()` — test and benchmark hook, generated, not a library export
 - `VECMAT_FORCE_ISA` — override the compiled/runtime pick when no backend is registered
 - `VECMAT_MODULES` — paths under `vendors/`, e.g. `arm/cortex-a5x`
 - `VECMAT_BACKEND_PATH` — extra roots if the submodule is not checked out
-- `vm_backend_modules_register()` — test and benchmark hook, generated, not a library export
 
 ## Layout
 
