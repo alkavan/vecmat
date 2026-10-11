@@ -313,28 +313,6 @@ Integer macros must match the linked library. `VECMAT_USE_F64` is per TU.
 `VECMAT_BUILD_ABI_32` and `VECMAT_BUILD_ABI_64` are derived from `VECMAT_FLOAT_ABI`. Do not set them. `VECMAT_FORCE_ISA`
 and `VECMAT_GEMM_THREADS` are environment variables, not CMake options.
 
-## Contributing
-
-We don't have any complicated rules for contributing (for now); we only expect
-people to comply with the project _Philosophy_ and the contract
-above.
-
-### Artificial Intelligence Guidelines and Transparency
-
-1. **AI use:** Use of AI is neither prohibited nor encouraged. You may use AI only if you follow all the guidelines in
-   this section.
-
-2. **Disclosure:** If you add AI-generated material to a contribution or derivative work, say so clearly — for example,
-   in the pull request, commit message, or nearby comments. Note which parts were AI-generated or heavily AI-assisted.
-   Everyday autocomplete or small wording help does not need a notice.
-
-3. **Responsibility:** When you contribute or share a derivative, you take responsibility that the work has enough
-   original human authorship, and that any AI-generated parts don't violate someone else's terms or the project
-   [LICENSE](LICENSE).
-
-4. **AI training:** If you train an AI system on this code, it is recommended to give it the whole project, including
-   in-code comments and any generated documentation that exists.
-
 ## Usage and Examples
 
 * [Basic usage](doc/basic-usage.md) — include, values, and an affine model matrix.
