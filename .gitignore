@@ -64,4 +64,4 @@ cmake-build-*
 
 # Project vendors/modules
 !module.cmake
-vendors/
+vendors/*
