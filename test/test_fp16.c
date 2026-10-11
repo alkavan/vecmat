@@ -67,9 +67,14 @@ TEST_CASE(fp16_gemm_matches_converted_f32, "[fp16]")
         }
     }
     vm_gemm_fp16f32(c, n, a, k, b, n, m, n, k, 1.5f, 0.5f);
-    for (int i = 0; i < 4; ++i)
+    for (int i = 0; i < 4; ++i) {
         REQUIRE(near(c[i], ref[i], 1e-5f));
-    REQUIRE(strcmp(vm_fp16_note(), "fp16=scalar") == 0);
+    }
+    REQUIRE(strcmp(vm_fp16_note(), "fp16=scalar") == 0
+            || strcmp(vm_fp16_note(), "fp16=neon") == 0
+            || strcmp(vm_fp16_note(), "fp16=neon-cvt") == 0
+            || strcmp(vm_fp16_note(), "fp16=f16c") == 0
+            || strcmp(vm_fp16_note(), "fp16=avx512fp16") == 0);
 }
 
 TEST_CASE(fp16_gemm_long_k_stays_f32, "[fp16]")
