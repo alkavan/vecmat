@@ -2,12 +2,21 @@
 A simple math and linear algebra library in C for 2D/3D graphics,
 machine learning, physics, and science.
 
-**Vecmat is also a heartfelt ❤ love letter to the C programming language**
-— showcasing that readability and ease-of-use shouldn't be second to performance or functionality.
+* Runtime SIMD dispatch
+* Modular backends, types, and features
+* Unified precision (fp64/fp32)
+* Dense algebra
+* GEMM
+* Solvers
 
 ## Philosophy
-- Elegance, simplicity, and readability matter more than squeezing every cycle.
-- Performance lives under the same names; it does not own the API.
+
+**Vecmat is a heartfelt ❤ love letter to the C programming language**
+— showcasing that readability and ease-of-use shouldn't be second to performance or functionality.
+
+### Priorities
+1. Elegance, simplicity, and readability matter more than squeezing every cycle.
+2. Performance lives under the same names; it does not own the API.
 
 ### Goals
 - One **common, easy-to-read API**.
