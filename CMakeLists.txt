@@ -68,10 +68,12 @@ option(VECMAT_ENABLE_SVE2 "Compile SVE2 kernels (AArch64)" ${_vecmat_arm64})
 option(VECMAT_ENABLE_FP16 "IEEE binary16 width" OFF)
 
 # Optional modules. Empty by default, so they are not part of the shipped
-# library. vendors/ is a git submodule. An entry is a path under vendors/
-# or VECMAT_MODULES_PATH, e.g. arm/cortex-a5x. A module is a backend or a width.
+# library. An entry is a path under vendors/ (recommended) or
+# VECMAT_MODULES_PATH, e.g. arm/fp16. A module is a backend or a width.
+# vendors/ may be a submodule; it is optional. Public modules live in the
+# vecmat-vendors repository.
 set(VECMAT_MODULES "" CACHE STRING
-    "Optional modules to build (e.g. arm/cortex-a5x). See doc/cpu-backends.md.")
+    "Optional modules to build (e.g. arm/fp16). See doc/modules.md.")
 set(VECMAT_MODULES_PATH "" CACHE STRING
     "Extra roots searched for <vendor>/<name>/module.cmake.")
 set(VECMAT_MODULE_HOOKS "")

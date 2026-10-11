@@ -131,8 +131,9 @@ VEC_API int vm_backend_register(const vm_backend *backend);
  *
  * Optional CPU backends copy this and override slots, then call
  * `vm_backend_register()`. The table matches this TU's float width.
- * They are not part of the default library. Cortex-A53 / A55 tuning lives
- * in the vendors submodule (`vendors/arm/cortex-a5x`). See `doc/cpu-backends.md`.
+ * Returns NULL if that ISA was not compiled. NEON, SVE, and SVE2 are
+ * provided. They are not part of the default library. See
+ * `doc/modules.md`.
  */
 VEC_API const vm_backend_ops *vm_backend_builtin(vm_cpu_features_t isa);
 

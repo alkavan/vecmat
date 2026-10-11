@@ -113,7 +113,7 @@ INPUT                  = ../include \
                          vector-usage.md \
                          matrix-usage.md \
                          numerics.md \
-                         cpu-backends.md \
+                         modules.md \
                          fp16.md
 INPUT_ENCODING         = UTF-8
 FILE_PATTERNS          = *.c \

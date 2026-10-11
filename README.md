@@ -155,12 +155,14 @@ still wins.
 
 **Optional CPU backends are not in the default library.** They register through
 `vm_backend_register()` and can be left out of a build. The docs contain some examples:
-* [How to add CPU Backends](doc/cpu-backends.md)
+* [Modules](doc/modules.md)
 
-**Cortex-A53 / A55 tuning is supported that way.** The schedule is not in this
-repository. Check `vecmat-vendors/` out beside this tree and pass
-`-DVECMAT_MODULES_PATH=../vecmat-vendors -DVECMAT_MODULES=arm/cortex-a5x`.
-`vendors/` is not a submodule here. The NEON row above is the in-tree Armv8-A
+**Public modules live in `vecmat-vendors`.** The recommended layout is a
+`vendors/` checkout under this tree (optional submodule). Then
+`-DVECMAT_MODULES=arm/fp16` is enough. If the repository is checked out beside
+the tree instead, pass `-DVECMAT_MODULES_PATH=../vecmat-vendors`. Public modules
+today are width modules (`arm/fp16`, `intel/fp16`). Private backends are loaded
+the same way from their own tree. The NEON row above is the in-tree Armv8-A
 schedule. Tests and benchmarks call `vm_backend_modules_register()` and do not
 include a backend header. A backend may append `VECMAT_MODULE_TEST_SOURCES` and
 `VECMAT_MODULE_BENCH_SOURCES`; those files live in the vendor tree.
@@ -298,17 +300,17 @@ Integer macros must match the linked library. `VECMAT_USE_F64` is per TU.
 
 ### Other CMake options
 
-| CMake flag                               | Default                                 | Effect                                                                                   |
-|------------------------------------------|-----------------------------------------|------------------------------------------------------------------------------------------|
-| `VECMAT_RUNTIME_DISPATCH`                | ON, except MSVC                         | Build the ISA probes and the dispatched kernels. OFF leaves scalar bodies only.          |
-| `VECMAT_ENABLE_AVX` / `AVX2` / `AVX512F` | ON on x86-64                            | Compile that kernel set. Ignored off x86-64. See the ISA matrix.                         |
-| `VECMAT_ENABLE_NEON` / `SVE` / `SVE2`    | ON on AArch64                           | Compile that kernel set. SVE/SVE2 are ignored on MSVC. See the ISA matrix.               |
-| `VECMAT_MODULES`                         | empty                                   | Backend paths such as `arm/cortex-a5x`, relative to `vendors/` or `VECMAT_MODULES_PATH`. |
-| `VECMAT_MODULES_PATH`                    | empty                                   | Extra root for those paths when `vendors/` is not checked out.                           |
-| `VECMAT_ENABLE_FP16`                     | OFF                                     | IEEE binary16 and `vm_gemm_fp16f32`. See `doc/fp16.md`. Not a `vm_float_t` width.        |
-| `VECMAT_BUILD_TESTS`                     | ON when Vecmat is the top-level project | Build `vecmat_tests` and `vecmat_benchmarks`.                                            |
-| `VECMAT_INSTALL`                         | ON when Vecmat is the top-level project | Generate the install rules.                                                              |
-| `WITH_THREAD_SAFETY`                     | OFF                                     | Define `DYNVEC_THREAD_SAFE` on the library.                                              |
+| CMake flag                               | Default                                 | Effect                                                                            |
+|------------------------------------------|-----------------------------------------|-----------------------------------------------------------------------------------|
+| `VECMAT_RUNTIME_DISPATCH`                | ON, except MSVC                         | Build the ISA probes and the dispatched kernels. OFF leaves scalar bodies only.   |
+| `VECMAT_ENABLE_AVX` / `AVX2` / `AVX512F` | ON on x86-64                            | Compile that kernel set. Ignored off x86-64. See the ISA matrix.                  |
+| `VECMAT_ENABLE_NEON` / `SVE` / `SVE2`    | ON on AArch64                           | Compile that kernel set. SVE/SVE2 are ignored on MSVC. See the ISA matrix.        |
+| `VECMAT_MODULES`                         | empty                                   | Module paths such as `arm/fp16`, relative to `vendors/` or `VECMAT_MODULES_PATH`. |
+| `VECMAT_MODULES_PATH`                    | empty                                   | Extra roots when modules are not under `vendors/`.                                |
+| `VECMAT_ENABLE_FP16`                     | OFF                                     | IEEE binary16 and `vm_gemm_fp16f32`. See `doc/fp16.md`. Not a `vm_float_t` width. |
+| `VECMAT_BUILD_TESTS`                     | ON when Vecmat is the top-level project | Build `vecmat_tests` and `vecmat_benchmarks`.                                     |
+| `VECMAT_INSTALL`                         | ON when Vecmat is the top-level project | Generate the install rules.                                                       |
+| `WITH_THREAD_SAFETY`                     | OFF                                     | Define `DYNVEC_THREAD_SAFE` on the library.                                       |
 
 `VECMAT_BUILD_ABI_32` and `VECMAT_BUILD_ABI_64` are derived from `VECMAT_FLOAT_ABI`. Do not set them. `VECMAT_FORCE_ISA`
 and `VECMAT_GEMM_THREADS` are environment variables, not CMake options.
