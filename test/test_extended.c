@@ -783,3 +783,135 @@ TEST_CASE(mat4_infinite_reverse_z_preset, "[graphics]") {
     const matrix4 inf_no = mat4_perspective_infinite_clip(fov, VM_F(1.0), n, VM_CLIP_RH_NO);
     REQUIRE(mat4_eq(inf_no, mat4_perspective_infinite(fov, VM_F(1.0), n)));
 }
+
+TEST_CASE(mat3_inverse_ok_singular, "[solvers]") {
+    matrix3 inv;
+    const matrix3 singular = {
+        .m11 = 1, .m21 = 2, .m31 = 3,
+        .m12 = 2, .m22 = 4, .m32 = 6,
+        .m13 = 3, .m23 = 6, .m33 = 9
+    };
+    REQUIRE(!mat3_inverse_ok(&inv, &singular));
+
+    const matrix3 id = mat3_identity();
+    REQUIRE(mat3_inverse_ok(&inv, &id));
+    REQUIRE(mat3_eq(inv, id));
+}
+
+TEST_CASE(mat3_sym_eigen_diagonal_sorted, "[solvers]") {
+    const matrix3 m = {
+        .m11 = 3, .m21 = 0, .m31 = 0,
+        .m12 = 0, .m22 = 1, .m32 = 0,
+        .m13 = 0, .m23 = 0, .m33 = 2
+    };
+    matrix3 axes;
+    const vector3 ev = mat3_sym_eigen(m, &axes);
+    REQUIRE(VECMAT_EQ(ev.x, VM_F(1.0), EPSILON));
+    REQUIRE(VECMAT_EQ(ev.y, VM_F(2.0), EPSILON));
+    REQUIRE(VECMAT_EQ(ev.z, VM_F(3.0), EPSILON));
+}
+
+TEST_CASE(mat3_polar_rotation, "[solvers]") {
+    const matrix3 Rexp = mat3_rotation_z(VM_RAD(M_PI / VM_F(3.0)));
+    matrix3 R, U;
+    REQUIRE(mat3_polar(&R, &U, &Rexp));
+    REQUIRE(mat3_eq(R, Rexp));
+    REQUIRE(mat3_eq(U, mat3_identity()));
+}
+
+TEST_CASE(mat3_polar_stretch, "[solvers]") {
+    const matrix3 S = {
+        .m11 = 2, .m21 = 0, .m31 = 0,
+        .m12 = 0, .m22 = 3, .m32 = 0,
+        .m13 = 0, .m23 = 0, .m33 = 4
+    };
+    matrix3 R, U;
+    REQUIRE(mat3_polar(&R, &U, &S));
+    REQUIRE(mat3_eq(R, mat3_identity()));
+    REQUIRE(VECMAT_EQ(U.m11, VM_F(2.0), EPSILON));
+    REQUIRE(VECMAT_EQ(U.m22, VM_F(3.0), EPSILON));
+    REQUIRE(VECMAT_EQ(U.m33, VM_F(4.0), EPSILON));
+}
+
+TEST_CASE(mat3_polar_proper, "[solvers]") {
+    const matrix3 F = {
+        .m11 = 1.2f, .m21 = 0.1f, .m31 = -0.2f,
+        .m12 = 0.3f, .m22 = 1.5f, .m32 = 0.1f,
+        .m13 = -0.1f, .m23 = 0.2f, .m33 = 0.9f
+    };
+    REQUIRE(mat3_determinant(F) > VM_F(0.0));
+    matrix3 R, U;
+    REQUIRE(mat3_polar(&R, &U, &F));
+    const matrix3 RtR = mat3_mul(mat3_transpose(R), R);
+    REQUIRE(mat3_eq(RtR, mat3_identity()));
+    REQUIRE(mat3_determinant(R) > VM_F(0.9));
+}
+
+TEST_CASE(vm_syev_diagonal, "[spectral]") {
+    vm_mat A = vm_mat_alloc(3, 3);
+    vm_mat_set(&A, 0, 0, 3);
+    vm_mat_set(&A, 1, 1, 1);
+    vm_mat_set(&A, 2, 2, 2);
+    vm_float_t ev[3];
+    vm_mat V = vm_mat_alloc(3, 3);
+    REQUIRE(vm_syev(&A, ev, &V));
+    REQUIRE(VECMAT_EQ(ev[0], VM_F(3.0), EPSILON));
+    REQUIRE(VECMAT_EQ(ev[1], VM_F(2.0), EPSILON));
+    REQUIRE(VECMAT_EQ(ev[2], VM_F(1.0), EPSILON));
+    vm_mat_free(&A);
+    vm_mat_free(&V);
+}
+
+TEST_CASE(vm_laplacian_path3, "[spectral]") {
+    /* Path graph 0-1-2 */
+    vm_mat A = vm_mat_alloc(3, 3);
+    vm_mat_set(&A, 0, 1, 1); vm_mat_set(&A, 1, 0, 1);
+    vm_mat_set(&A, 1, 2, 1); vm_mat_set(&A, 2, 1, 1);
+    vm_mat L = { 0 };
+    REQUIRE(vm_laplacian(&L, &A));
+    REQUIRE(VECMAT_EQ(vm_mat_get(&L, 0, 0), VM_F(1.0), EPSILON));
+    REQUIRE(VECMAT_EQ(vm_mat_get(&L, 1, 1), VM_F(2.0), EPSILON));
+    REQUIRE(VECMAT_EQ(vm_mat_get(&L, 2, 2), VM_F(1.0), EPSILON));
+    REQUIRE(VECMAT_EQ(vm_mat_get(&L, 0, 1), VM_F(-1.0), EPSILON));
+    REQUIRE(VECMAT_EQ(vm_mat_get(&L, 1, 2), VM_F(-1.0), EPSILON));
+    vm_mat_free(&A);
+    vm_mat_free(&L);
+}
+
+TEST_CASE(vm_syev_residual, "[spectral]") {
+    vm_mat A = vm_mat_alloc(3, 3);
+    vm_mat_set(&A, 0, 0, 2); vm_mat_set(&A, 1, 0, 1); vm_mat_set(&A, 2, 0, 0);
+    vm_mat_set(&A, 0, 1, 1); vm_mat_set(&A, 1, 1, 2); vm_mat_set(&A, 2, 1, 1);
+    vm_mat_set(&A, 0, 2, 0); vm_mat_set(&A, 1, 2, 1); vm_mat_set(&A, 2, 2, 2);
+    vm_float_t ev[3];
+    vm_mat V = vm_mat_alloc(3, 3);
+    REQUIRE(vm_syev(&A, ev, &V));
+    /* Residual ||A V - V diag(ev)|| on first column (A was overwritten, so recompute). */
+    vm_mat A2 = vm_mat_alloc(3, 3);
+    vm_mat_set(&A2, 0, 0, 2); vm_mat_set(&A2, 1, 0, 1); vm_mat_set(&A2, 2, 0, 0);
+    vm_mat_set(&A2, 0, 1, 1); vm_mat_set(&A2, 1, 1, 2); vm_mat_set(&A2, 2, 1, 1);
+    vm_mat_set(&A2, 0, 2, 0); vm_mat_set(&A2, 1, 2, 1); vm_mat_set(&A2, 2, 2, 2);
+    vm_float_t x[3], y[3];
+    for (int c = 0; c < 3; ++c) {
+        for (int r = 0; r < 3; ++r) {
+            x[r] = vm_mat_get(&V, r, c);
+        }
+        vm_matvec(y, &A2, x);
+        for (int r = 0; r < 3; ++r) {
+            REQUIRE(VECMAT_EQ(y[r], ev[c] * x[r], VM_F(1e-4)));
+        }
+    }
+    /* Orthogonality */
+    for (int i = 0; i < 3; ++i) {
+        for (int j = 0; j < 3; ++j) {
+            vm_float_t d = VM_F(0.0);
+            for (int r = 0; r < 3; ++r) {
+                d += vm_mat_get(&V, r, i) * vm_mat_get(&V, r, j);
+            }
+            REQUIRE(VECMAT_EQ(d, (i == j) ? VM_F(1.0) : VM_F(0.0), VM_F(1e-4)));
+        }
+    }
+    vm_mat_free(&A);
+    vm_mat_free(&A2);
+    vm_mat_free(&V);
+}

@@ -157,12 +157,40 @@ VEC_API matrix3 mat3_transpose(matrix3 m);
 /**
  * @brief Computes the inverse of a 3x3 matrix.
  *
+ * On a singular matrix the result is identity.
+ *
  * @see mat3_inverse_ptr
  *
  * @param m The input matrix.
  * @return The inverse matrix.
  */
 VEC_API matrix3 mat3_inverse(matrix3 m);
+
+/**
+ * @brief Inverse of a 3×3 with an `ok` flag.
+ *
+ * Returns false and leaves `*res` unchanged if the matrix is singular
+ * (scale-aware cutoff). Otherwise writes the inverse and returns true.
+ *
+ * @param res Output inverse.
+ * @param m Input matrix.
+ * @return true if invertible.
+ */
+VEC_API bool mat3_inverse_ok(matrix3 *res, const matrix3 *m);
+
+/**
+ * @brief Polar decomposition `F = R U`.
+ *
+ * `U` is symmetric positive definite, `R` is proper (`det R = 1`).
+ * Newton iteration on `C = Fᵀ F`, capped. Returns false on a singular
+ * matrix, a non-positive stretch, a reflection, or non-convergence.
+ *
+ * @param R Output rotation (proper).
+ * @param U Output stretch (symmetric positive definite).
+ * @param F Input deformation gradient.
+ * @return true on success.
+ */
+VEC_API bool mat3_polar(matrix3 *R, matrix3 *U, const matrix3 *F);
 
 /**
  * @brief Constructs a 3x3 rotation matrix around the X axis.
@@ -276,16 +304,18 @@ VEC_API matrix3 mat3_from_mat4(matrix4 m);
 VEC_API vector3 mat3_mul_vec3(matrix3 m, vector3 v);
 
 /**
- * @brief Symmetric 3x3 eigensolve (Jacobi). `m` is symmetrized as (A+A^T)/2.
+ * @brief Analytical eigenvalues of a symmetric 3×3, sorted ascending.
  *
- * Eigenvalues are unsorted principal moments. Eigenvectors are the columns
- * of the returned rotation (`axes * diag(moments) * axes^T ~= m`).
+ * `m` is symmetrized as `(A+Aᵀ)/2`. Eigenvalues are sorted ascending.
+ * Eigenvectors are the columns of `axes` when non-NULL
+ * (`axes * diag(moments) * axesᵀ ~= m`). Analytical closed form; not
+ * routed through heap SVD or Jacobi.
  *
  * @see mat3_sym_eigen_ptr
  *
  * @param m Input matrix (symmetrized internally).
  * @param axes Optional; receives eigenvector columns. May be NULL.
- * @return Eigenvalues as a vector3.
+ * @return Eigenvalues as a vector3, sorted ascending.
  */
 VEC_API vector3 mat3_sym_eigen(matrix3 m, matrix3 *axes);
 
@@ -796,13 +826,14 @@ VEC_API void mat3_mul_vec3_ptr(vector3 *res, const matrix3 *m, const vector3 *v)
 VEC_API void mat3_mul_vec2_ptr(vector2 *res, const matrix3 *m, const vector2 *v);
 
 /**
- * @brief Jacobi eigensolve of a symmetric 3x3 matrix.
+ * @brief Analytical eigensolve of a symmetric 3x3 matrix.
  *
- * `m` is first replaced by `(m + m^T) / 2`. Eigenvalues are the diagonal of
- * the rotated matrix; eigenvector `i` is column `i` of `axes`.
+ * `m` is first replaced by `(m + m^T) / 2`. Eigenvalues are sorted
+ * ascending. Eigenvector `i` is column `i` of `axes` when `axes` is
+ * non-NULL. Analytical closed form.
  *
- * @param eigenvalues Output eigenvalues.
- * @param axes Output eigenvector columns.
+ * @param eigenvalues Output eigenvalues (sorted ascending).
+ * @param axes Output eigenvector columns, or NULL.
  * @param m Input matrix (copied and symmetrized).
  */
 VEC_API void mat3_sym_eigen_ptr(vector3 *eigenvalues, matrix3 *axes, const matrix3 *m);

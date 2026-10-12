@@ -7,22 +7,28 @@ That checkout may be a git submodule; it is optional. If the repository is
 checked out elsewhere, pass its path in `VECMAT_MODULES_PATH`. Private
 modules are loaded the same way from their own tree.
 
-The loader accepts two kinds today: `backend` and `width`. A third kind,
-`feature`, will be added later. A missing `module.cmake`, or any other kind,
-is `Unknown Vecmat module`.
+The loader accepts three kinds: `backend`, `width`, and `feature`. A missing
+`module.cmake`, or any other kind, is `Unknown Vecmat module`.
 
 ## Kinds
 
-| Kind      | What it does                                                                   | Lists it appends                                      |
-|-----------|--------------------------------------------------------------------------------|-------------------------------------------------------|
-| `backend` | Registers a complete `_ptr` table with `vm_backend_register()`. A schedule.    | `VECMAT_MODULE_HOOKS`, register includes and calls.   |
-| `width`   | Overrides a slot on a core width such as fp16. Does not fill `vm_backend_ops`. | That width's lists (`VECMAT_FP16_MODULE_HOOKS`, ...). |
-| `feature` | Not accepted yet. Domain helpers that do not replace a schedule or a width.    | —                                                     |
+| Kind      | What it does                                                                   | Lists it appends                                                                        |
+|-----------|--------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------|
+| `backend` | Registers a complete `_ptr` table with `vm_backend_register()`. A schedule.    | `VECMAT_MODULE_HOOKS`, register includes and calls.                                     |
+| `width`   | Overrides a slot on a core width such as fp16. Does not fill `vm_backend_ops`. | That width's lists (`VECMAT_FP16_MODULE_HOOKS`, ...).                                   |
+| `feature` | Domain helpers. Contributes sources and headers. Does not register.            | `VECMAT_MODULE_HOOKS` (sources), optionally test/bench sources. Not the register lists. |
 
 A backend owns identity, extra HWCAP bits, and the tuned kernels. There is
 no `vm_cpu_part()` in the base library: the backend probes, then registers
 `VM_CPU_BACKEND`. A width module does not register a backend. The core owns
 the storage type; the module only overrides a slot. See `doc/fp16.md`.
+
+A `feature` module contributes sources via `VECMAT_MODULE_HOOKS` (the same
+hook the float object libraries call) and may append
+`VECMAT_MODULE_TEST_SOURCES` / `VECMAT_MODULE_BENCH_SOURCES`. It must not
+append to a backend or width register list. No feature module ships in
+0.3.x; the kind exists so 0.4.x can land domain helpers without another
+loader change.
 
 ## Layout
 

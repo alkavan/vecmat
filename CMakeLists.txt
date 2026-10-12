@@ -69,9 +69,9 @@ option(VECMAT_ENABLE_FP16 "IEEE binary16 width" OFF)
 
 # Optional modules. Empty by default, so they are not part of the shipped
 # library. An entry is a path under vendors/ (recommended) or
-# VECMAT_MODULES_PATH, e.g. arm/fp16. A module is a backend or a width.
-# vendors/ may be a submodule; it is optional. Public modules live in the
-# vecmat-vendors repository.
+# VECMAT_MODULES_PATH, e.g. arm/fp16. A module is a backend, a width, or a
+# feature. vendors/ may be a submodule; it is optional. Public modules live
+# in the vecmat-vendors repository.
 set(VECMAT_MODULES "" CACHE STRING
     "Optional modules to build (e.g. arm/fp16). See doc/modules.md.")
 set(VECMAT_MODULES_PATH "" CACHE STRING
@@ -113,11 +113,19 @@ foreach(_vecmat_mod IN LISTS VECMAT_MODULES)
                 "Width module '${_vecmat_mod}' appended to a backend list. "
                 "Use that width's lists (VECMAT_FP16_MODULE_HOOKS, ...).")
         endif()
+    elseif(VECMAT_MODULE_KIND STREQUAL "feature")
+        # Sources via VECMAT_MODULE_HOOKS. Does not register a backend or width.
+        if(NOT VECMAT_MODULE_REGISTER_INCLUDES STREQUAL _vecmat_backend_includes
+                OR NOT VECMAT_MODULE_REGISTER_CALLS STREQUAL _vecmat_backend_calls)
+            message(FATAL_ERROR
+                "Feature module '${_vecmat_mod}' appended to a backend register list. "
+                "Feature modules do not register.")
+        endif()
     else()
         message(FATAL_ERROR
             "Unknown Vecmat module '${_vecmat_mod}' "
             "(module.cmake set VECMAT_MODULE_KIND='${VECMAT_MODULE_KIND}', "
-            "expected 'backend' or 'width')")
+            "expected 'backend', 'width', or 'feature')")
     endif()
 endforeach()
 file(WRITE "${CMAKE_BINARY_DIR}/vecmat_module_register.c"
@@ -235,9 +243,12 @@ set(VECMAT_FLOAT_SOURCES
         src/features/gemm.c
         src/features/physics.c
         src/features/sparse.c
+        src/features/spectral.c
         src/solvers/lu.c
         src/solvers/qr.c
         src/solvers/svd.c
+        src/solvers/eigen3.c
+        src/solvers/polar.c
 )
 
 add_library(vecmat_shared SHARED ${VECMAT_COMMON_SOURCES})

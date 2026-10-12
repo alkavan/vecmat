@@ -484,6 +484,8 @@
 #define mat3_mul mat3_mul64
 #define mat3_transpose mat3_transpose64
 #define mat3_inverse mat3_inverse64
+#define mat3_inverse_ok mat3_inverse_ok64
+#define mat3_polar mat3_polar64
 #define mat3_rotation_x mat3_rotation_x64
 #define mat3_rotation_y mat3_rotation_y64
 #define mat3_rotation_z mat3_rotation_z64
@@ -496,6 +498,11 @@
 #define mat3_from_mat4 mat3_from_mat464
 #define mat3_mul_vec3 mat3_mul_vec364
 #define mat3_sym_eigen mat3_sym_eigen64
+#define vm_matvec vm_matvec64
+#define vm_symv vm_symv64
+#define vm_syev vm_syev64
+#define vm_laplacian vm_laplacian64
+#define vm_syev_topk vm_syev_topk64
 #define mat3_mul_vec2 mat3_mul_vec264
 #define mat3_determinant mat3_determinant64
 #define mat4_identity mat4_identity64
@@ -1394,6 +1401,8 @@
 #define mat3_mul mat3_mul32
 #define mat3_transpose mat3_transpose32
 #define mat3_inverse mat3_inverse32
+#define mat3_inverse_ok mat3_inverse_ok32
+#define mat3_polar mat3_polar32
 #define mat3_rotation_x mat3_rotation_x32
 #define mat3_rotation_y mat3_rotation_y32
 #define mat3_rotation_z mat3_rotation_z32
@@ -1406,6 +1415,11 @@
 #define mat3_from_mat4 mat3_from_mat432
 #define mat3_mul_vec3 mat3_mul_vec332
 #define mat3_sym_eigen mat3_sym_eigen32
+#define vm_matvec vm_matvec32
+#define vm_symv vm_symv32
+#define vm_syev vm_syev32
+#define vm_laplacian vm_laplacian32
+#define vm_syev_topk vm_syev_topk32
 #define mat3_mul_vec2 mat3_mul_vec232
 #define mat3_determinant mat3_determinant32
 #define mat4_identity mat4_identity32

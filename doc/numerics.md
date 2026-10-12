@@ -45,6 +45,22 @@ vm_mat_free(&A);
 vm_mat_free(&inv);
 ```
 
+## 3×3 factorizations
+
+`mat3_inverse_ok` returns false on a singular matrix (scale-aware cutoff).
+`mat3_sym_eigen` is the analytical symmetric 3×3 eigensolve, eigenvalues
+sorted ascending, eigenvectors on request. `mat3_polar` is the polar
+decomposition `F = R U` (Newton on `C = Fᵀ F`). A reflection is a failure.
+
+## Dense spectral primitives
+
+`include/vecmat/spectral.h`:
+
+- `vm_matvec`, `vm_symv` — dense matvec (symmetric reads the lower triangle)
+- `vm_syev` — Jacobi symmetric eigensolve, eigenvalues descending, `A` overwritten
+- `vm_laplacian` — unnormalized graph Laplacian `L = D − A`
+- `vm_syev_topk` — thin wrapper for the leading k eigenpairs
+
 ## Sparse systems
 
 - `vm_spmat` — square CSR from triplets
