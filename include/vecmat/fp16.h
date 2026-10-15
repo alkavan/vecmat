@@ -21,11 +21,39 @@
 typedef uint16_t vm_fp16_t; /**< IEEE binary16 bits. Not a C `_Float16`. */
 
 typedef struct vm_vec4_fp16 {
-    vm_fp16_t x, y, z, w;
+    union {
+        struct {
+            vm_fp16_t x; /**< X component. */
+            vm_fp16_t y; /**< Y component. */
+            vm_fp16_t z; /**< Z component. */
+            vm_fp16_t w; /**< W component. */
+        };
+        vm_fp16_t v[4];
+    };
 } vm_vec4_fp16;
 
 typedef struct vm_mat4_fp16 {
-    vm_fp16_t m[16]; /**< Storage only. Not a half-precision `matrix4`. */
+    union {
+        struct {
+            vm_fp16_t m11; /**< Column 0, row 0. */
+            vm_fp16_t m21; /**< Column 0, row 1. */
+            vm_fp16_t m31; /**< Column 0, row 2. */
+            vm_fp16_t m41; /**< Column 0, row 3. */
+            vm_fp16_t m12; /**< Column 1, row 0. */
+            vm_fp16_t m22; /**< Column 1, row 1. */
+            vm_fp16_t m32; /**< Column 1, row 2. */
+            vm_fp16_t m42; /**< Column 1, row 3. */
+            vm_fp16_t m13; /**< Column 2, row 0. */
+            vm_fp16_t m23; /**< Column 2, row 1. */
+            vm_fp16_t m33; /**< Column 2, row 2. */
+            vm_fp16_t m43; /**< Column 2, row 3. */
+            vm_fp16_t m14; /**< Column 3, row 0. */
+            vm_fp16_t m24; /**< Column 3, row 1. */
+            vm_fp16_t m34; /**< Column 3, row 2. */
+            vm_fp16_t m44; /**< Column 3, row 3. */
+        };
+        vm_fp16_t m[16]; /**< Elements in column-major order. */
+    };
 } vm_mat4_fp16;
 
 /**

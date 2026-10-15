@@ -46,6 +46,64 @@ TEST_CASE(fp16_inf_and_nan, "[fp16]")
     REQUIRE(isnan(vm_f32_from_fp16(0x7e00u)));
 }
 
+TEST_CASE(fp16_vec4_mat4_named_fields, "[fp16]")
+{
+    vm_vec4_fp16 v;
+    v.x = vm_fp16_from_f32(1.0f);
+    v.y = vm_fp16_from_f32(2.0f);
+    v.z = vm_fp16_from_f32(3.0f);
+    v.w = vm_fp16_from_f32(4.0f);
+    REQUIRE(v.v[0] == v.x);
+    REQUIRE(v.v[1] == v.y);
+    REQUIRE(v.v[2] == v.z);
+    REQUIRE(v.v[3] == v.w);
+    REQUIRE(vm_f32_from_fp16(v.x) == 1.0f);
+    REQUIRE(vm_f32_from_fp16(v.y) == 2.0f);
+    REQUIRE(vm_f32_from_fp16(v.z) == 3.0f);
+    REQUIRE(vm_f32_from_fp16(v.w) == 4.0f);
+
+    vm_mat4_fp16 a = {0};
+    a.m11 = vm_fp16_from_f32(1.0f);
+    a.m21 = vm_fp16_from_f32(2.0f);
+    a.m31 = vm_fp16_from_f32(3.0f);
+    a.m41 = vm_fp16_from_f32(4.0f);
+    a.m12 = vm_fp16_from_f32(5.0f);
+    a.m22 = vm_fp16_from_f32(6.0f);
+    a.m32 = vm_fp16_from_f32(7.0f);
+    a.m42 = vm_fp16_from_f32(8.0f);
+    a.m13 = vm_fp16_from_f32(9.0f);
+    a.m23 = vm_fp16_from_f32(10.0f);
+    a.m33 = vm_fp16_from_f32(11.0f);
+    a.m43 = vm_fp16_from_f32(12.0f);
+    a.m14 = vm_fp16_from_f32(13.0f);
+    a.m24 = vm_fp16_from_f32(14.0f);
+    a.m34 = vm_fp16_from_f32(15.0f);
+    a.m44 = vm_fp16_from_f32(16.0f);
+
+    /* Column-major: m[col * 4 + row] */
+    REQUIRE(a.m[0] == a.m11);
+    REQUIRE(a.m[1] == a.m21);
+    REQUIRE(a.m[2] == a.m31);
+    REQUIRE(a.m[3] == a.m41);
+    REQUIRE(a.m[4] == a.m12);
+    REQUIRE(a.m[5] == a.m22);
+    REQUIRE(a.m[6] == a.m32);
+    REQUIRE(a.m[7] == a.m42);
+    REQUIRE(a.m[8] == a.m13);
+    REQUIRE(a.m[9] == a.m23);
+    REQUIRE(a.m[10] == a.m33);
+    REQUIRE(a.m[11] == a.m43);
+    REQUIRE(a.m[12] == a.m14);
+    REQUIRE(a.m[13] == a.m24);
+    REQUIRE(a.m[14] == a.m34);
+    REQUIRE(a.m[15] == a.m44);
+
+    REQUIRE(vm_f32_from_fp16(a.m11) == 1.0f);
+    REQUIRE(vm_f32_from_fp16(a.m22) == 6.0f);
+    REQUIRE(vm_f32_from_fp16(a.m33) == 11.0f);
+    REQUIRE(vm_f32_from_fp16(a.m44) == 16.0f);
+}
+
 TEST_CASE(fp16_gemm_matches_converted_f32, "[fp16]")
 {
     vm_fp16_t a[6], b[6];
