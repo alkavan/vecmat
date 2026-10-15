@@ -51,6 +51,7 @@
 #include "vecmat/gemm.h"
 #include "vecmat/dense.h"
 #include "vecmat/spectral.h"
+#include "vecmat/sym3.h"
 #include "vecmat/sparse.h"
 #include "vecmat/ode.h"
 
