@@ -219,7 +219,7 @@ if(NOT TARGET vecmat::vecmat)
     include(FetchContent)
     FetchContent_Declare(vecmat
         GIT_REPOSITORY https://github.com/alkavan/vecmat.git
-        GIT_TAG v0.3.9
+        GIT_TAG v0.4.0
     )
     FetchContent_MakeAvailable(vecmat)
 endif()
