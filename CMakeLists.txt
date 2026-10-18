@@ -245,6 +245,7 @@ set(VECMAT_FLOAT_SOURCES
         src/features/sparse.c
         src/features/spectral.c
         src/features/sym3.c
+        src/features/strain.c
         src/solvers/lu.c
         src/solvers/qr.c
         src/solvers/svd.c

@@ -481,6 +481,7 @@ typedef void (*vm_acc_fn)(const vm_float_t *x, vm_float_t *a, void *ctx);
 #define VECMAT_CEIL(x)          ceil((x))
 #define VECMAT_ROUND(x)         round((x))
 #define VECMAT_POW(x, y)        pow((x), (y))
+#define VECMAT_LOG(x)           log((x))
 #define VECMAT_COPYSIGN(x, y)   copysign((x), (y))
 #else
 #define VECMAT_FABS(x)          fabsf((x))
@@ -498,6 +499,7 @@ typedef void (*vm_acc_fn)(const vm_float_t *x, vm_float_t *a, void *ctx);
 #define VECMAT_CEIL(x)          ceilf((x))
 #define VECMAT_ROUND(x)         roundf((x))
 #define VECMAT_POW(x, y)        powf((x), (y))
+#define VECMAT_LOG(x)           logf((x))
 #define VECMAT_COPYSIGN(x, y)   copysignf((x), (y))
 #endif
 

@@ -514,6 +514,12 @@
 #define vm_sym3_push_forward vm_sym3_push_forward64
 #define vm_sym3_dw_split vm_sym3_dw_split64
 #define vm_sym3_ddot vm_sym3_ddot64
+#define vm_strain_cauchy_green vm_strain_cauchy_green64
+#define vm_strain_green_lagrange vm_strain_green_lagrange64
+#define vm_strain_almansi vm_strain_almansi64
+#define vm_strain_logarithmic vm_strain_logarithmic64
+#define vm_strain_logarithmic_from_grad vm_strain_logarithmic_from_grad64
+#define vm_strain_rotation_to_quat vm_strain_rotation_to_quat64
 #define mat3_mul_vec2 mat3_mul_vec264
 #define mat3_determinant mat3_determinant64
 #define mat4_identity mat4_identity64
@@ -1442,6 +1448,12 @@
 #define vm_sym3_push_forward vm_sym3_push_forward32
 #define vm_sym3_dw_split vm_sym3_dw_split32
 #define vm_sym3_ddot vm_sym3_ddot32
+#define vm_strain_cauchy_green vm_strain_cauchy_green32
+#define vm_strain_green_lagrange vm_strain_green_lagrange32
+#define vm_strain_almansi vm_strain_almansi32
+#define vm_strain_logarithmic vm_strain_logarithmic32
+#define vm_strain_logarithmic_from_grad vm_strain_logarithmic_from_grad32
+#define vm_strain_rotation_to_quat vm_strain_rotation_to_quat32
 #define mat3_mul_vec2 mat3_mul_vec232
 #define mat3_determinant mat3_determinant32
 #define mat4_identity mat4_identity32
