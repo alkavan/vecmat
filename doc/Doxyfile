@@ -207,7 +207,6 @@ PREDEFINED             = VECMAT_USE_F64= \
                          VECMAT_ENABLE_NEON= \
                          VECMAT_ENABLE_SVE= \
                          VECMAT_ENABLE_SVE2= \
-                         DYNVEC_THREAD_SAFE= \
                          VECMAT_HAS_THREADS= \
                          VEC_API= \
                          VEC_BUILD_SHARED=

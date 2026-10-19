@@ -310,7 +310,6 @@ Integer macros must match the linked library. `VECMAT_USE_F64` is per TU.
 | `VECMAT_ENABLE_FP16`                     | OFF                                     | IEEE binary16 and `vm_gemm_fp16f32`. See `doc/fp16.md`. Not a `vm_float_t` width. |
 | `VECMAT_BUILD_TESTS`                     | ON when Vecmat is the top-level project | Build `vecmat_tests` and `vecmat_benchmarks`.                                     |
 | `VECMAT_INSTALL`                         | ON when Vecmat is the top-level project | Generate the install rules.                                                       |
-| `WITH_THREAD_SAFETY`                     | OFF                                     | Define `DYNVEC_THREAD_SAFE` on the library.                                       |
 
 `VECMAT_BUILD_ABI_32` and `VECMAT_BUILD_ABI_64` are derived from `VECMAT_FLOAT_ABI`. Do not set them. `VECMAT_FORCE_ISA`
 and `VECMAT_GEMM_THREADS` are environment variables, not CMake options.
