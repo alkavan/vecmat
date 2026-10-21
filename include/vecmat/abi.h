@@ -520,6 +520,13 @@
 #define vm_strain_logarithmic vm_strain_logarithmic64
 #define vm_strain_logarithmic_from_grad vm_strain_logarithmic_from_grad64
 #define vm_strain_rotation_to_quat vm_strain_rotation_to_quat64
+#define vm_geom3_barycentric vm_geom3_barycentric64
+#define vm_geom3_closest_triangle vm_geom3_closest_triangle64
+#define vm_geom3_point_triangle_gap vm_geom3_point_triangle_gap64
+#define vm_geom3_edge_edge vm_geom3_edge_edge64
+#define vm_geom3_aabb_triangle vm_geom3_aabb_triangle64
+#define vm_geom3_aabb_overlap vm_geom3_aabb_overlap64
+#define vm_geom3_cell_index vm_geom3_cell_index64
 #define mat3_mul_vec2 mat3_mul_vec264
 #define mat3_determinant mat3_determinant64
 #define mat4_identity mat4_identity64
@@ -1454,6 +1461,13 @@
 #define vm_strain_logarithmic vm_strain_logarithmic32
 #define vm_strain_logarithmic_from_grad vm_strain_logarithmic_from_grad32
 #define vm_strain_rotation_to_quat vm_strain_rotation_to_quat32
+#define vm_geom3_barycentric vm_geom3_barycentric32
+#define vm_geom3_closest_triangle vm_geom3_closest_triangle32
+#define vm_geom3_point_triangle_gap vm_geom3_point_triangle_gap32
+#define vm_geom3_edge_edge vm_geom3_edge_edge32
+#define vm_geom3_aabb_triangle vm_geom3_aabb_triangle32
+#define vm_geom3_aabb_overlap vm_geom3_aabb_overlap32
+#define vm_geom3_cell_index vm_geom3_cell_index32
 #define mat3_mul_vec2 mat3_mul_vec232
 #define mat3_determinant mat3_determinant32
 #define mat4_identity mat4_identity32
