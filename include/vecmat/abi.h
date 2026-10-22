@@ -527,6 +527,10 @@
 #define vm_geom3_aabb_triangle vm_geom3_aabb_triangle64
 #define vm_geom3_aabb_overlap vm_geom3_aabb_overlap64
 #define vm_geom3_cell_index vm_geom3_cell_index64
+#define vm_eos_ideal vm_eos_ideal64
+#define vm_eos_stiffened vm_eos_stiffened64
+#define vm_eos_mie vm_eos_mie64
+#define vm_eos_jwl vm_eos_jwl64
 #define mat3_mul_vec2 mat3_mul_vec264
 #define mat3_determinant mat3_determinant64
 #define mat4_identity mat4_identity64
@@ -1468,6 +1472,10 @@
 #define vm_geom3_aabb_triangle vm_geom3_aabb_triangle32
 #define vm_geom3_aabb_overlap vm_geom3_aabb_overlap32
 #define vm_geom3_cell_index vm_geom3_cell_index32
+#define vm_eos_ideal vm_eos_ideal32
+#define vm_eos_stiffened vm_eos_stiffened32
+#define vm_eos_mie vm_eos_mie32
+#define vm_eos_jwl vm_eos_jwl32
 #define mat3_mul_vec2 mat3_mul_vec232
 #define mat3_determinant mat3_determinant32
 #define mat4_identity mat4_identity32

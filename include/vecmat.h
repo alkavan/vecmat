@@ -54,6 +54,7 @@
 #include "vecmat/sym3.h"
 #include "vecmat/strain.h"
 #include "vecmat/geom3.h"
+#include "vecmat/eos.h"
 #include "vecmat/sparse.h"
 #include "vecmat/ode.h"
 
