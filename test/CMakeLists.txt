@@ -31,6 +31,7 @@ add_executable(vecmat_tests
         test_strain.c
         test_geom3.c
         test_eos.c
+        test_hydro.c
         test_abi.c
         ${VECMAT_MODULE_TEST_SOURCES}
 )

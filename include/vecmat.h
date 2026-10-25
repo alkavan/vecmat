@@ -55,6 +55,7 @@
 #include "vecmat/strain.h"
 #include "vecmat/geom3.h"
 #include "vecmat/eos.h"
+#include "vecmat/hydro.h"
 #include "vecmat/sparse.h"
 #include "vecmat/ode.h"
 

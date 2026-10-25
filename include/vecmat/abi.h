@@ -531,6 +531,10 @@
 #define vm_eos_stiffened vm_eos_stiffened64
 #define vm_eos_mie vm_eos_mie64
 #define vm_eos_jwl vm_eos_jwl64
+#define vm_hydro_viscous vm_hydro_viscous64
+#define vm_hydro_q vm_hydro_q64
+#define vm_hydro_rusanov vm_hydro_rusanov64
+#define vm_hydro_cfl vm_hydro_cfl64
 #define mat3_mul_vec2 mat3_mul_vec264
 #define mat3_determinant mat3_determinant64
 #define mat4_identity mat4_identity64
@@ -1476,6 +1480,10 @@
 #define vm_eos_stiffened vm_eos_stiffened32
 #define vm_eos_mie vm_eos_mie32
 #define vm_eos_jwl vm_eos_jwl32
+#define vm_hydro_viscous vm_hydro_viscous32
+#define vm_hydro_q vm_hydro_q32
+#define vm_hydro_rusanov vm_hydro_rusanov32
+#define vm_hydro_cfl vm_hydro_cfl32
 #define mat3_mul_vec2 mat3_mul_vec232
 #define mat3_determinant mat3_determinant32
 #define mat4_identity mat4_identity32

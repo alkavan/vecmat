@@ -248,6 +248,7 @@ set(VECMAT_FLOAT_SOURCES
         src/features/strain.c
         src/features/geom3.c
         src/features/eos.c
+        src/features/hydro.c
         src/solvers/lu.c
         src/solvers/qr.c
         src/solvers/svd.c
