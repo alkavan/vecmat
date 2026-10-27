@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 cmake_minimum_required(VERSION 3.21)
-project(vecmat LANGUAGES C VERSION 0.4.0)
+project(vecmat LANGUAGES C VERSION 0.4.1)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -249,6 +249,7 @@ set(VECMAT_FLOAT_SOURCES
         src/features/geom3.c
         src/features/eos.c
         src/features/hydro.c
+        src/features/project.c
         src/solvers/lu.c
         src/solvers/qr.c
         src/solvers/svd.c

@@ -30,7 +30,7 @@
 // Version
 #define VECMAT_VERSION_MAJOR 0
 #define VECMAT_VERSION_MINOR 4
-#define VECMAT_VERSION_PATCH 0
+#define VECMAT_VERSION_PATCH 1
 
 // Version macros
 #define VECMAT_STR_HELPER(x) #x
@@ -56,6 +56,7 @@
 #include "vecmat/geom3.h"
 #include "vecmat/eos.h"
 #include "vecmat/hydro.h"
+#include "vecmat/project.h"
 #include "vecmat/sparse.h"
 #include "vecmat/ode.h"
 

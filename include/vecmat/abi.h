@@ -535,6 +535,8 @@
 #define vm_hydro_q vm_hydro_q64
 #define vm_hydro_rusanov vm_hydro_rusanov64
 #define vm_hydro_cfl vm_hydro_cfl64
+#define vm_project_residual vm_project_residual64
+#define vm_project_laplacian vm_project_laplacian64
 #define mat3_mul_vec2 mat3_mul_vec264
 #define mat3_determinant mat3_determinant64
 #define mat4_identity mat4_identity64
@@ -1484,6 +1486,8 @@
 #define vm_hydro_q vm_hydro_q32
 #define vm_hydro_rusanov vm_hydro_rusanov32
 #define vm_hydro_cfl vm_hydro_cfl32
+#define vm_project_residual vm_project_residual32
+#define vm_project_laplacian vm_project_laplacian32
 #define mat3_mul_vec2 mat3_mul_vec232
 #define mat3_determinant mat3_determinant32
 #define mat4_identity mat4_identity32
