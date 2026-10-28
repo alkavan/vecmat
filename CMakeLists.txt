@@ -250,6 +250,9 @@ set(VECMAT_FLOAT_SOURCES
         src/features/eos.c
         src/features/hydro.c
         src/features/project.c
+        src/features/planck.c
+        src/features/angular.c
+        src/features/ray.c
         src/solvers/lu.c
         src/solvers/qr.c
         src/solvers/svd.c

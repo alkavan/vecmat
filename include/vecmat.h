@@ -57,6 +57,9 @@
 #include "vecmat/eos.h"
 #include "vecmat/hydro.h"
 #include "vecmat/project.h"
+#include "vecmat/planck.h"
+#include "vecmat/angular.h"
+#include "vecmat/ray.h"
 #include "vecmat/sparse.h"
 #include "vecmat/ode.h"
 
