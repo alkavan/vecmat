@@ -550,6 +550,11 @@
 #define vm_ray_tau_sum vm_ray_tau_sum64
 #define vm_ray_transmit vm_ray_transmit64
 #define vm_ray_emit vm_ray_emit64
+#define vm_raddiff_d vm_raddiff_d64
+#define vm_raddiff_limiter vm_raddiff_limiter64
+#define vm_raddiff_ratio vm_raddiff_ratio64
+#define vm_raddiff_residual vm_raddiff_residual64
+#define vm_raddiff_laplacian vm_raddiff_laplacian64
 #define mat3_mul_vec2 mat3_mul_vec264
 #define mat3_determinant mat3_determinant64
 #define mat4_identity mat4_identity64
@@ -1514,6 +1519,11 @@
 #define vm_ray_tau_sum vm_ray_tau_sum32
 #define vm_ray_transmit vm_ray_transmit32
 #define vm_ray_emit vm_ray_emit32
+#define vm_raddiff_d vm_raddiff_d32
+#define vm_raddiff_limiter vm_raddiff_limiter32
+#define vm_raddiff_ratio vm_raddiff_ratio32
+#define vm_raddiff_residual vm_raddiff_residual32
+#define vm_raddiff_laplacian vm_raddiff_laplacian32
 #define mat3_mul_vec2 mat3_mul_vec232
 #define mat3_determinant mat3_determinant32
 #define mat4_identity mat4_identity32

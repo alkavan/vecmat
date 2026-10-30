@@ -253,6 +253,7 @@ set(VECMAT_FLOAT_SOURCES
         src/features/planck.c
         src/features/angular.c
         src/features/ray.c
+        src/features/raddiff.c
         src/solvers/lu.c
         src/solvers/qr.c
         src/solvers/svd.c

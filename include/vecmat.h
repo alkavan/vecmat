@@ -60,6 +60,7 @@
 #include "vecmat/planck.h"
 #include "vecmat/angular.h"
 #include "vecmat/ray.h"
+#include "vecmat/raddiff.h"
 #include "vecmat/sparse.h"
 #include "vecmat/ode.h"
 
