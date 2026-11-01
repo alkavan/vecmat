@@ -254,6 +254,7 @@ set(VECMAT_FLOAT_SOURCES
         src/features/angular.c
         src/features/ray.c
         src/features/raddiff.c
+        src/features/sph.c
         src/solvers/lu.c
         src/solvers/qr.c
         src/solvers/svd.c

@@ -555,6 +555,10 @@
 #define vm_raddiff_ratio vm_raddiff_ratio64
 #define vm_raddiff_residual vm_raddiff_residual64
 #define vm_raddiff_laplacian vm_raddiff_laplacian64
+#define vm_sph_w vm_sph_w64
+#define vm_sph_dw vm_sph_dw64
+#define vm_sph_density vm_sph_density64
+#define vm_sph_pressure_grad vm_sph_pressure_grad64
 #define mat3_mul_vec2 mat3_mul_vec264
 #define mat3_determinant mat3_determinant64
 #define mat4_identity mat4_identity64
@@ -1524,6 +1528,10 @@
 #define vm_raddiff_ratio vm_raddiff_ratio32
 #define vm_raddiff_residual vm_raddiff_residual32
 #define vm_raddiff_laplacian vm_raddiff_laplacian32
+#define vm_sph_w vm_sph_w32
+#define vm_sph_dw vm_sph_dw32
+#define vm_sph_density vm_sph_density32
+#define vm_sph_pressure_grad vm_sph_pressure_grad32
 #define mat3_mul_vec2 mat3_mul_vec232
 #define mat3_determinant mat3_determinant32
 #define mat4_identity mat4_identity32

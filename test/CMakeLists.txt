@@ -35,6 +35,7 @@ add_executable(vecmat_tests
         test_project.c
         test_radiation.c
         test_raddiff.c
+        test_sph.c
         test_abi.c
         ${VECMAT_MODULE_TEST_SOURCES}
 )
