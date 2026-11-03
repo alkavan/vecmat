@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 cmake_minimum_required(VERSION 3.21)
-project(vecmat LANGUAGES C VERSION 0.4.1)
+project(vecmat LANGUAGES C VERSION 0.4.2)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -66,6 +66,7 @@ option(VECMAT_ENABLE_NEON "Compile NEON / ASIMD kernels (AArch64)" ${_vecmat_arm
 option(VECMAT_ENABLE_SVE "Compile SVE kernels (AArch64)" ${_vecmat_arm64})
 option(VECMAT_ENABLE_SVE2 "Compile SVE2 kernels (AArch64)" ${_vecmat_arm64})
 option(VECMAT_ENABLE_FP16 "IEEE binary16 width" OFF)
+option(VECMAT_ENABLE_BF16 "bfloat16 width" OFF)
 
 # Optional modules. Empty by default, so they are not part of the shipped
 # library. An entry is a path under vendors/ (recommended) or
@@ -82,9 +83,18 @@ set(VECMAT_MODULE_REGISTER_INCLUDES "")
 set(VECMAT_MODULE_REGISTER_CALLS "")
 set(VECMAT_MODULE_TEST_SOURCES "")
 set(VECMAT_MODULE_BENCH_SOURCES "")
+
+# FP16 module hooks
 set(VECMAT_FP16_MODULE_HOOKS "")
 set(VECMAT_FP16_MODULE_REGISTER_INCLUDES "")
 set(VECMAT_FP16_MODULE_REGISTER_CALLS "")
+
+# BF16 module hooks
+set(VECMAT_BF16_MODULE_HOOKS "")
+set(VECMAT_BF16_MODULE_REGISTER_INCLUDES "")
+set(VECMAT_BF16_MODULE_REGISTER_CALLS "")
+
+# Vendors modules registration
 foreach(_vecmat_mod IN LISTS VECMAT_MODULES)
     set(_vecmat_mod_cmake "")
     foreach(_vecmat_root "${CMAKE_CURRENT_SOURCE_DIR}/vendors" ${VECMAT_MODULES_PATH})
@@ -135,12 +145,24 @@ void vm_backend_modules_register(void)
 {
 ${VECMAT_MODULE_REGISTER_CALLS}}
 ")
+
+# Generate module registration for FP16
 if(VECMAT_ENABLE_FP16)
     file(WRITE "${CMAKE_BINARY_DIR}/vecmat_fp16_register.c"
 "${VECMAT_FP16_MODULE_REGISTER_INCLUDES}
 void vm_fp16_modules_register(void)
 {
 ${VECMAT_FP16_MODULE_REGISTER_CALLS}}
+")
+endif()
+
+# Generate module registration for BF16
+if(VECMAT_ENABLE_BF16)
+    file(WRITE "${CMAKE_BINARY_DIR}/vecmat_bf16_register.c"
+"${VECMAT_BF16_MODULE_REGISTER_INCLUDES}
+void vm_bf16_modules_register(void)
+{
+${VECMAT_BF16_MODULE_REGISTER_CALLS}}
 ")
 endif()
 unset(_vecmat_mod_cmake)
@@ -490,6 +512,24 @@ function(vecmat_add_fp16_objects name extra_private_defs)
     endforeach()
 endfunction()
 
+function(vecmat_add_bf16_objects name extra_private_defs)
+    add_library(${name} OBJECT
+            src/width/bf16_scalar.c
+            src/width/gemm_bf16f32_ref.c
+            ${CMAKE_BINARY_DIR}/vecmat_bf16_register.c)
+    target_include_directories(${name} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+    target_compile_definitions(${name} PRIVATE
+            _USE_MATH_DEFINES
+            VECMAT_ENABLE_BF16
+            ${extra_private_defs})
+    if(NOT MSVC)
+        target_compile_options(${name} PRIVATE -fno-strict-aliasing)
+    endif()
+    foreach(_vecmat_hook IN LISTS VECMAT_BF16_MODULE_HOOKS)
+        cmake_language(CALL ${_vecmat_hook} ${name})
+    endforeach()
+endfunction()
+
 set(_vecmat_float_objs)
 if(VECMAT_BUILD_ABI_32)
     vecmat_add_float_objects(vecmat_f32_shared_objs 32 "VEC_BUILD_SHARED")
@@ -499,6 +539,7 @@ if(VECMAT_BUILD_ABI_32)
     target_sources(vecmat_shared PRIVATE $<TARGET_OBJECTS:vecmat_f32_shared_objs>)
     target_sources(vecmat_static PRIVATE $<TARGET_OBJECTS:vecmat_f32_static_objs>)
 endif()
+
 if(VECMAT_BUILD_ABI_64)
     vecmat_add_float_objects(vecmat_f64_shared_objs 64 "VEC_BUILD_SHARED")
     vecmat_add_float_objects(vecmat_f64_static_objs 64 "")
@@ -516,6 +557,16 @@ if(VECMAT_ENABLE_FP16)
     target_sources(vecmat_static PRIVATE $<TARGET_OBJECTS:vecmat_fp16_static_objs>)
     target_compile_definitions(vecmat_shared PUBLIC VECMAT_ENABLE_FP16)
     target_compile_definitions(vecmat_static PUBLIC VECMAT_ENABLE_FP16)
+endif()
+
+if(VECMAT_ENABLE_BF16)
+    vecmat_add_bf16_objects(vecmat_bf16_shared_objs "VEC_BUILD_SHARED")
+    vecmat_add_bf16_objects(vecmat_bf16_static_objs "")
+    set_target_properties(vecmat_bf16_shared_objs PROPERTIES POSITION_INDEPENDENT_CODE ON)
+    target_sources(vecmat_shared PRIVATE $<TARGET_OBJECTS:vecmat_bf16_shared_objs>)
+    target_sources(vecmat_static PRIVATE $<TARGET_OBJECTS:vecmat_bf16_static_objs>)
+    target_compile_definitions(vecmat_shared PUBLIC VECMAT_ENABLE_BF16)
+    target_compile_definitions(vecmat_static PUBLIC VECMAT_ENABLE_BF16)
 endif()
 
 if(Threads_FOUND)
@@ -575,16 +626,17 @@ if(VECMAT_INSTALL)
             INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
     )
 
-    if(VECMAT_ENABLE_FP16)
-        install(DIRECTORY include/
-                DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-        )
-    else()
-        install(DIRECTORY include/
-                DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-                PATTERN "fp16.h" EXCLUDE
-        )
+    set(_vecmat_install_excludes)
+    if(NOT VECMAT_ENABLE_FP16)
+        list(APPEND _vecmat_install_excludes PATTERN "fp16.h" EXCLUDE)
     endif()
+    if(NOT VECMAT_ENABLE_BF16)
+        list(APPEND _vecmat_install_excludes PATTERN "bf16.h" EXCLUDE)
+    endif()
+    install(DIRECTORY include/
+            DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+            ${_vecmat_install_excludes}
+    )
 
     install(EXPORT vecmatTargets
             FILE vecmatTargets.cmake

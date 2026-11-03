@@ -18,33 +18,39 @@ static void vm_gemm_fp16f32_scalar(
     const int m, const int n, const int k,
     const float alpha, const float beta)
 {
-    if (m <= 0 || n <= 0 || !c)
+    if (m <= 0 || n <= 0 || !c) {
         return;
+    }
 
     for (int i = 0; i < m; ++i) {
         float *row = c + (size_t)i * (size_t)ldc;
         if (beta == 0.0f) {
-            for (int j = 0; j < n; ++j)
+            for (int j = 0; j < n; ++j) {
                 row[j] = 0.0f;
+            }
         } else if (beta != 1.0f) {
-            for (int j = 0; j < n; ++j)
+            for (int j = 0; j < n; ++j) {
                 row[j] *= beta;
+            }
         }
     }
-    if (alpha == 0.0f || k <= 0 || !a || !b)
+    if (alpha == 0.0f || k <= 0 || !a || !b) {
         return;
+    }
 
     for (int i = 0; i < m; ++i) {
         const vm_fp16_t *arow = a + (size_t)i * (size_t)lda;
         float *crow = c + (size_t)i * (size_t)ldc;
         for (int p = 0; p < k; ++p) {
             const float av = vm_f32_from_fp16(arow[p]);
-            if (av == 0.0f)
+            if (av == 0.0f) {
                 continue;
+            }
             const vm_fp16_t *brow = b + (size_t)p * (size_t)ldb;
             const float scale = alpha * av;
-            for (int j = 0; j < n; ++j)
+            for (int j = 0; j < n; ++j) {
                 crow[j] += scale * vm_f32_from_fp16(brow[j]);
+            }
         }
     }
 }
@@ -60,11 +66,14 @@ void vm_fp16_init(void)
 
 void vm_fp16_set_gemm(const vm_fp16_gemm_fn fn, const char *note)
 {
-    if (!fn)
+    if (!fn) {
         return;
+    }
+
     gemm_slot = fn;
-    if (note)
+    if (note) {
         fp16_note = note;
+    }
 }
 
 const char *vm_fp16_note(void)
@@ -79,7 +88,8 @@ void vm_gemm_fp16f32(
     const int m, const int n, const int k,
     const float alpha, const float beta)
 {
-    if (!gemm_slot)
+    if (!gemm_slot) {
         vm_fp16_init();
+    }
     gemm_slot(c, ldc, a, lda, b, ldb, m, n, k, alpha, beta);
 }
