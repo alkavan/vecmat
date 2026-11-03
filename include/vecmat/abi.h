@@ -559,6 +559,10 @@
 #define vm_sph_dw vm_sph_dw64
 #define vm_sph_density vm_sph_density64
 #define vm_sph_pressure_grad vm_sph_pressure_grad64
+#define vm_batch3_mul vm_batch3_mul64
+#define vm_batch3_inverse vm_batch3_inverse64
+#define vm_batch3_polar vm_batch3_polar64
+#define vm_batch3_ddot vm_batch3_ddot64
 #define mat3_mul_vec2 mat3_mul_vec264
 #define mat3_determinant mat3_determinant64
 #define mat4_identity mat4_identity64
@@ -1534,6 +1538,10 @@
 #define vm_sph_dw vm_sph_dw32
 #define vm_sph_density vm_sph_density32
 #define vm_sph_pressure_grad vm_sph_pressure_grad32
+#define vm_batch3_mul vm_batch3_mul32
+#define vm_batch3_inverse vm_batch3_inverse32
+#define vm_batch3_polar vm_batch3_polar32
+#define vm_batch3_ddot vm_batch3_ddot32
 #define mat3_mul_vec2 mat3_mul_vec232
 #define mat3_determinant mat3_determinant32
 #define mat4_identity mat4_identity32

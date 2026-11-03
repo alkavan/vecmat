@@ -62,6 +62,7 @@
 #include "vecmat/ray.h"
 #include "vecmat/raddiff.h"
 #include "vecmat/sph.h"
+#include "vecmat/batch3.h"
 #include "vecmat/sparse.h"
 #include "vecmat/ode.h"
 
