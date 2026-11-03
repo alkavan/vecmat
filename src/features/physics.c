@@ -517,3 +517,48 @@ void vm_mac_curl_z(vm_float_t *cz, const vm_float_t *u, const vm_float_t *v, con
         }
     }
 }
+
+bool vm_lumped_accel(vm_float_t *a, const vm_float_t *f, const vm_float_t *m,
+                     const int n, const int dim)
+{
+    if (!a || !f || !m || n <= 0 || dim < 1 || dim > 3) {
+        return false;
+    }
+
+    for (int i = 0; i < n; ++i) {
+        if (m[i] <= VM_F(0.0)) {
+            return false;
+        }
+    }
+
+    for (int i = 0; i < n; ++i) {
+        const vm_float_t inv = VM_F(1.0) / m[i];
+        for (int c = 0; c < dim; ++c) {
+            a[i * dim + c] = f[i * dim + c] * inv;
+        }
+    }
+
+    return true;
+}
+
+bool vm_rayleigh(vm_float_t *f, const vm_float_t *m, const vm_float_t *v,
+                 const vm_float_t *f_int, const int n, const int dim,
+                 const vm_float_t alpha, const vm_float_t beta)
+{
+    if (!f || !m || !v || n <= 0 || dim < 1 || dim > 3) {
+        return false;
+    }
+
+    for (int i = 0; i < n; ++i) {
+        for (int c = 0; c < dim; ++c) {
+            const int k = i * dim + c;
+            vm_float_t d = alpha * m[i] * v[k];
+            if (f_int) {
+                d += beta * f_int[k];
+            }
+            f[k] -= d;
+        }
+    }
+
+    return true;
+}

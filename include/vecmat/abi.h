@@ -649,6 +649,8 @@
 #define vm_rigid_energy vm_rigid_energy64
 #define vm_rigid_step vm_rigid_step64
 #define vm_baumgarte_correct vm_baumgarte_correct64
+#define vm_lumped_accel vm_lumped_accel64
+#define vm_rayleigh vm_rayleigh64
 #define vm_grid3_make vm_grid3_make64
 #define vm_grid_ncells vm_grid_ncells64
 #define vm_grid_cell vm_grid_cell64
@@ -1622,6 +1624,8 @@
 #define vm_rigid_energy vm_rigid_energy32
 #define vm_rigid_step vm_rigid_step32
 #define vm_baumgarte_correct vm_baumgarte_correct32
+#define vm_lumped_accel vm_lumped_accel32
+#define vm_rayleigh vm_rayleigh32
 #define vm_grid3_make vm_grid3_make32
 #define vm_grid_ncells vm_grid_ncells32
 #define vm_grid_cell vm_grid_cell32

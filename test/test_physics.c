@@ -406,3 +406,25 @@ TEST_CASE(vm_project_mac_field, "[grid]") {
     free(gv);
     vm_spmat_free(&A);
 }
+
+TEST_CASE(lumped_accel_scales_force, "[physics]") {
+    const vm_float_t f[] = { VM_F(3.0), VM_F(6.0), VM_F(9.0), VM_F(4.0) };
+    const vm_float_t m[] = { VM_F(1.5), VM_F(2.0) };
+    vm_float_t a[4];
+    REQUIRE(vm_lumped_accel(a, f, m, 2, 2));
+    REQUIRE(VECMAT_EQ(a[0], VM_F(2.0), EPSILON));
+    REQUIRE(VECMAT_EQ(a[1], VM_F(4.0), EPSILON));
+    REQUIRE(VECMAT_EQ(a[2], VM_F(4.5), EPSILON));
+    REQUIRE(VECMAT_EQ(a[3], VM_F(2.0), EPSILON));
+    REQUIRE(!vm_lumped_accel(a, f, (vm_float_t[]){ VM_F(0.0), VM_F(1.0) }, 2, 2));
+}
+
+TEST_CASE(rayleigh_damps_force, "[physics]") {
+    vm_float_t f[] = { VM_F(10.0), VM_F(8.0) };
+    const vm_float_t m[] = { VM_F(2.0) };
+    const vm_float_t v[] = { VM_F(1.0), VM_F(0.5) };
+    const vm_float_t f_int[] = { VM_F(4.0), VM_F(2.0) };
+    REQUIRE(vm_rayleigh(f, m, v, f_int, 1, 2, VM_F(0.5), VM_F(0.25)));
+    REQUIRE(VECMAT_EQ(f[0], VM_F(10.0) - VM_F(1.0) - VM_F(1.0), EPSILON));
+    REQUIRE(VECMAT_EQ(f[1], VM_F(8.0) - VM_F(0.5) - VM_F(0.5), EPSILON));
+}

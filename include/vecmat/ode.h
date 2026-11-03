@@ -309,4 +309,39 @@ VEC_API void vm_mac_grad(vm_float_t *gu, vm_float_t *gv, vm_float_t *gw, const v
  */
 VEC_API void vm_mac_curl_z(vm_float_t *cz, const vm_float_t *u, const vm_float_t *v, vm_grid3 g);
 
+/**
+ * @brief Lumped acceleration scale \(a = f / m\).
+ *
+ * Force and acceleration are interleaved, `n` nodes by `dim` components.
+ * Mass is per node. `m[i] > 0` is required.
+ *
+ * @param a Output acceleration; length `n * dim`.
+ * @param f Force; length `n * dim`.
+ * @param m Mass; length `n`.
+ * @param n Number of nodes.
+ * @param dim Components per node, 1, 2, or 3.
+ * @return false if a pointer is NULL or any mass is non-positive.
+ */
+VEC_API bool vm_lumped_accel(vm_float_t *a, const vm_float_t *f,
+                             const vm_float_t *m, int n, int dim);
+
+/**
+ * @brief Rayleigh damping saxpy, \(f -= \alpha m v + \beta f_{int}\).
+ *
+ * Component-wise over interleaved arrays. `f_int` may be NULL.
+ *
+ * @param f Force, updated in place; length `n * dim`.
+ * @param m Mass; length `n`.
+ * @param v Velocity; length `n * dim`.
+ * @param f_int Internal force; length `n * dim`, or NULL.
+ * @param n Number of nodes.
+ * @param dim Components per node, 1, 2, or 3.
+ * @param alpha Mass-proportional damping coefficient.
+ * @param beta Stiffness-proportional damping coefficient.
+ * @return false if a required pointer is NULL.
+ */
+VEC_API bool vm_rayleigh(vm_float_t *f, const vm_float_t *m, const vm_float_t *v,
+                         const vm_float_t *f_int, int n, int dim,
+                         vm_float_t alpha, vm_float_t beta);
+
 #endif //VECMAT_ODE_H
