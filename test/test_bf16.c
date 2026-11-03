@@ -65,7 +65,8 @@ TEST_CASE(bf16_gemm_matches_reference, "[bf16]")
     for (int i = 0; i < m * n; ++i)
         REQUIRE(near(c[i], ref[i], 1e-5f));
     REQUIRE(strcmp(vm_bf16_note(), "bf16=scalar") == 0
-            || strcmp(vm_bf16_note(), "bf16=avx512bf16") == 0);
+            || strcmp(vm_bf16_note(), "bf16=avx512bf16") == 0
+            || strcmp(vm_bf16_note(), "bf16=neonbf16") == 0);
 }
 
 TEST_CASE(bf16_gemm_long_k_stays_f32, "[bf16]")
