@@ -114,7 +114,11 @@ INPUT                  = ../include \
                          matrix-usage.md \
                          numerics.md \
                          modules.md \
-                         fp16.md
+                         fp16.md \
+                         bf16.md \
+                         explicit.md \
+                         hydro.md \
+                         radiation.md
 INPUT_ENCODING         = UTF-8
 FILE_PATTERNS          = *.c \
                          *.h \

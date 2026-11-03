@@ -14,7 +14,8 @@ Row-major and column-major layouts.
 
 Packed 8×8 ukernel, TLS pack workspace `MC=NC=KC=128`, persistent thread
 pool. Cap threads with `vm_gemm_set_threads(n)` or `VECMAT_GEMM_THREADS`.
-fp16 / bf16 are not in this release. This is not a BLAS.
+fp16 and bf16 are optional widths, off by default. See [`doc/fp16.md`](fp16.md)
+and [`doc/bf16.md`](bf16.md). This is not a BLAS.
 
 Contract: `vm_gemm` matches `vm_gemm_ref` for trans / no-trans, row / col,
 odd sizes, `beta ≠ 0`, and batch shared-`B`, on a size band of about 32–512.
@@ -138,7 +139,8 @@ Geometric `vec3_project` (onto a direction) is unchanged:
 - `vec3_world_to_window` / `vec3_window_to_world`
 - `vec3_world_to_window_clip` / `vec3_window_to_world_clip`
 
-**Affine inverse and normal matrices** — skip the 4×4 adjugate when the transform is `[A t; 0 1]`:
+**Affine inverse and normal matrices** — skip the 4×4 adjugate when the
+transform is `[A t; 0 1]`:
 
 - `mat4_inverse_affine` — invert the 3×3 linear part and apply it to the translation
 - `mat3_normal` / `mat4_normal` — inverse-transpose of the 3×3 for transforming normals
