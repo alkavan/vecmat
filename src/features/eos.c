@@ -3,7 +3,35 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include <vecmat.h>
+
 #include "vecmat/eos.h"
+#include "vecmat/cpu.h"
+
+#if defined(VECMAT_ENABLE_AVX2)
+bool vm_eos_ideal_n_avx2(vm_float_t *p, vm_float_t *c,
+                         const vm_ideal_gas *eos,
+                         const vm_float_t *rho, int rho_stride,
+                         const vm_float_t *e, int e_stride, int n);
+bool vm_eos_stiffened_n_avx2(vm_float_t *p, vm_float_t *c,
+                             const vm_stiff_gas *eos,
+                             const vm_float_t *rho, int rho_stride,
+                             const vm_float_t *e, int e_stride, int n);
+#endif
+#if defined(VECMAT_ENABLE_NEON)
+bool vm_eos_ideal_n_neon(vm_float_t *p, vm_float_t *c,
+                         const vm_ideal_gas *eos,
+                         const vm_float_t *rho, int rho_stride,
+                         const vm_float_t *e, int e_stride, int n);
+bool vm_eos_stiffened_n_neon(vm_float_t *p, vm_float_t *c,
+                             const vm_stiff_gas *eos,
+                             const vm_float_t *rho, int rho_stride,
+                             const vm_float_t *e, int e_stride, int n);
+#endif
+
+static bool eos_fail_item(const vm_eos_state *st)
+{
+    return !st->ok;
+}
 
 static bool finish(vm_eos_state *out, const vm_float_t p, const vm_float_t c2)
 {
@@ -145,4 +173,106 @@ bool vm_eos_jwl(vm_eos_state *out, const vm_jwl *eos,
     const vm_float_t c2 = dp_drho + (p / (rho * rho)) * dp_de;
 
     return finish(out, p, c2);
+}
+
+bool vm_eos_ideal_n(vm_float_t *p, vm_float_t *c, const vm_ideal_gas *eos,
+                    const vm_float_t *rho, const int rho_stride,
+                    const vm_float_t *e, const int e_stride, const int n)
+{
+    if (!p || !c || !eos || !rho || !e || n <= 0 || eos->gamma <= VM_F(1.0)) {
+        return false;
+    }
+
+#if defined(VECMAT_ENABLE_AVX2)
+    if ((vm_cpu_runtime_features() & VM_CPU_AVX2) != 0) {
+        return vm_eos_ideal_n_avx2(p, c, eos, rho, rho_stride, e, e_stride, n);
+    }
+#endif
+#if defined(VECMAT_ENABLE_NEON)
+    if ((vm_cpu_runtime_features() & VM_CPU_NEON) != 0) {
+        return vm_eos_ideal_n_neon(p, c, eos, rho, rho_stride, e, e_stride, n);
+    }
+#endif
+
+    for (int i = 0; i < n; ++i) {
+        vm_eos_state st;
+        if (!vm_eos_ideal(&st, eos, rho[i * rho_stride], e[i * e_stride]) || eos_fail_item(&st)) {
+            return false;
+        }
+        p[i] = st.p;
+        c[i] = st.c;
+    }
+
+    return true;
+}
+
+bool vm_eos_stiffened_n(vm_float_t *p, vm_float_t *c, const vm_stiff_gas *eos,
+                        const vm_float_t *rho, const int rho_stride,
+                        const vm_float_t *e, const int e_stride, const int n)
+{
+    if (!p || !c || !eos || !rho || !e || n <= 0 || eos->gamma <= VM_F(1.0)) {
+        return false;
+    }
+
+#if defined(VECMAT_ENABLE_AVX2)
+    if ((vm_cpu_runtime_features() & VM_CPU_AVX2) != 0) {
+        return vm_eos_stiffened_n_avx2(p, c, eos, rho, rho_stride, e, e_stride, n);
+    }
+#endif
+#if defined(VECMAT_ENABLE_NEON)
+    if ((vm_cpu_runtime_features() & VM_CPU_NEON) != 0) {
+        return vm_eos_stiffened_n_neon(p, c, eos, rho, rho_stride, e, e_stride, n);
+    }
+#endif
+
+    for (int i = 0; i < n; ++i) {
+        vm_eos_state st;
+        if (!vm_eos_stiffened(&st, eos, rho[i * rho_stride], e[i * e_stride]) || eos_fail_item(&st)) {
+            return false;
+        }
+        p[i] = st.p;
+        c[i] = st.c;
+    }
+
+    return true;
+}
+
+bool vm_eos_mie_n(vm_float_t *p, vm_float_t *c, const vm_mie *eos,
+                  const vm_float_t *rho, const int rho_stride,
+                  const vm_float_t *e, const int e_stride, const int n)
+{
+    if (!p || !c || !eos || !rho || !e || n <= 0) {
+        return false;
+    }
+
+    for (int i = 0; i < n; ++i) {
+        vm_eos_state st;
+        if (!vm_eos_mie(&st, eos, rho[i * rho_stride], e[i * e_stride]) || eos_fail_item(&st)) {
+            return false;
+        }
+        p[i] = st.p;
+        c[i] = st.c;
+    }
+
+    return true;
+}
+
+bool vm_eos_jwl_n(vm_float_t *p, vm_float_t *c, const vm_jwl *eos,
+                  const vm_float_t *rho, const int rho_stride,
+                  const vm_float_t *e, const int e_stride, const int n)
+{
+    if (!p || !c || !eos || !rho || !e || n <= 0) {
+        return false;
+    }
+
+    for (int i = 0; i < n; ++i) {
+        vm_eos_state st;
+        if (!vm_eos_jwl(&st, eos, rho[i * rho_stride], e[i * e_stride]) || eos_fail_item(&st)) {
+            return false;
+        }
+        p[i] = st.p;
+        c[i] = st.c;
+    }
+
+    return true;
 }

@@ -12,6 +12,8 @@
  *
  * Each call returns `ok = false` on non-positive density or on a negative
  * \(c^2\). No clamping. f64 is the contract; f32 uses the same formula.
+ * The `_n` forms are strided batches: item `i` reads `rho[i * rho_stride]`
+ * and writes `p[i]`, `c[i]`. A failure leaves that item and the rest unwritten.
  */
 
 #include "vecmat/types.h"
@@ -98,5 +100,49 @@ VEC_API bool vm_eos_mie(vm_eos_state *out, const vm_mie *eos,
  */
 VEC_API bool vm_eos_jwl(vm_eos_state *out, const vm_jwl *eos,
                         vm_float_t rho, vm_float_t e);
+
+/**
+ * @brief Batched ideal gas.
+ *
+ * @return false if `n` is non-positive, gamma is not > 1, or any item fails.
+ */
+VEC_API bool vm_eos_ideal_n(vm_float_t *p, vm_float_t *c,
+                            const vm_ideal_gas *eos,
+                            const vm_float_t *rho, int rho_stride,
+                            const vm_float_t *e, int e_stride,
+                            int n);
+
+/**
+ * @brief Batched stiffened gas.
+ *
+ * @return false if `n` is non-positive, gamma is not > 1, or any item fails.
+ */
+VEC_API bool vm_eos_stiffened_n(vm_float_t *p, vm_float_t *c,
+                                const vm_stiff_gas *eos,
+                                const vm_float_t *rho, int rho_stride,
+                                const vm_float_t *e, int e_stride,
+                                int n);
+
+/**
+ * @brief Batched Mie–Grüneisen. Scalar; the per-item branch stays.
+ *
+ * @return false if `n` is non-positive or any item fails.
+ */
+VEC_API bool vm_eos_mie_n(vm_float_t *p, vm_float_t *c,
+                          const vm_mie *eos,
+                          const vm_float_t *rho, int rho_stride,
+                          const vm_float_t *e, int e_stride,
+                          int n);
+
+/**
+ * @brief Batched Jones–Wilkins–Lee. Scalar.
+ *
+ * @return false if `n` is non-positive or any item fails.
+ */
+VEC_API bool vm_eos_jwl_n(vm_float_t *p, vm_float_t *c,
+                          const vm_jwl *eos,
+                          const vm_float_t *rho, int rho_stride,
+                          const vm_float_t *e, int e_stride,
+                          int n);
 
 #endif //VECMAT_EOS_H

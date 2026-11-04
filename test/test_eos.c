@@ -84,3 +84,61 @@ TEST_CASE(eos_jwl_tnt_cj_point, "[eos]") {
     REQUIRE(st.ok);
     REQUIRE(VECMAT_EQ(st.p, p_cj, p_cj * VM_F(1.0e-3)));
 }
+
+TEST_CASE(eos_ideal_n_matches_scalar, "[eos]") {
+    const vm_ideal_gas eos = { .gamma = VM_F(1.4) };
+    enum { n = 10, stride = 3 };
+    vm_float_t rho[n * stride], e[n * stride], p[n], c[n];
+    for (int i = 0; i < n; ++i) {
+        rho[i * stride] = VM_F(1.0) + VM_F(0.1) * (vm_float_t)i;
+        e[i * stride] = VM_F(2.0);
+    }
+    REQUIRE(vm_eos_ideal_n(p, c, &eos, rho, stride, e, stride, n));
+    for (int i = 0; i < n; ++i) {
+        vm_eos_state st;
+        REQUIRE(vm_eos_ideal(&st, &eos, rho[i * stride], e[i * stride]));
+        REQUIRE(VECMAT_EQ(p[i], st.p, EPSILON));
+        REQUIRE(VECMAT_EQ(c[i], st.c, EPSILON));
+    }
+    rho[2 * stride] = VM_F(0.0);
+    REQUIRE(!vm_eos_ideal_n(p, c, &eos, rho, stride, e, stride, n));
+}
+
+TEST_CASE(eos_stiffened_n_matches_scalar, "[eos]") {
+    const vm_stiff_gas eos = { .gamma = VM_F(1.4), .p_inf = VM_F(0.5) };
+    enum { n = 6 };
+    vm_float_t rho[n], e[n], p[n], c[n];
+    for (int i = 0; i < n; ++i) {
+        rho[i] = VM_F(1.0);
+        e[i] = VM_F(3.0) + VM_F(0.2) * (vm_float_t)i;
+    }
+    REQUIRE(vm_eos_stiffened_n(p, c, &eos, rho, 1, e, 1, n));
+    for (int i = 0; i < n; ++i) {
+        vm_eos_state st;
+        REQUIRE(vm_eos_stiffened(&st, &eos, rho[i], e[i]));
+        REQUIRE(VECMAT_EQ(p[i], st.p, EPSILON));
+        REQUIRE(VECMAT_EQ(c[i], st.c, EPSILON));
+    }
+}
+
+TEST_CASE(eos_mie_jwl_n_match_scalar, "[eos]") {
+    const vm_mie mie = { .rho0 = VM_F(1.0), .c0 = VM_F(1.0), .s = VM_F(1.5), .gamma0 = VM_F(2.0) };
+    vm_float_t rho[2] = { VM_F(1.0), VM_F(1.2) };
+    vm_float_t e[2] = { VM_F(0.0), VM_F(0.1) };
+    vm_float_t p[2], c[2];
+    REQUIRE(vm_eos_mie_n(p, c, &mie, rho, 1, e, 1, 2));
+    for (int i = 0; i < 2; ++i) {
+        vm_eos_state st;
+        REQUIRE(vm_eos_mie(&st, &mie, rho[i], e[i]));
+        REQUIRE(VECMAT_EQ(p[i], st.p, EPSILON));
+        REQUIRE(VECMAT_EQ(c[i], st.c, EPSILON));
+    }
+    const vm_jwl jwl = { .rho0 = VM_F(1.0), .a = VM_F(1.0), .b = VM_F(0.1),
+                         .r1 = VM_F(4.0), .r2 = VM_F(1.0), .omega = VM_F(0.3) };
+    REQUIRE(vm_eos_jwl_n(p, c, &jwl, rho, 1, e, 1, 2));
+    for (int i = 0; i < 2; ++i) {
+        vm_eos_state st;
+        REQUIRE(vm_eos_jwl(&st, &jwl, rho[i], e[i]));
+        REQUIRE(VECMAT_EQ(p[i], st.p, EPSILON));
+    }
+}
