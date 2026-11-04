@@ -351,3 +351,127 @@ TEST_CASE(sph_neighbor_rejects_bad_input, "[sph]") {
     REQUIRE(!vm_sph_grid_fit(&g, x, NULL, NULL, 1, VM_F(1.0), 0));
     REQUIRE(vm_sph_ncells(NULL) == 0);
 }
+
+TEST_CASE(sph_continuity_approaching, "[sph]") {
+    const vm_float_t x[] = { VM_F(0.0), VM_F(1.0) };
+    const vm_float_t vx[] = { VM_F(1.0), VM_F(-1.0) };
+    const vm_float_t m[] = { VM_F(1.0), VM_F(1.0) };
+    const int nb[] = { 1 };
+    const vm_float_t h = VM_F(1.0);
+    const vm_float_t rate = vm_sph_continuity(x, NULL, NULL, vx, NULL, NULL, m,
+                                              0, nb, 1, h, 1, VM_SPH_CUBIC);
+    const vm_float_t r = VM_F(1.0);
+    const vm_float_t expect = m[1] * (vx[0] - vx[1]) * (x[0] - x[1])
+                            * vm_sph_dw(r, h, 1, VM_SPH_CUBIC) / r;
+    REQUIRE(VECMAT_EQ(rate, expect, EPSILON * VECMAT_FABS(expect) + EPSILON));
+    REQUIRE(rate > VM_F(0.0));
+    REQUIRE(vm_sph_continuity(x, NULL, NULL, vx, NULL, NULL, m,
+                              0, NULL, 0, h, 1, VM_SPH_CUBIC) == VM_F(0.0));
+}
+
+TEST_CASE(sph_viscosity_opposes_shear, "[sph]") {
+    const vm_float_t x[] = { VM_F(0.0), VM_F(1.0) };
+    const vm_float_t vx[] = { VM_F(1.0), VM_F(0.0) };
+    const vm_float_t m[] = { VM_F(1.0), VM_F(1.0) };
+    const vm_float_t rho[] = { VM_F(1.0), VM_F(1.0) };
+    const vm_float_t mu[] = { VM_F(0.1), VM_F(0.1) };
+    const int nb[] = { 1 };
+    vm_float_t ax, ay;
+    REQUIRE(vm_sph_viscosity(&ax, &ay, NULL, x, NULL, NULL, vx, NULL, NULL,
+                             m, rho, mu, 0, nb, 1, VM_F(1.0), VM_F(0.01),
+                             1, VM_SPH_CUBIC));
+    REQUIRE(ax < VM_F(0.0));
+    REQUIRE(ay == VM_F(0.0));
+}
+
+TEST_CASE(sph_pi_compression_only, "[sph]") {
+    const vm_float_t pi = vm_sph_pi(VM_F(1.0), VM_F(-1.0),
+                                    VM_F(1.0), VM_F(1.0), VM_F(1.0), VM_F(1.0),
+                                    VM_F(1.0), VM_F(1.0), VM_F(2.0), VM_F(0.01));
+    REQUIRE(pi > VM_F(0.0));
+    REQUIRE(vm_sph_pi(VM_F(1.0), VM_F(1.0), VM_F(1.0), VM_F(1.0),
+                      VM_F(1.0), VM_F(1.0), VM_F(1.0), VM_F(1.0),
+                      VM_F(2.0), VM_F(0.01)) == VM_F(0.0));
+}
+
+TEST_CASE(sph_artvisc_slows_approach, "[sph]") {
+    const vm_float_t x[] = { VM_F(0.0), VM_F(1.0) };
+    const vm_float_t vx[] = { VM_F(1.0), VM_F(-1.0) };
+    const vm_float_t m[] = { VM_F(1.0), VM_F(1.0) };
+    const vm_float_t rho[] = { VM_F(1.0), VM_F(1.0) };
+    const vm_float_t c[] = { VM_F(1.0), VM_F(1.0) };
+    const int nb[] = { 1 };
+    vm_float_t ax, ay;
+    REQUIRE(vm_sph_artvisc(&ax, &ay, NULL, x, NULL, NULL, vx, NULL, NULL,
+                           m, rho, c, 0, nb, 1, VM_F(1.0), VM_F(1.0), VM_F(2.0),
+                           VM_F(0.01), 1, VM_SPH_CUBIC));
+    REQUIRE(ax < VM_F(0.0));
+}
+
+TEST_CASE(sph_xsph_pulls_toward_neighbor, "[sph]") {
+    const vm_float_t x[] = { VM_F(0.0), VM_F(0.5) };
+    const vm_float_t vx[] = { VM_F(0.0), VM_F(2.0) };
+    const vm_float_t m[] = { VM_F(1.0), VM_F(1.0) };
+    const vm_float_t rho[] = { VM_F(1.0), VM_F(1.0) };
+    const int nb[] = { 1 };
+    vm_float_t dvx, dvy;
+    REQUIRE(vm_sph_xsph(&dvx, &dvy, NULL, x, NULL, NULL, vx, NULL, NULL,
+                        m, rho, 0, nb, 1, VM_F(1.0), VM_F(0.5), 1, VM_SPH_CUBIC));
+    const vm_float_t expect = VM_F(0.5) * m[1] / rho[1]
+                            * vm_sph_w(VM_F(0.5), VM_F(1.0), 1, VM_SPH_CUBIC)
+                            * (vx[1] - vx[0]);
+    REQUIRE(VECMAT_EQ(dvx, expect, EPSILON * VECMAT_FABS(expect) + EPSILON));
+    REQUIRE(dvx > VM_F(0.0));
+}
+
+TEST_CASE(sph_tensile_only_in_tension, "[sph]") {
+    const vm_float_t x[] = { VM_F(0.0), VM_F(0.5) };
+    const vm_float_t m[] = { VM_F(1.0), VM_F(1.0) };
+    const vm_float_t rho[] = { VM_F(1.0), VM_F(1.0) };
+    const vm_float_t pt[] = { VM_F(-1.0), VM_F(-1.0) };
+    const vm_float_t pc[] = { VM_F(1.0), VM_F(1.0) };
+    const int nb[] = { 1 };
+    vm_float_t ax, ay;
+    REQUIRE(vm_sph_tensile(&ax, &ay, NULL, x, NULL, NULL, m, rho, pt,
+                           0, nb, 1, VM_F(1.0), VM_F(0.5), VM_F(0.2), 4,
+                           1, VM_SPH_CUBIC));
+    REQUIRE(ax < VM_F(0.0));
+    REQUIRE(vm_sph_tensile(&ax, &ay, NULL, x, NULL, NULL, m, rho, pc,
+                           0, nb, 1, VM_F(1.0), VM_F(0.5), VM_F(0.2), 4,
+                           1, VM_SPH_CUBIC));
+    REQUIRE(ax == VM_F(0.0));
+}
+
+TEST_CASE(sph_wall_repels_inside_cutoff, "[sph]") {
+    vm_float_t ax, ay, az;
+    REQUIRE(vm_sph_wall(&ax, &ay, &az, VM_F(0.25), VM_F(0.0), VM_F(0.0),
+                        VM_F(0.0), VM_F(0.0), VM_F(0.0),
+                        VM_F(1.0), VM_F(0.0), VM_F(0.0),
+                        VM_F(1.0), VM_F(1.0)));
+    REQUIRE(ax > VM_F(0.0));
+    REQUIRE(ay == VM_F(0.0));
+    REQUIRE(vm_sph_wall(&ax, &ay, &az, VM_F(2.0), VM_F(0.0), VM_F(0.0),
+                        VM_F(0.0), VM_F(0.0), VM_F(0.0),
+                        VM_F(1.0), VM_F(0.0), VM_F(0.0),
+                        VM_F(1.0), VM_F(1.0)));
+    REQUIRE(ax == VM_F(0.0));
+    REQUIRE(vm_sph_wall(&ax, &ay, &az, VM_F(-0.5), VM_F(0.0), VM_F(0.0),
+                        VM_F(0.0), VM_F(0.0), VM_F(0.0),
+                        VM_F(1.0), VM_F(0.0), VM_F(0.0),
+                        VM_F(1.0), VM_F(1.0)));
+    REQUIRE(ax == VM_F(0.0));
+}
+
+TEST_CASE(sph_boundary_repels_inside_r0, "[sph]") {
+    const vm_float_t x[] = { VM_F(0.0), VM_F(0.5), VM_F(3.0) };
+    const vm_float_t m[] = { VM_F(1.0), VM_F(1.0), VM_F(1.0) };
+    const int near_b[] = { 1 };
+    const int far_b[] = { 2 };
+    vm_float_t ax, ay;
+    REQUIRE(vm_sph_boundary(&ax, &ay, NULL, x, NULL, NULL, m, 0, near_b, 1,
+                            VM_F(1.0), VM_F(1.0), 1));
+    REQUIRE(ax < VM_F(0.0));
+    REQUIRE(vm_sph_boundary(&ax, &ay, NULL, x, NULL, NULL, m, 0, far_b, 1,
+                            VM_F(1.0), VM_F(1.0), 1));
+    REQUIRE(ax == VM_F(0.0));
+}

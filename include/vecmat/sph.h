@@ -7,7 +7,7 @@
 
 /**
  * @file
- * @brief SPH kernels, density sum, and symmetric pressure gradient.
+ * @brief SPH kernels and per-particle discretizations.
  * @ingroup vecmat_extras
  *
  * Cubic spline and Wendland C2, both supported on \(r < 2h\) and normalized
@@ -100,6 +100,145 @@ VEC_API bool vm_sph_pressure_grad(vm_float_t *gx, vm_float_t *gy, vm_float_t *gz
                                   const vm_float_t *rho, const vm_float_t *p,
                                   int i, const int *neighbors, int nn,
                                   vm_float_t h, int dim, int kernel);
+
+/**
+ * @brief Continuity rate \(d\rho_i/dt = \sum_j m_j (v_i - v_j)\cdot\nabla W_{ij}\).
+ *
+ * No self term. An empty neighbor list returns 0. This is the rate; the
+ * caller integrates it.
+ *
+ * @return The rate. Zero on invalid input.
+ */
+VEC_API vm_float_t vm_sph_continuity(const vm_float_t *x, const vm_float_t *y,
+                                     const vm_float_t *z,
+                                     const vm_float_t *vx, const vm_float_t *vy,
+                                     const vm_float_t *vz, const vm_float_t *m,
+                                     int i, const int *neighbors, int nn,
+                                     vm_float_t h, int dim, int kernel);
+
+/**
+ * @brief Laminar viscosity acceleration (Morris form).
+ *
+ * \(a_i = \sum_j m_j \frac{\mu_i+\mu_j}{\rho_i\rho_j}
+ *        \frac{(v_i-v_j)\cdot r_{ij}}{r_{ij}^2+(\eta h)^2}\nabla_i W_{ij}\).
+ * Add the result to \(dv/dt\). `eta` is the dimensionless floor; 0 is allowed.
+ *
+ * @return false if a required pointer is NULL, `h` is non-positive, or a
+ * density is non-positive.
+ */
+VEC_API bool vm_sph_viscosity(vm_float_t *ax, vm_float_t *ay, vm_float_t *az,
+                              const vm_float_t *x, const vm_float_t *y,
+                              const vm_float_t *z,
+                              const vm_float_t *vx, const vm_float_t *vy,
+                              const vm_float_t *vz,
+                              const vm_float_t *m, const vm_float_t *rho,
+                              const vm_float_t *mu,
+                              int i, const int *neighbors, int nn,
+                              vm_float_t h, vm_float_t eta, int dim, int kernel);
+
+/**
+ * @brief Monaghan pair artificial viscosity \(\Pi_{ij}\).
+ *
+ * \(\mu_{ij} = h(v\cdot r)/(r^2+(\eta h)^2)\).
+ * \(\Pi = (-\alpha \bar c\,\mu + \beta\mu^2)/\bar\rho\) when
+ * \(v\cdot r < 0\), else 0. \(\bar c\) and \(\bar\rho\) are arithmetic
+ * means. This is the pair term; `vm_hydro_q` is the grid form.
+ *
+ * @param r Separation, non-negative.
+ * @param v_dot_r \((v_i-v_j)\cdot(x_i-x_j)\).
+ * @return The pair term. Zero in expansion or on invalid input.
+ */
+VEC_API vm_float_t vm_sph_pi(vm_float_t r, vm_float_t v_dot_r,
+                             vm_float_t rho_i, vm_float_t rho_j,
+                             vm_float_t c_i, vm_float_t c_j,
+                             vm_float_t h, vm_float_t alpha, vm_float_t beta,
+                             vm_float_t eta);
+
+/**
+ * @brief Artificial-viscosity acceleration \(a_i = -\sum_j m_j\Pi_{ij}\nabla_i W_{ij}\).
+ *
+ * Add the result to \(dv/dt\). Uses `vm_sph_pi`.
+ *
+ * @return false on invalid input or a non-positive density.
+ */
+VEC_API bool vm_sph_artvisc(vm_float_t *ax, vm_float_t *ay, vm_float_t *az,
+                            const vm_float_t *x, const vm_float_t *y,
+                            const vm_float_t *z,
+                            const vm_float_t *vx, const vm_float_t *vy,
+                            const vm_float_t *vz,
+                            const vm_float_t *m, const vm_float_t *rho,
+                            const vm_float_t *c,
+                            int i, const int *neighbors, int nn,
+                            vm_float_t h, vm_float_t alpha, vm_float_t beta,
+                            vm_float_t eta, int dim, int kernel);
+
+/**
+ * @brief XSPH velocity correction \(\delta v_i = \varepsilon\sum_j (m_j/\rho_j)(v_j-v_i)W_{ij}\).
+ *
+ * Add the result to the velocity. `epsilon` is the filter strength.
+ *
+ * @return false on invalid input or a non-positive neighbor density.
+ */
+VEC_API bool vm_sph_xsph(vm_float_t *dvx, vm_float_t *dvy, vm_float_t *dvz,
+                         const vm_float_t *x, const vm_float_t *y,
+                         const vm_float_t *z,
+                         const vm_float_t *vx, const vm_float_t *vy,
+                         const vm_float_t *vz,
+                         const vm_float_t *m, const vm_float_t *rho,
+                         int i, const int *neighbors, int nn,
+                         vm_float_t h, vm_float_t epsilon, int dim, int kernel);
+
+/**
+ * @brief Tensile-instability correction (Monaghan).
+ *
+ * \(f_{ij} = W(r_{ij})/W(\Delta)\), \(R = \varepsilon|p|/\rho^2\) when
+ * \(p < 0\), else 0. Returns
+ * \(a_i = -\sum_j m_j(R_i+R_j) f_{ij}^{n}\nabla_i W_{ij}\).
+ * Add the result to \(dv/dt\). `delta` is the reference spacing; `nexp` is
+ * the exponent (4 is the usual choice).
+ *
+ * @return false on invalid input, a non-positive density, or `W(delta) == 0`.
+ */
+VEC_API bool vm_sph_tensile(vm_float_t *ax, vm_float_t *ay, vm_float_t *az,
+                            const vm_float_t *x, const vm_float_t *y,
+                            const vm_float_t *z,
+                            const vm_float_t *m, const vm_float_t *rho,
+                            const vm_float_t *p,
+                            int i, const int *neighbors, int nn,
+                            vm_float_t h, vm_float_t delta, vm_float_t epsilon,
+                            int nexp, int dim, int kernel);
+
+/**
+ * @brief Repulsive acceleration from a plane.
+ *
+ * `n` is a unit normal pointing into the fluid. `gap = (p - q) \cdot n`.
+ * For `0 < gap < cutoff`,
+ * \(a = s\big((c/g)^4 - (c/g)^2\big) n\); otherwise 0. One particle, one
+ * plane; the caller loops.
+ *
+ * @return false if an output pointer is NULL or `cutoff` is non-positive.
+ */
+VEC_API bool vm_sph_wall(vm_float_t *ax, vm_float_t *ay, vm_float_t *az,
+                         vm_float_t px, vm_float_t py, vm_float_t pz,
+                         vm_float_t qx, vm_float_t qy, vm_float_t qz,
+                         vm_float_t nx, vm_float_t ny, vm_float_t nz,
+                         vm_float_t cutoff, vm_float_t strength);
+
+/**
+ * @brief Repulsive acceleration from boundary particles.
+ *
+ * For each boundary index with \(r < r_0\),
+ * \(a \mathrel{+}= m_j s\big((r_0/r)^4-(r_0/r)^2\big) r_{ij}/r^2\).
+ * Add the result to \(dv/dt\).
+ *
+ * @param boundary Boundary-particle indices; length `nb`.
+ * @return false on invalid input.
+ */
+VEC_API bool vm_sph_boundary(vm_float_t *ax, vm_float_t *ay, vm_float_t *az,
+                             const vm_float_t *x, const vm_float_t *y,
+                             const vm_float_t *z, const vm_float_t *m,
+                             int i, const int *boundary, int nb,
+                             vm_float_t r0, vm_float_t strength, int dim);
 
 /**
  * @brief Uniform cell grid for SPH neighbor search.

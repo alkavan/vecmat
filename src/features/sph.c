@@ -252,6 +252,422 @@ bool vm_sph_pressure_grad(vm_float_t *gx, vm_float_t *gy, vm_float_t *gz,
     return true;
 }
 
+/* Per-particle discretizations. Each returns the term; the caller integrates. */
+
+static void sph_delta(const vm_float_t *x, const vm_float_t *y, const vm_float_t *z,
+                      const int dim, const int i, const int j,
+                      vm_float_t *dx, vm_float_t *dy, vm_float_t *dz)
+{
+    *dx = x[i] - x[j];
+    *dy = (dim >= 2) ? (y[i] - y[j]) : VM_F(0.0);
+    *dz = (dim >= 3) ? (z[i] - z[j]) : VM_F(0.0);
+}
+
+vm_float_t vm_sph_continuity(const vm_float_t *x, const vm_float_t *y,
+                             const vm_float_t *z,
+                             const vm_float_t *vx, const vm_float_t *vy,
+                             const vm_float_t *vz, const vm_float_t *m,
+                             const int i, const int *neighbors, const int nn,
+                             const vm_float_t h, const int dim, const int kernel)
+{
+    if (!x || !vx || !m || (dim >= 2 && (!y || !vy)) || (dim >= 3 && (!z || !vz))
+        || h <= VM_F(0.0) || dim < 1 || dim > 3) {
+        return VM_F(0.0);
+    }
+
+    if (!neighbors || nn <= 0) {
+        return VM_F(0.0);
+    }
+
+    vm_float_t rate = VM_F(0.0);
+    for (int k = 0; k < nn; ++k) {
+        const int j = neighbors[k];
+        vm_float_t dx, dy, dz;
+        sph_delta(x, y, z, dim, i, j, &dx, &dy, &dz);
+
+        const vm_float_t r = separation(dx, dy, dz, dim);
+        if (r == VM_F(0.0)) {
+            continue;
+        }
+
+        const vm_float_t dw = vm_sph_dw(r, h, dim, kernel);
+        const vm_float_t vxij = vx[i] - vx[j];
+        const vm_float_t vyij = (dim >= 2) ? (vy[i] - vy[j]) : VM_F(0.0);
+        const vm_float_t vzij = (dim >= 3) ? (vz[i] - vz[j]) : VM_F(0.0);
+        const vm_float_t v_dot_r = vxij * dx + vyij * dy + vzij * dz;
+
+        rate += m[j] * v_dot_r * dw / r;
+    }
+
+    return rate;
+}
+
+bool vm_sph_viscosity(vm_float_t *ax, vm_float_t *ay, vm_float_t *az,
+                      const vm_float_t *x, const vm_float_t *y,
+                      const vm_float_t *z,
+                      const vm_float_t *vx, const vm_float_t *vy,
+                      const vm_float_t *vz,
+                      const vm_float_t *m, const vm_float_t *rho,
+                      const vm_float_t *mu,
+                      const int i, const int *neighbors, const int nn,
+                      const vm_float_t h, const vm_float_t eta,
+                      const int dim, const int kernel)
+{
+    if (!ax || !ay || !x || !vx || !m || !rho || !mu
+        || (dim >= 2 && (!y || !vy)) || (dim >= 3 && (!z || !vz || !az))
+        || h <= VM_F(0.0) || dim < 1 || dim > 3 || rho[i] <= VM_F(0.0)) {
+        return false;
+    }
+
+    *ax = VM_F(0.0);
+    *ay = VM_F(0.0);
+
+    if (az) {
+        *az = VM_F(0.0);
+    }
+
+    if (!neighbors || nn <= 0) {
+        return true;
+    }
+
+    const vm_float_t floor2 = (eta * h) * (eta * h);
+    for (int k = 0; k < nn; ++k) {
+        const int j = neighbors[k];
+        if (rho[j] <= VM_F(0.0)) {
+            return false;
+        }
+
+        vm_float_t dx, dy, dz;
+        sph_delta(x, y, z, dim, i, j, &dx, &dy, &dz);
+        const vm_float_t r = separation(dx, dy, dz, dim);
+
+        if (r == VM_F(0.0)) {
+            continue;
+        }
+
+        const vm_float_t vxij = vx[i] - vx[j];
+        const vm_float_t vyij = (dim >= 2) ? (vy[i] - vy[j]) : VM_F(0.0);
+        const vm_float_t vzij = (dim >= 3) ? (vz[i] - vz[j]) : VM_F(0.0);
+        const vm_float_t v_dot_r = vxij * dx + vyij * dy + vzij * dz;
+        const vm_float_t r2 = r * r;
+        const vm_float_t dw = vm_sph_dw(r, h, dim, kernel);
+        const vm_float_t coeff = m[j] * (mu[i] + mu[j]) / (rho[i] * rho[j])
+                               * v_dot_r / (r2 + floor2) * dw / r;
+        *ax += coeff * dx;
+        if (dim >= 2) {
+            *ay += coeff * dy;
+        }
+        if (dim >= 3 && az) {
+            *az += coeff * dz;
+        }
+    }
+    return true;
+}
+
+vm_float_t vm_sph_pi(const vm_float_t r, const vm_float_t v_dot_r,
+                     const vm_float_t rho_i, const vm_float_t rho_j,
+                     const vm_float_t c_i, const vm_float_t c_j,
+                     const vm_float_t h, const vm_float_t alpha,
+                     const vm_float_t beta, const vm_float_t eta)
+{
+    if (v_dot_r >= VM_F(0.0) || rho_i <= VM_F(0.0) || rho_j <= VM_F(0.0)
+        || h <= VM_F(0.0) || r < VM_F(0.0)) {
+        return VM_F(0.0);
+    }
+
+    const vm_float_t r2 = r * r;
+    const vm_float_t mu = h * v_dot_r / (r2 + (eta * h) * (eta * h));
+    const vm_float_t c_bar = VM_F(0.5) * (c_i + c_j);
+    const vm_float_t rho_bar = VM_F(0.5) * (rho_i + rho_j);
+
+    if (rho_bar == VM_F(0.0)) {
+        return VM_F(0.0);
+    }
+
+    return (-alpha * c_bar * mu + beta * mu * mu) / rho_bar;
+}
+
+bool vm_sph_artvisc(vm_float_t *ax, vm_float_t *ay, vm_float_t *az,
+                    const vm_float_t *x, const vm_float_t *y,
+                    const vm_float_t *z,
+                    const vm_float_t *vx, const vm_float_t *vy,
+                    const vm_float_t *vz,
+                    const vm_float_t *m, const vm_float_t *rho,
+                    const vm_float_t *c,
+                    const int i, const int *neighbors, const int nn,
+                    const vm_float_t h, const vm_float_t alpha,
+                    const vm_float_t beta, const vm_float_t eta,
+                    const int dim, const int kernel)
+{
+    if (!ax || !ay || !x || !vx || !m || !rho || !c
+        || (dim >= 2 && (!y || !vy)) || (dim >= 3 && (!z || !vz || !az))
+        || h <= VM_F(0.0) || dim < 1 || dim > 3 || rho[i] <= VM_F(0.0)) {
+        return false;
+    }
+
+    *ax = VM_F(0.0);
+    *ay = VM_F(0.0);
+    if (az) {
+        *az = VM_F(0.0);
+    }
+
+    if (!neighbors || nn <= 0) {
+        return true;
+    }
+
+    for (int k = 0; k < nn; ++k) {
+        const int j = neighbors[k];
+        if (rho[j] <= VM_F(0.0)) {
+            return false;
+        }
+
+        vm_float_t dx, dy, dz;
+        sph_delta(x, y, z, dim, i, j, &dx, &dy, &dz);
+        const vm_float_t r = separation(dx, dy, dz, dim);
+
+        if (r == VM_F(0.0)) {
+            continue;
+        }
+
+        const vm_float_t vxij = vx[i] - vx[j];
+        const vm_float_t vyij = (dim >= 2) ? (vy[i] - vy[j]) : VM_F(0.0);
+        const vm_float_t vzij = (dim >= 3) ? (vz[i] - vz[j]) : VM_F(0.0);
+
+        const vm_float_t v_dot_r = vxij * dx + vyij * dy + vzij * dz;
+        const vm_float_t pi = vm_sph_pi(r, v_dot_r, rho[i], rho[j], c[i], c[j],
+                                        h, alpha, beta, eta);
+        const vm_float_t dw = vm_sph_dw(r, h, dim, kernel);
+        const vm_float_t coeff = -m[j] * pi * dw / r;
+
+        *ax += coeff * dx;
+        if (dim >= 2) {
+            *ay += coeff * dy;
+        }
+        if (dim >= 3 && az) {
+            *az += coeff * dz;
+        }
+    }
+
+    return true;
+}
+
+bool vm_sph_xsph(vm_float_t *dvx, vm_float_t *dvy, vm_float_t *dvz,
+                 const vm_float_t *x, const vm_float_t *y,
+                 const vm_float_t *z,
+                 const vm_float_t *vx, const vm_float_t *vy,
+                 const vm_float_t *vz,
+                 const vm_float_t *m, const vm_float_t *rho,
+                 const int i, const int *neighbors, const int nn,
+                 const vm_float_t h, const vm_float_t epsilon,
+                 const int dim, const int kernel)
+{
+    if (!dvx || !dvy || !x || !vx || !m || !rho
+        || (dim >= 2 && (!y || !vy)) || (dim >= 3 && (!z || !vz || !dvz))
+        || h <= VM_F(0.0) || dim < 1 || dim > 3) {
+        return false;
+    }
+
+    *dvx = VM_F(0.0);
+    *dvy = VM_F(0.0);
+    if (dvz) {
+        *dvz = VM_F(0.0);
+    }
+
+    if (!neighbors || nn <= 0 || epsilon == VM_F(0.0)) {
+        return true;
+    }
+
+    for (int k = 0; k < nn; ++k) {
+        const int j = neighbors[k];
+        if (rho[j] <= VM_F(0.0)) {
+            return false;
+        }
+
+        vm_float_t dx, dy, dz;
+        sph_delta(x, y, z, dim, i, j, &dx, &dy, &dz);
+
+        const vm_float_t r = separation(dx, dy, dz, dim);
+        const vm_float_t w = vm_sph_w(r, h, dim, kernel);
+        const vm_float_t coeff = epsilon * m[j] / rho[j] * w;
+
+        *dvx += coeff * (vx[j] - vx[i]);
+        if (dim >= 2) {
+            *dvy += coeff * (vy[j] - vy[i]);
+        }
+        if (dim >= 3 && dvz) {
+            *dvz += coeff * (vz[j] - vz[i]);
+        }
+    }
+    return true;
+}
+
+static vm_float_t sph_tension(const vm_float_t p, const vm_float_t rho,
+                              const vm_float_t epsilon)
+{
+    if (p >= VM_F(0.0) || rho <= VM_F(0.0)) {
+        return VM_F(0.0);
+    }
+
+    return epsilon * VECMAT_FABS(p) / (rho * rho);
+}
+
+bool vm_sph_tensile(vm_float_t *ax, vm_float_t *ay, vm_float_t *az,
+                    const vm_float_t *x, const vm_float_t *y,
+                    const vm_float_t *z,
+                    const vm_float_t *m, const vm_float_t *rho,
+                    const vm_float_t *p,
+                    const int i, const int *neighbors, const int nn,
+                    const vm_float_t h, const vm_float_t delta,
+                    const vm_float_t epsilon, const int nexp,
+                    const int dim, const int kernel)
+{
+    if (!ax || !ay || !x || !m || !rho || !p
+        || (dim >= 2 && !y) || (dim >= 3 && (!z || !az))
+        || h <= VM_F(0.0) || delta <= VM_F(0.0) || nexp < 0
+        || dim < 1 || dim > 3 || rho[i] <= VM_F(0.0)) {
+        return false;
+    }
+
+    const vm_float_t w_delta = vm_sph_w(delta, h, dim, kernel);
+
+    if (w_delta == VM_F(0.0)) {
+        return false;
+    }
+    *ax = VM_F(0.0);
+    *ay = VM_F(0.0);
+    if (az) {
+        *az = VM_F(0.0);
+    }
+
+    if (!neighbors || nn <= 0 || epsilon == VM_F(0.0)) {
+        return true;
+    }
+
+    const vm_float_t ri = sph_tension(p[i], rho[i], epsilon);
+    for (int k = 0; k < nn; ++k) {
+        const int j = neighbors[k];
+        if (rho[j] <= VM_F(0.0)) {
+            return false;
+        }
+
+        const vm_float_t rj = sph_tension(p[j], rho[j], epsilon);
+        if (ri == VM_F(0.0) && rj == VM_F(0.0)) {
+            continue;
+        }
+
+        vm_float_t dx, dy, dz;
+        sph_delta(x, y, z, dim, i, j, &dx, &dy, &dz);
+
+        const vm_float_t r = separation(dx, dy, dz, dim);
+        if (r == VM_F(0.0)) {
+            continue;
+        }
+
+        const vm_float_t f = vm_sph_w(r, h, dim, kernel) / w_delta;
+        vm_float_t fn = VM_F(1.0);
+        for (int e = 0; e < nexp; ++e) {
+            fn *= f;
+        }
+
+        const vm_float_t dw = vm_sph_dw(r, h, dim, kernel);
+        const vm_float_t coeff = -m[j] * (ri + rj) * fn * dw / r;
+
+        *ax += coeff * dx;
+        if (dim >= 2) {
+            *ay += coeff * dy;
+        }
+        if (dim >= 3 && az) {
+            *az += coeff * dz;
+        }
+    }
+
+    return true;
+}
+
+bool vm_sph_wall(vm_float_t *ax, vm_float_t *ay, vm_float_t *az,
+                 const vm_float_t px, const vm_float_t py, const vm_float_t pz,
+                 const vm_float_t qx, const vm_float_t qy, const vm_float_t qz,
+                 const vm_float_t nx, const vm_float_t ny, const vm_float_t nz,
+                 const vm_float_t cutoff, const vm_float_t strength)
+{
+    if (!ax || !ay || !az || cutoff <= VM_F(0.0)) {
+        return false;
+    }
+
+    *ax = VM_F(0.0);
+    *ay = VM_F(0.0);
+    *az = VM_F(0.0);
+
+    const vm_float_t gap = (px - qx) * nx + (py - qy) * ny + (pz - qz) * nz;
+    if (gap <= VM_F(0.0) || gap >= cutoff || strength == VM_F(0.0)) {
+        return true;
+    }
+
+    const vm_float_t ratio = cutoff / gap;
+    const vm_float_t ratio2 = ratio * ratio;
+    const vm_float_t mag = strength * (ratio2 * ratio2 - ratio2);
+
+    *ax = mag * nx;
+    *ay = mag * ny;
+    *az = mag * nz;
+
+    return true;
+}
+
+bool vm_sph_boundary(vm_float_t *ax, vm_float_t *ay, vm_float_t *az,
+                     const vm_float_t *x, const vm_float_t *y,
+                     const vm_float_t *z, const vm_float_t *m,
+                     const int i, const int *boundary, const int nb,
+                     const vm_float_t r0, const vm_float_t strength,
+                     const int dim)
+{
+    if (!ax || !ay || !x || !m || (dim >= 2 && !y) || (dim >= 3 && (!z || !az))
+        || r0 <= VM_F(0.0) || dim < 1 || dim > 3) {
+        return false;
+    }
+
+    *ax = VM_F(0.0);
+    *ay = VM_F(0.0);
+    if (az) {
+        *az = VM_F(0.0);
+    }
+
+    if (!boundary || nb <= 0 || strength == VM_F(0.0)) {
+        return true;
+    }
+
+    const vm_float_t r02 = r0 * r0;
+    for (int k = 0; k < nb; ++k) {
+        const int j = boundary[k];
+        if (j == i) {
+            continue;
+        }
+
+        vm_float_t dx, dy, dz;
+        sph_delta(x, y, z, dim, i, j, &dx, &dy, &dz);
+
+        const vm_float_t r2 = dx * dx + dy * dy + dz * dz;
+        if (r2 == VM_F(0.0) || r2 >= r02) {
+            continue;
+        }
+
+        const vm_float_t r = VECMAT_SQRT(r2);
+        const vm_float_t ratio = r0 / r;
+        const vm_float_t ratio2 = ratio * ratio;
+        const vm_float_t mag = m[j] * strength * (ratio2 * ratio2 - ratio2) / r2;
+
+        *ax += mag * dx;
+        if (dim >= 2) {
+            *ay += mag * dy;
+        }
+        if (dim >= 3 && az) {
+            *az += mag * dz;
+        }
+    }
+
+    return true;
+}
+
 /* Linked-cell bin and CSR neighbor lists. Caller owns every buffer. */
 
 static int sph_ncells_raw(const vm_sph_grid *g)
@@ -475,7 +891,7 @@ static int sph_visit(const vm_float_t *x, const vm_float_t *y, const vm_float_t 
                      const int n, const vm_sph_grid *g,
                      const int *cell_offsets, const int *cell_particles,
                      const vm_float_t support2, const int dim, const int i,
-                     int *out, int out_n, int *written)
+                     int *out, const int out_n, int *written)
 {
     const int c = sph_cell(g, dim,
                            x[i],
