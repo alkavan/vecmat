@@ -173,6 +173,26 @@ VEC_API bool vm_sph_artvisc(vm_float_t *ax, vm_float_t *ay, vm_float_t *az,
                             vm_float_t eta, int dim, int kernel);
 
 /**
+ * @brief Pressure gradient and artificial viscosity in one neighbor walk.
+ *
+ * Writes the same two results as `vm_sph_pressure_grad` and `vm_sph_artvisc`.
+ * The caller still combines them (`a = -g + a_art + ...`).
+ *
+ * @return false on invalid input or a non-positive density.
+ */
+VEC_API bool vm_sph_forces(vm_float_t *gx, vm_float_t *gy, vm_float_t *gz,
+                           vm_float_t *ax, vm_float_t *ay, vm_float_t *az,
+                           const vm_float_t *x, const vm_float_t *y,
+                           const vm_float_t *z,
+                           const vm_float_t *vx, const vm_float_t *vy,
+                           const vm_float_t *vz,
+                           const vm_float_t *m, const vm_float_t *rho,
+                           const vm_float_t *p, const vm_float_t *c,
+                           int i, const int *neighbors, int nn,
+                           vm_float_t h, vm_float_t alpha, vm_float_t beta,
+                           vm_float_t eta, int dim, int kernel);
+
+/**
  * @brief XSPH velocity correction \(\delta v_i = \varepsilon\sum_j (m_j/\rho_j)(v_j-v_i)W_{ij}\).
  *
  * Add the result to the velocity. `epsilon` is the filter strength.

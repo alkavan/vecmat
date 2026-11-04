@@ -515,3 +515,33 @@ TEST_CASE(sph_artvisc_matches_pi, "[sph]") {
                             m, rho, c, 0, nb, n - 1, h, VM_F(1.0), VM_F(2.0),
                             VM_F(0.01), 1, VM_SPH_CUBIC));
 }
+
+TEST_CASE(sph_forces_matches_split, "[sph]") {
+    enum { n = 10 };
+    vm_float_t x[n], vx[n], m[n], rho[n], p[n], c[n];
+    int nb[n - 1];
+    for (int i = 0; i < n; ++i) {
+        x[i] = VM_F(0.3) * (vm_float_t)i;
+        vx[i] = (i % 2) ? VM_F(-0.4) : VM_F(0.4);
+        m[i] = VM_F(1.0);
+        rho[i] = VM_F(1.0);
+        p[i] = VM_F(0.5);
+        c[i] = VM_F(1.0);
+        if (i > 0) {
+            nb[i - 1] = i;
+        }
+    }
+    vm_float_t gx, gy, ax, ay, gx2, gy2, ax2, ay2;
+    REQUIRE(vm_sph_forces(&gx, &gy, NULL, &ax, &ay, NULL,
+                          x, NULL, NULL, vx, NULL, NULL, m, rho, p, c,
+                          0, nb, n - 1, VM_F(1.0), VM_F(1.0), VM_F(2.0),
+                          VM_F(0.01), 1, VM_SPH_CUBIC));
+    REQUIRE(vm_sph_pressure_grad(&gx2, &gy2, NULL, x, NULL, NULL, m, rho, p,
+                                 0, nb, n - 1, VM_F(1.0), 1, VM_SPH_CUBIC));
+    REQUIRE(vm_sph_artvisc(&ax2, &ay2, NULL, x, NULL, NULL, vx, NULL, NULL,
+                           m, rho, c, 0, nb, n - 1, VM_F(1.0), VM_F(1.0),
+                           VM_F(2.0), VM_F(0.01), 1, VM_SPH_CUBIC));
+    REQUIRE(VECMAT_EQ(gx, gx2, EPSILON));
+    REQUIRE(VECMAT_EQ(ax, ax2, EPSILON * VECMAT_FABS(ax2) + EPSILON));
+}
+
