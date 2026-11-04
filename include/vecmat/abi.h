@@ -563,6 +563,12 @@
 #define vm_sph_pressure_grad_avx2 vm_sph_pressure_grad64_avx2
 #define vm_sph_density_neon vm_sph_density64_neon
 #define vm_sph_pressure_grad_neon vm_sph_pressure_grad64_neon
+#define vm_sph_ncells vm_sph_ncells64
+#define vm_sph_grid_fit vm_sph_grid_fit64
+#define vm_sph_prefix vm_sph_prefix64
+#define vm_sph_bin vm_sph_bin64
+#define vm_sph_neighbor_count vm_sph_neighbor_count64
+#define vm_sph_neighbor_fill vm_sph_neighbor_fill64
 #define vm_batch3_mul vm_batch3_mul64
 #define vm_batch3_inverse vm_batch3_inverse64
 #define vm_batch3_polar vm_batch3_polar64
@@ -1546,6 +1552,12 @@
 #define vm_sph_pressure_grad_avx2 vm_sph_pressure_grad32_avx2
 #define vm_sph_density_neon vm_sph_density32_neon
 #define vm_sph_pressure_grad_neon vm_sph_pressure_grad32_neon
+#define vm_sph_ncells vm_sph_ncells32
+#define vm_sph_grid_fit vm_sph_grid_fit32
+#define vm_sph_prefix vm_sph_prefix32
+#define vm_sph_bin vm_sph_bin32
+#define vm_sph_neighbor_count vm_sph_neighbor_count32
+#define vm_sph_neighbor_fill vm_sph_neighbor_fill32
 #define vm_batch3_mul vm_batch3_mul32
 #define vm_batch3_inverse vm_batch3_inverse32
 #define vm_batch3_polar vm_batch3_polar32

@@ -201,3 +201,153 @@ TEST_CASE(sph_pressure_bad_density, "[sph]") {
                                          0, nb, 8, VM_F(1.0), 1, VM_SPH_CUBIC);
     REQUIRE(!ok);
 }
+
+static int brute_neighbors(int *out, const vm_float_t *x, const vm_float_t *y,
+                           const vm_float_t *z, const int n, const int i,
+                           const vm_float_t support, const int dim)
+{
+    const vm_float_t support2 = support * support;
+    int c = 0;
+    for (int j = 0; j < n; ++j) {
+        if (j == i) {
+            continue;
+        }
+        const vm_float_t dx = x[i] - x[j];
+        vm_float_t r2 = dx * dx;
+        if (dim >= 2) {
+            const vm_float_t dy = y[i] - y[j];
+            r2 += dy * dy;
+        }
+        if (dim >= 3) {
+            const vm_float_t dz = z[i] - z[j];
+            r2 += dz * dz;
+        }
+        if (r2 < support2) {
+            out[c++] = j;
+        }
+    }
+    return c;
+}
+
+static int contains(const int *a, const int n, const int v)
+{
+    for (int i = 0; i < n; ++i) {
+        if (a[i] == v) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+TEST_CASE(sph_grid_fit_and_bin, "[sph]") {
+    const vm_float_t x[] = { VM_F(0.0), VM_F(0.4), VM_F(1.2), VM_F(0.1) };
+    const vm_float_t y[] = { VM_F(0.0), VM_F(0.2), VM_F(0.9), VM_F(-0.3) };
+    const vm_float_t cell = VM_F(0.5);
+    vm_sph_grid g;
+    REQUIRE(vm_sph_grid_fit(&g, x, y, NULL, 4, cell, 2));
+    REQUIRE(g.nx >= 1);
+    REQUIRE(g.ny >= 1);
+    REQUIRE(g.nz == 1);
+    REQUIRE(g.x0 == VM_F(0.0));
+    REQUIRE(g.y0 == VM_F(-0.3));
+
+    const int ncells = vm_sph_ncells(&g);
+    REQUIRE(ncells == g.nx * g.ny * g.nz);
+    int cell_of[4];
+    int cell_offsets[64];
+    int cell_particles[4];
+    REQUIRE(ncells + 1 <= 64);
+    REQUIRE(vm_sph_bin(cell_of, cell_offsets, cell_particles, x, y, NULL, 4, &g, 2));
+    REQUIRE(cell_offsets[0] == 0);
+    REQUIRE(cell_offsets[ncells] == 4);
+    for (int i = 0; i < 4; ++i) {
+        REQUIRE(cell_of[i] >= 0);
+        REQUIRE(cell_of[i] < ncells);
+    }
+}
+
+TEST_CASE(sph_neighbor_lists_match_brute, "[sph]") {
+    const vm_float_t h = VM_F(1.0);
+    const vm_float_t support = VM_F(2.0) * h;
+    const vm_float_t x[] = { VM_F(0.0), VM_F(0.5), VM_F(1.5), VM_F(3.5), VM_F(0.2) };
+    const vm_float_t y[] = { VM_F(0.0), VM_F(0.1), VM_F(-0.4), VM_F(0.0), VM_F(0.3) };
+    const vm_float_t z[] = { VM_F(0.0), VM_F(0.2), VM_F(0.1), VM_F(-0.2), VM_F(-0.1) };
+    const int n = 5;
+    const int dims[] = { 1, 2, 3 };
+    for (int di = 0; di < 3; ++di) {
+        const int dim = dims[di];
+        vm_sph_grid g;
+        REQUIRE(vm_sph_grid_fit(&g, x, y, z, n, support, dim));
+        const int ncells = vm_sph_ncells(&g);
+        int cell_of[5];
+        int cell_offsets[128];
+        int cell_particles[5];
+        REQUIRE(ncells + 1 <= 128);
+        REQUIRE(vm_sph_bin(cell_of, cell_offsets, cell_particles, x, y, z, n, &g, dim));
+
+        int nn[5];
+        const int total = vm_sph_neighbor_count(nn, x, y, z, n, &g,
+                                                 cell_offsets, cell_particles,
+                                                 support, dim);
+        REQUIRE(total >= 0);
+        int offsets[6];
+        REQUIRE(vm_sph_prefix(offsets, nn, n) == total);
+        int neighbors[64];
+        REQUIRE(total <= 64);
+        REQUIRE(vm_sph_neighbor_fill(neighbors, offsets, x, y, z, n, &g,
+                                      cell_offsets, cell_particles, support, dim));
+
+        for (int i = 0; i < n; ++i) {
+            int brute[5];
+            const int bc = brute_neighbors(brute, x, y, z, n, i, support, dim);
+            REQUIRE(nn[i] == bc);
+            REQUIRE(offsets[i + 1] - offsets[i] == bc);
+            for (int k = 0; k < bc; ++k) {
+                REQUIRE(contains(neighbors + offsets[i], bc, brute[k]));
+            }
+            for (int k = offsets[i]; k < offsets[i + 1]; ++k) {
+                REQUIRE(neighbors[k] != i);
+            }
+        }
+    }
+}
+
+TEST_CASE(sph_neighbor_list_feeds_density, "[sph]") {
+    const vm_float_t h = VM_F(1.0);
+    const vm_float_t support = VM_F(2.0) * h;
+    const vm_float_t x[] = { VM_F(0.0), VM_F(0.4), VM_F(0.9), VM_F(1.6) };
+    const vm_float_t m[] = { VM_F(1.0), VM_F(1.2), VM_F(0.8), VM_F(1.1) };
+    const int n = 4;
+    vm_sph_grid g;
+    REQUIRE(vm_sph_grid_fit(&g, x, NULL, NULL, n, support, 1));
+    int cell_of[4], cell_offsets[32], cell_particles[4], nn[4], offsets[5];
+    REQUIRE(vm_sph_bin(cell_of, cell_offsets, cell_particles, x, NULL, NULL, n, &g, 1));
+    const int total = vm_sph_neighbor_count(nn, x, NULL, NULL, n, &g,
+                                             cell_offsets, cell_particles, support, 1);
+    REQUIRE(vm_sph_prefix(offsets, nn, n) == total);
+    int neighbors[16];
+    REQUIRE(vm_sph_neighbor_fill(neighbors, offsets, x, NULL, NULL, n, &g,
+                                  cell_offsets, cell_particles, support, 1));
+    for (int i = 0; i < n; ++i) {
+        const vm_float_t rho = vm_sph_density(x, NULL, NULL, m, i,
+                                               neighbors + offsets[i], nn[i],
+                                               h, 1, VM_SPH_CUBIC);
+        vm_float_t expect = m[i] * vm_sph_w(VM_F(0.0), h, 1, VM_SPH_CUBIC);
+        for (int k = offsets[i]; k < offsets[i + 1]; ++k) {
+            const int j = neighbors[k];
+            const vm_float_t r = VECMAT_FABS(x[i] - x[j]);
+            expect += m[j] * vm_sph_w(r, h, 1, VM_SPH_CUBIC);
+        }
+        REQUIRE(VECMAT_EQ(rho, expect, EPSILON * expect + EPSILON));
+    }
+}
+
+TEST_CASE(sph_neighbor_rejects_bad_input, "[sph]") {
+    vm_sph_grid g;
+    REQUIRE(!vm_sph_grid_fit(&g, NULL, NULL, NULL, 1, VM_F(1.0), 1));
+    REQUIRE(!vm_sph_grid_fit(&g, NULL, NULL, NULL, 0, VM_F(1.0), 1));
+    const vm_float_t x[] = { VM_F(0.0) };
+    REQUIRE(!vm_sph_grid_fit(&g, x, NULL, NULL, 1, VM_F(0.0), 1));
+    REQUIRE(!vm_sph_grid_fit(&g, x, NULL, NULL, 1, VM_F(1.0), 0));
+    REQUIRE(vm_sph_ncells(NULL) == 0);
+}

@@ -3,7 +3,9 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include <math.h>
+#include <stddef.h>
 #include <vecmat.h>
+
 #include "vecmat/sph.h"
 #include "vecmat/cpu.h"
 
@@ -244,6 +246,348 @@ bool vm_sph_pressure_grad(vm_float_t *gx, vm_float_t *gy, vm_float_t *gz,
         }
         if (dim >= 3 && gz) {
             *gz += scale * dz;
+        }
+    }
+
+    return true;
+}
+
+/* Linked-cell bin and CSR neighbor lists. Caller owns every buffer. */
+
+static int sph_ncells_raw(const vm_sph_grid *g)
+{
+    if (!g || g->nx <= 0 || g->ny <= 0 || g->nz <= 0 || g->cell <= VM_F(0.0)) {
+        return 0;
+    }
+
+    return g->nx * g->ny * g->nz;
+}
+
+int vm_sph_ncells(const vm_sph_grid *g)
+{
+    return sph_ncells_raw(g);
+}
+
+static int axis_cells(const vm_float_t lo, const vm_float_t hi, const vm_float_t cell)
+{
+    const vm_float_t extent = hi - lo;
+
+    int n = (extent > VM_F(0.0)) ? (int)VECMAT_CEIL(extent / cell) : 1;
+    if (n < 1) {
+        n = 1;
+    }
+
+    return n;
+}
+
+bool vm_sph_grid_fit(vm_sph_grid *g,
+                     const vm_float_t *x, const vm_float_t *y,
+                     const vm_float_t *z, const int n,
+                     const vm_float_t cell, const int dim)
+{
+    if (!g || !x || n <= 0 || cell <= VM_F(0.0) || dim < 1 || dim > 3
+        || (dim >= 2 && !y) || (dim >= 3 && !z)) {
+        return false;
+    }
+
+    vm_float_t xlo = x[0], xhi = x[0];
+    vm_float_t ylo = VM_F(0.0), yhi = VM_F(0.0);
+    vm_float_t zlo = VM_F(0.0), zhi = VM_F(0.0);
+
+    if (dim >= 2) {
+        ylo = y[0];
+        yhi = y[0];
+    }
+    if (dim >= 3) {
+        zlo = z[0];
+        zhi = z[0];
+    }
+
+    for (int i = 1; i < n; ++i) {
+        if (x[i] < xlo) xlo = x[i];
+        if (x[i] > xhi) xhi = x[i];
+
+        if (dim >= 2) {
+            if (y[i] < ylo) ylo = y[i];
+            if (y[i] > yhi) yhi = y[i];
+        }
+        if (dim >= 3) {
+            if (z[i] < zlo) zlo = z[i];
+            if (z[i] > zhi) zhi = z[i];
+        }
+    }
+
+    g->x0 = xlo;
+    g->y0 = (dim >= 2) ? ylo : VM_F(0.0);
+    g->z0 = (dim >= 3) ? zlo : VM_F(0.0);
+    g->cell = cell;
+    g->nx = axis_cells(xlo, xhi, cell);
+    g->ny = (dim >= 2) ? axis_cells(ylo, yhi, cell) : 1;
+    g->nz = (dim >= 3) ? axis_cells(zlo, zhi, cell) : 1;
+
+    return sph_ncells_raw(g) > 0;
+}
+
+int vm_sph_prefix(int *offsets, const int *counts, const int n)
+{
+    if (!offsets || !counts || n < 0) {
+        return -1;
+    }
+
+    int sum = 0;
+    offsets[0] = 0;
+    for (int i = 0; i < n; ++i) {
+        if (counts[i] < 0) {
+            return -1;
+        }
+        sum += counts[i];
+        offsets[i + 1] = sum;
+    }
+
+    return sum;
+}
+
+static int sph_cell(const vm_sph_grid *g, const int dim,
+                    const vm_float_t px, const vm_float_t py, const vm_float_t pz)
+{
+    const vm_float_t cell = g->cell;
+    const vm_float_t dx = px - g->x0;
+
+    if (dx < VM_F(0.0)) {
+        return -1;
+    }
+
+    int i = (int)VECMAT_FLOOR(dx / cell);
+    if (i >= g->nx) {
+        if (dx > (vm_float_t)g->nx * cell) {
+            return -1;
+        }
+        i = g->nx - 1;
+    }
+
+    int j = 0;
+    if (dim >= 2) {
+        const vm_float_t dy = py - g->y0;
+        if (dy < VM_F(0.0)) {
+            return -1;
+        }
+
+        j = (int)VECMAT_FLOOR(dy / cell);
+        if (j >= g->ny) {
+            if (dy > (vm_float_t)g->ny * cell) {
+                return -1;
+            }
+            j = g->ny - 1;
+        }
+    }
+
+    int k = 0;
+    if (dim >= 3) {
+        const vm_float_t dz = pz - g->z0;
+        if (dz < VM_F(0.0)) {
+            return -1;
+        }
+
+        k = (int)VECMAT_FLOOR(dz / cell);
+        if (k >= g->nz) {
+            if (dz > (vm_float_t)g->nz * cell) {
+                return -1;
+            }
+            k = g->nz - 1;
+        }
+    }
+
+    return (k * g->ny + j) * g->nx + i;
+}
+
+bool vm_sph_bin(int *cell_of, int *cell_offsets, int *cell_particles,
+                const vm_float_t *x, const vm_float_t *y,
+                const vm_float_t *z, const int n,
+                const vm_sph_grid *g, const int dim)
+{
+    const int ncells = sph_ncells_raw(g);
+    if (!cell_of || !cell_offsets || !cell_particles || !x || n <= 0 || ncells <= 0
+        || dim < 1 || dim > 3 || (dim >= 2 && !y) || (dim >= 3 && !z)) {
+        return false;
+    }
+
+    for (int c = 0; c <= ncells; ++c) {
+        cell_offsets[c] = 0;
+    }
+
+    for (int i = 0; i < n; ++i) {
+        const vm_float_t py = (dim >= 2) ? y[i] : VM_F(0.0);
+        const vm_float_t pz = (dim >= 3) ? z[i] : VM_F(0.0);
+
+        const int c = sph_cell(g, dim, x[i], py, pz);
+        cell_of[i] = c;
+
+        if (c >= 0) {
+            cell_offsets[c] += 1;
+        }
+    }
+
+    int sum = 0;
+    for (int c = 0; c < ncells; ++c) {
+        const int cnt = cell_offsets[c];
+        cell_offsets[c] = sum;
+        sum += cnt;
+    }
+    cell_offsets[ncells] = sum;
+
+    for (int i = 0; i < n; ++i) {
+        const int c = cell_of[i];
+        if (c < 0) {
+            continue;
+        }
+
+        cell_particles[cell_offsets[c]] = i;
+        cell_offsets[c] += 1;
+    }
+
+    for (int c = ncells; c > 0; --c) {
+        cell_offsets[c] = cell_offsets[c - 1];
+    }
+    cell_offsets[0] = 0;
+
+    return true;
+}
+
+static vm_float_t sph_r2(const vm_float_t *x, const vm_float_t *y, const vm_float_t *z,
+                         const int dim, const int i, const int j)
+{
+    const vm_float_t dx = x[i] - x[j];
+    vm_float_t r2 = dx * dx;
+
+    if (dim >= 2) {
+        const vm_float_t dy = y[i] - y[j];
+        r2 += dy * dy;
+    }
+    if (dim >= 3) {
+        const vm_float_t dz = z[i] - z[j];
+        r2 += dz * dz;
+    }
+
+    return r2;
+}
+
+static int sph_visit(const vm_float_t *x, const vm_float_t *y, const vm_float_t *z,
+                     const int n, const vm_sph_grid *g,
+                     const int *cell_offsets, const int *cell_particles,
+                     const vm_float_t support2, const int dim, const int i,
+                     int *out, int out_n, int *written)
+{
+    const int c = sph_cell(g, dim,
+                           x[i],
+                           (dim >= 2) ? y[i] : VM_F(0.0),
+                           (dim >= 3) ? z[i] : VM_F(0.0));
+    if (c < 0) {
+        return 0;
+    }
+
+    const int ci = c % g->nx;
+    const int cj = (c / g->nx) % g->ny;
+    const int ck = c / (g->nx * g->ny);
+    const int j0 = (dim >= 2) ? -1 : 0;
+    const int j1 = (dim >= 2) ? 1 : 0;
+    const int k0 = (dim >= 3) ? -1 : 0;
+    const int k1 = (dim >= 3) ? 1 : 0;
+
+    int count = 0;
+    for (int dk = k0; dk <= k1; ++dk) {
+        const int nk = ck + dk;
+        if (nk < 0 || nk >= g->nz) {
+            continue;
+        }
+
+        for (int dj = j0; dj <= j1; ++dj) {
+            const int nj = cj + dj;
+            if (nj < 0 || nj >= g->ny) {
+                continue;
+            }
+
+            for (int di = -1; di <= 1; ++di) {
+                const int ni = ci + di;
+                if (ni < 0 || ni >= g->nx) {
+                    continue;
+                }
+
+                const int nc = (nk * g->ny + nj) * g->nx + ni;
+                for (int p = cell_offsets[nc]; p < cell_offsets[nc + 1]; ++p) {
+                    const int j = cell_particles[p];
+                    if (j == i || j < 0 || j >= n) {
+                        continue;
+                    }
+
+                    if (sph_r2(x, y, z, dim, i, j) >= support2) {
+                        continue;
+                    }
+
+                    if (out && count < out_n) {
+                        out[(*written)++] = j;
+                    }
+
+                    count += 1;
+                }
+            }
+        }
+    }
+    return count;
+}
+
+int vm_sph_neighbor_count(int *nn,
+                          const vm_float_t *x, const vm_float_t *y,
+                          const vm_float_t *z, const int n,
+                          const vm_sph_grid *g,
+                          const int *cell_offsets, const int *cell_particles,
+                          const vm_float_t support, const int dim)
+{
+    if (!nn || !x || !cell_offsets || !cell_particles || n <= 0
+        || sph_ncells_raw(g) <= 0 || support <= VM_F(0.0)
+        || dim < 1 || dim > 3 || (dim >= 2 && !y) || (dim >= 3 && !z)) {
+        return -1;
+    }
+
+    const vm_float_t support2 = support * support;
+    int total = 0;
+    for (int i = 0; i < n; ++i) {
+        const int c = sph_visit(x, y, z, n, g, cell_offsets, cell_particles,
+                                support2, dim, i, NULL, 0, NULL);
+        nn[i] = c;
+        total += c;
+    }
+
+    return total;
+}
+
+bool vm_sph_neighbor_fill(int *neighbors, const int *offsets,
+                          const vm_float_t *x, const vm_float_t *y,
+                          const vm_float_t *z, const int n,
+                          const vm_sph_grid *g,
+                          const int *cell_offsets, const int *cell_particles,
+                          const vm_float_t support, const int dim)
+{
+    if (!neighbors || !offsets || !x || !cell_offsets || !cell_particles || n <= 0
+        || sph_ncells_raw(g) <= 0 || support <= VM_F(0.0)
+        || dim < 1 || dim > 3 || (dim >= 2 && !y) || (dim >= 3 && !z)
+        || offsets[0] != 0) {
+        return false;
+    }
+
+    const vm_float_t support2 = support * support;
+    for (int i = 0; i < n; ++i) {
+        const int begin = offsets[i];
+        const int end = offsets[i + 1];
+        if (end < begin) {
+            return false;
+        }
+
+        int written = begin;
+        const int count = sph_visit(x, y, z, n, g, cell_offsets, cell_particles,
+                                    support2, dim, i, neighbors, end - begin, &written);
+
+        if (count != end - begin || written != end) {
+            return false;
         }
     }
 
