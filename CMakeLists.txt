@@ -416,7 +416,8 @@ function(vecmat_add_float_objects name bits extra_private_defs)
                 src/simd/avx2/vector4_ptr.c
                 src/simd/avx2/matrix4_ptr.c
                 src/simd/avx2/gemm.c
-                src/simd/avx2/sph.c)
+                src/simd/avx2/sph.c
+                src/simd/avx2/batch3.c)
         if(MSVC)
             set(_opts /arch:AVX2)
         else()
@@ -427,6 +428,7 @@ function(vecmat_add_float_objects name bits extra_private_defs)
                 src/simd/avx2/matrix4_ptr.c
                 src/simd/avx2/gemm.c
                 src/simd/avx2/sph.c
+                src/simd/avx2/batch3.c
                 TARGET_DIRECTORY ${name}
                 PROPERTIES COMPILE_OPTIONS "${_opts}")
         target_compile_definitions(${name} PRIVATE VECMAT_ENABLE_AVX2)
@@ -456,13 +458,15 @@ function(vecmat_add_float_objects name bits extra_private_defs)
                 src/simd/neon/vector4_ptr.c
                 src/simd/neon/matrix4_ptr.c
                 src/simd/neon/gemm.c
-                src/simd/neon/sph.c)
+                src/simd/neon/sph.c
+                src/simd/neon/batch3.c)
         if(NOT MSVC)
             set_source_files_properties(
                     src/simd/neon/vector4_ptr.c
                     src/simd/neon/matrix4_ptr.c
                     src/simd/neon/gemm.c
                     src/simd/neon/sph.c
+                    src/simd/neon/batch3.c
                     TARGET_DIRECTORY ${name}
                     PROPERTIES COMPILE_OPTIONS "-march=armv8-a+simd")
         endif()

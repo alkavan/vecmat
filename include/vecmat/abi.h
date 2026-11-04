@@ -585,6 +585,12 @@
 #define vm_batch3_inverse vm_batch3_inverse64
 #define vm_batch3_polar vm_batch3_polar64
 #define vm_batch3_ddot vm_batch3_ddot64
+#define vm_batch3_mul_avx2 vm_batch3_mul64_avx2
+#define vm_batch3_inverse_avx2 vm_batch3_inverse64_avx2
+#define vm_batch3_ddot_avx2 vm_batch3_ddot64_avx2
+#define vm_batch3_mul_neon vm_batch3_mul64_neon
+#define vm_batch3_inverse_neon vm_batch3_inverse64_neon
+#define vm_batch3_ddot_neon vm_batch3_ddot64_neon
 #define mat3_mul_vec2 mat3_mul_vec264
 #define mat3_determinant mat3_determinant64
 #define mat4_identity mat4_identity64
@@ -1586,6 +1592,12 @@
 #define vm_batch3_inverse vm_batch3_inverse32
 #define vm_batch3_polar vm_batch3_polar32
 #define vm_batch3_ddot vm_batch3_ddot32
+#define vm_batch3_mul_avx2 vm_batch3_mul32_avx2
+#define vm_batch3_inverse_avx2 vm_batch3_inverse32_avx2
+#define vm_batch3_ddot_avx2 vm_batch3_ddot32_avx2
+#define vm_batch3_mul_neon vm_batch3_mul32_neon
+#define vm_batch3_inverse_neon vm_batch3_inverse32_neon
+#define vm_batch3_ddot_neon vm_batch3_ddot32_neon
 #define mat3_mul_vec2 mat3_mul_vec232
 #define mat3_determinant mat3_determinant32
 #define mat4_identity mat4_identity32

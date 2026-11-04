@@ -5,6 +5,29 @@
 #include <string.h>
 #include <vecmat.h>
 #include "vecmat/batch3.h"
+#include "vecmat/cpu.h"
+
+#if defined(VECMAT_ENABLE_AVX2)
+bool vm_batch3_mul_avx2(vm_float_t *C, int c_stride,
+                        const vm_float_t *A, int a_stride,
+                        const vm_float_t *B, int b_stride, int n);
+bool vm_batch3_inverse_avx2(vm_float_t *C, int c_stride,
+                            const vm_float_t *A, int a_stride, int n);
+bool vm_batch3_ddot_avx2(vm_float_t *d,
+                         const vm_float_t *a, int a_stride,
+                         const vm_float_t *b, int b_stride, int n);
+#endif
+
+#if defined(VECMAT_ENABLE_NEON)
+bool vm_batch3_mul_neon(vm_float_t *C, int c_stride,
+                        const vm_float_t *A, int a_stride,
+                        const vm_float_t *B, int b_stride, int n);
+bool vm_batch3_inverse_neon(vm_float_t *C, int c_stride,
+                            const vm_float_t *A, int a_stride, int n);
+bool vm_batch3_ddot_neon(vm_float_t *d,
+                         const vm_float_t *a, int a_stride,
+                         const vm_float_t *b, int b_stride, int n);
+#endif
 
 static void load9(matrix3 *m, const vm_float_t *p)
 {
@@ -30,6 +53,18 @@ bool vm_batch3_mul(vm_float_t *C, const int c_stride,
         return false;
     }
 
+#if defined(VECMAT_ENABLE_AVX2)
+    if ((vm_cpu_runtime_features() & VM_CPU_AVX2) != 0) {
+        return vm_batch3_mul_avx2(C, c_stride, A, a_stride, B, b_stride, n);
+    }
+#endif
+
+#if defined(VECMAT_ENABLE_NEON)
+    if ((vm_cpu_runtime_features() & VM_CPU_NEON) != 0) {
+        return vm_batch3_mul_neon(C, c_stride, A, a_stride, B, b_stride, n);
+    }
+#endif
+
     for (int i = 0; i < n; ++i) {
         matrix3 a, b, c;
         load9(&a, A + i * a_stride);
@@ -48,6 +83,18 @@ bool vm_batch3_inverse(vm_float_t *C, const int c_stride,
     if (!C || !A || n <= 0) {
         return false;
     }
+
+#if defined(VECMAT_ENABLE_AVX2)
+    if ((vm_cpu_runtime_features() & VM_CPU_AVX2) != 0) {
+        return vm_batch3_inverse_avx2(C, c_stride, A, a_stride, n);
+    }
+#endif
+
+#if defined(VECMAT_ENABLE_NEON)
+    if ((vm_cpu_runtime_features() & VM_CPU_NEON) != 0) {
+        return vm_batch3_inverse_neon(C, c_stride, A, a_stride, n);
+    }
+#endif
 
     for (int i = 0; i < n; ++i) {
         matrix3 a, c;
@@ -95,6 +142,18 @@ bool vm_batch3_ddot(vm_float_t *d,
     if (!d || !a || !b || n <= 0) {
         return false;
     }
+
+#if defined(VECMAT_ENABLE_AVX2)
+    if ((vm_cpu_runtime_features() & VM_CPU_AVX2) != 0) {
+        return vm_batch3_ddot_avx2(d, a, a_stride, b, b_stride, n);
+    }
+#endif
+
+#if defined(VECMAT_ENABLE_NEON)
+    if ((vm_cpu_runtime_features() & VM_CPU_NEON) != 0) {
+        return vm_batch3_ddot_neon(d, a, a_stride, b, b_stride, n);
+    }
+#endif
 
     for (int i = 0; i < n; ++i) {
         vm_sym3 sa, sb;

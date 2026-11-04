@@ -89,3 +89,63 @@ TEST_CASE(batch3_strided_three, "[batch3]") {
         REQUIRE(VECMAT_EQ(C[i * stride], (VM_F(1.0) + (vm_float_t)i) * VM_F(2.0), EPSILON));
     }
 }
+
+TEST_CASE(batch3_wide_matches_scalar, "[batch3]") {
+    enum { n = 10, stride = 11 };
+    vm_float_t A[n * stride], B[n * stride], C[n * stride];
+    vm_float_t a6[n * 7], b6[n * 7], d[n];
+    for (int i = 0; i < n; ++i) {
+        for (int e = 0; e < 9; ++e) {
+            A[i * stride + e] = VM_F(0.0);
+            B[i * stride + e] = VM_F(0.0);
+        }
+        A[i * stride + 0] = VM_F(1.0) + VM_F(0.1) * (vm_float_t)i;
+        A[i * stride + 4] = VM_F(2.0);
+        A[i * stride + 8] = VM_F(3.0);
+        A[i * stride + 1] = VM_F(0.05) * (vm_float_t)i;
+        B[i * stride + 0] = VM_F(2.0);
+        B[i * stride + 4] = VM_F(1.0);
+        B[i * stride + 8] = VM_F(0.5);
+        B[i * stride + 3] = VM_F(0.2);
+        for (int e = 0; e < 6; ++e) {
+            a6[i * 7 + e] = VM_F(0.3) * (vm_float_t)(e + 1);
+            b6[i * 7 + e] = VM_F(0.2) * (vm_float_t)(6 - e);
+        }
+    }
+    REQUIRE(vm_batch3_mul(C, stride, A, stride, B, stride, n));
+    for (int i = 0; i < n; ++i) {
+        matrix3 a, b, c;
+        for (int e = 0; e < 9; ++e) {
+            a.v[e] = A[i * stride + e];
+            b.v[e] = B[i * stride + e];
+        }
+        c = mat3_mul(a, b);
+        for (int e = 0; e < 9; ++e) {
+            REQUIRE(VECMAT_EQ(C[i * stride + e], c.v[e], EPSILON));
+        }
+    }
+    REQUIRE(vm_batch3_inverse(C, stride, A, stride, n));
+    for (int i = 0; i < n; ++i) {
+        matrix3 a, c;
+        for (int e = 0; e < 9; ++e) {
+            a.v[e] = A[i * stride + e];
+        }
+        REQUIRE(mat3_inverse_ok(&c, &a));
+        for (int e = 0; e < 9; ++e) {
+            REQUIRE(VECMAT_EQ(C[i * stride + e], c.v[e], EPSILON * VM_F(10.0)));
+        }
+    }
+    REQUIRE(vm_batch3_ddot(d, a6, 7, b6, 7, n));
+    for (int i = 0; i < n; ++i) {
+        vm_sym3 sa, sb;
+        for (int e = 0; e < 6; ++e) {
+            sa.c[e] = a6[i * 7 + e];
+            sb.c[e] = b6[i * 7 + e];
+        }
+        REQUIRE(VECMAT_EQ(d[i], vm_sym3_ddot(&sa, &sb), EPSILON));
+    }
+    for (int e = 0; e < 9; ++e) {
+        A[e] = VM_F(0.0);
+    }
+    REQUIRE(!vm_batch3_inverse(C, stride, A, stride, n));
+}

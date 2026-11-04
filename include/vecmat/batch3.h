@@ -10,9 +10,9 @@
  * @brief Strided batch reference for 3×3 and Voigt-6 kernels.
  * @ingroup vecmat_extras
  *
- * Scalar reference. Strides are in elements, so packed and padded layouts
- * both work. A batch of one matches the scalar call. SIMD backends register
- * through the existing mechanism and must match this result.
+ * Strides are in elements, so packed and padded layouts both work. A batch
+ * of one matches the scalar call. AVX2 and NEON cover multiply, inverse, and
+ * ddot; polar stays on `mat3_polar`.
  */
 
 #include "vecmat/types.h"
