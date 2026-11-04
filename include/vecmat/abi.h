@@ -563,6 +563,10 @@
 #define vm_sph_pressure_grad_avx2 vm_sph_pressure_grad64_avx2
 #define vm_sph_density_neon vm_sph_density64_neon
 #define vm_sph_pressure_grad_neon vm_sph_pressure_grad64_neon
+#define vm_sph_density_avx512 vm_sph_density64_avx512
+#define vm_sph_pressure_grad_avx512 vm_sph_pressure_grad64_avx512
+#define vm_sph_density_sve vm_sph_density64_sve
+#define vm_sph_pressure_grad_sve vm_sph_pressure_grad64_sve
 #define vm_sph_ncells vm_sph_ncells64
 #define vm_sph_grid_fit vm_sph_grid_fit64
 #define vm_sph_prefix vm_sph_prefix64
@@ -1560,6 +1564,10 @@
 #define vm_sph_pressure_grad_avx2 vm_sph_pressure_grad32_avx2
 #define vm_sph_density_neon vm_sph_density32_neon
 #define vm_sph_pressure_grad_neon vm_sph_pressure_grad32_neon
+#define vm_sph_density_avx512 vm_sph_density32_avx512
+#define vm_sph_pressure_grad_avx512 vm_sph_pressure_grad32_avx512
+#define vm_sph_density_sve vm_sph_density32_sve
+#define vm_sph_pressure_grad_sve vm_sph_pressure_grad32_sve
 #define vm_sph_ncells vm_sph_ncells32
 #define vm_sph_grid_fit vm_sph_grid_fit32
 #define vm_sph_prefix vm_sph_prefix32

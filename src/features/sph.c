@@ -9,6 +9,18 @@
 #include "vecmat/sph.h"
 #include "vecmat/cpu.h"
 
+#if defined(VECMAT_ENABLE_AVX512F)
+vm_float_t vm_sph_density_avx512(const vm_float_t *x, const vm_float_t *y,
+                                 const vm_float_t *z, const vm_float_t *m,
+                                 int i, const int *neighbors, int nn,
+                                 vm_float_t h, int dim, int kernel);
+bool vm_sph_pressure_grad_avx512(vm_float_t *gx, vm_float_t *gy, vm_float_t *gz,
+                                 const vm_float_t *x, const vm_float_t *y,
+                                 const vm_float_t *z, const vm_float_t *m,
+                                 const vm_float_t *rho, const vm_float_t *p,
+                                 int i, const int *neighbors, int nn,
+                                 vm_float_t h, int dim, int kernel);
+#endif
 #if defined(VECMAT_ENABLE_AVX2)
 vm_float_t vm_sph_density_avx2(const vm_float_t *x, const vm_float_t *y,
                                const vm_float_t *z, const vm_float_t *m,
@@ -20,6 +32,18 @@ bool vm_sph_pressure_grad_avx2(vm_float_t *gx, vm_float_t *gy, vm_float_t *gz,
                                const vm_float_t *rho, const vm_float_t *p,
                                int i, const int *neighbors, int nn,
                                vm_float_t h, int dim, int kernel);
+#endif
+#if defined(VECMAT_ENABLE_SVE) || defined(VECMAT_ENABLE_SVE2)
+vm_float_t vm_sph_density_sve(const vm_float_t *x, const vm_float_t *y,
+                              const vm_float_t *z, const vm_float_t *m,
+                              int i, const int *neighbors, int nn,
+                              vm_float_t h, int dim, int kernel);
+bool vm_sph_pressure_grad_sve(vm_float_t *gx, vm_float_t *gy, vm_float_t *gz,
+                              const vm_float_t *x, const vm_float_t *y,
+                              const vm_float_t *z, const vm_float_t *m,
+                              const vm_float_t *rho, const vm_float_t *p,
+                              int i, const int *neighbors, int nn,
+                              vm_float_t h, int dim, int kernel);
 #endif
 #if defined(VECMAT_ENABLE_NEON)
 vm_float_t vm_sph_density_neon(const vm_float_t *x, const vm_float_t *y,
@@ -159,11 +183,24 @@ vm_float_t vm_sph_density(const vm_float_t *x, const vm_float_t *y,
         return VM_F(0.0);
     }
 
+#if defined(VECMAT_ENABLE_AVX512F)
+    if ((vm_cpu_runtime_features() & VM_CPU_AVX512F) != 0) {
+        return vm_sph_density_avx512(x, y, z, m, i, neighbors, nn, h, dim, kernel);
+    }
+#endif
+
 #if defined(VECMAT_ENABLE_AVX2)
     if ((vm_cpu_runtime_features() & VM_CPU_AVX2) != 0) {
         return vm_sph_density_avx2(x, y, z, m, i, neighbors, nn, h, dim, kernel);
     }
 #endif
+
+#if defined(VECMAT_ENABLE_SVE) || defined(VECMAT_ENABLE_SVE2)
+    if ((vm_cpu_runtime_features() & (VM_CPU_SVE | VM_CPU_SVE2)) != 0) {
+        return vm_sph_density_sve(x, y, z, m, i, neighbors, nn, h, dim, kernel);
+    }
+#endif
+
 #if defined(VECMAT_ENABLE_NEON)
     if ((vm_cpu_runtime_features() & VM_CPU_NEON) != 0) {
         return vm_sph_density_neon(x, y, z, m, i, neighbors, nn, h, dim, kernel);
@@ -198,12 +235,28 @@ bool vm_sph_pressure_grad(vm_float_t *gx, vm_float_t *gy, vm_float_t *gz,
         (dim >= 3 && (!z || !gz)) || h <= VM_F(0.0) || rho[i] <= VM_F(0.0)) {
         return false;
     }
+
+#if defined(VECMAT_ENABLE_AVX512F)
+    if ((vm_cpu_runtime_features() & VM_CPU_AVX512F) != 0) {
+        return vm_sph_pressure_grad_avx512(gx, gy, gz, x, y, z, m, rho, p,
+                                           i, neighbors, nn, h, dim, kernel);
+    }
+#endif
+
 #if defined(VECMAT_ENABLE_AVX2)
     if ((vm_cpu_runtime_features() & VM_CPU_AVX2) != 0) {
         return vm_sph_pressure_grad_avx2(gx, gy, gz, x, y, z, m, rho, p,
                                          i, neighbors, nn, h, dim, kernel);
     }
 #endif
+
+#if defined(VECMAT_ENABLE_SVE) || defined(VECMAT_ENABLE_SVE2)
+    if ((vm_cpu_runtime_features() & (VM_CPU_SVE | VM_CPU_SVE2)) != 0) {
+        return vm_sph_pressure_grad_sve(gx, gy, gz, x, y, z, m, rho, p,
+                                        i, neighbors, nn, h, dim, kernel);
+    }
+#endif
+
 #if defined(VECMAT_ENABLE_NEON)
     if ((vm_cpu_runtime_features() & VM_CPU_NEON) != 0) {
         return vm_sph_pressure_grad_neon(gx, gy, gz, x, y, z, m, rho, p,

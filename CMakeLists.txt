@@ -435,7 +435,8 @@ function(vecmat_add_float_objects name bits extra_private_defs)
         target_sources(${name} PRIVATE
                 src/simd/avx512/vector4_ptr.c
                 src/simd/avx512/matrix4_ptr.c
-                src/simd/avx512/gemm.c)
+                src/simd/avx512/gemm.c
+                src/simd/avx512/sph.c)
         if(MSVC)
             set(_opts /arch:AVX512)
         else()
@@ -445,6 +446,7 @@ function(vecmat_add_float_objects name bits extra_private_defs)
                 src/simd/avx512/vector4_ptr.c
                 src/simd/avx512/matrix4_ptr.c
                 src/simd/avx512/gemm.c
+                src/simd/avx512/sph.c
                 TARGET_DIRECTORY ${name}
                 PROPERTIES COMPILE_OPTIONS "${_opts}")
         target_compile_definitions(${name} PRIVATE VECMAT_ENABLE_AVX512F)
@@ -471,11 +473,13 @@ function(vecmat_add_float_objects name bits extra_private_defs)
         target_sources(${name} PRIVATE
                 src/simd/sve/vector4_ptr.c
                 src/simd/sve/matrix4_ptr.c
-                src/simd/sve/gemm.c)
+                src/simd/sve/gemm.c
+                src/simd/sve/sph.c)
         set_source_files_properties(
                 src/simd/sve/vector4_ptr.c
                 src/simd/sve/matrix4_ptr.c
                 src/simd/sve/gemm.c
+                src/simd/sve/sph.c
                 TARGET_DIRECTORY ${name}
                 PROPERTIES COMPILE_OPTIONS "-march=armv8-a+sve")
         target_compile_definitions(${name} PRIVATE VECMAT_ENABLE_SVE)
@@ -492,6 +496,12 @@ function(vecmat_add_float_objects name bits extra_private_defs)
                 TARGET_DIRECTORY ${name}
                 PROPERTIES COMPILE_OPTIONS "-march=armv8-a+sve2")
         target_compile_definitions(${name} PRIVATE VECMAT_ENABLE_SVE2)
+        if(NOT VECMAT_ENABLE_SVE)
+            target_sources(${name} PRIVATE src/simd/sve/sph.c)
+            set_source_files_properties(src/simd/sve/sph.c
+                    TARGET_DIRECTORY ${name}
+                    PROPERTIES COMPILE_OPTIONS "-march=armv8-a+sve2")
+        endif()
     endif()
     foreach(_vecmat_hook IN LISTS VECMAT_MODULE_HOOKS)
         cmake_language(CALL ${_vecmat_hook} ${name})
