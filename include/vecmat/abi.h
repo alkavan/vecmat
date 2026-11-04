@@ -559,6 +559,10 @@
 #define vm_sph_dw vm_sph_dw64
 #define vm_sph_density vm_sph_density64
 #define vm_sph_pressure_grad vm_sph_pressure_grad64
+#define vm_sph_density_avx2 vm_sph_density64_avx2
+#define vm_sph_pressure_grad_avx2 vm_sph_pressure_grad64_avx2
+#define vm_sph_density_neon vm_sph_density64_neon
+#define vm_sph_pressure_grad_neon vm_sph_pressure_grad64_neon
 #define vm_batch3_mul vm_batch3_mul64
 #define vm_batch3_inverse vm_batch3_inverse64
 #define vm_batch3_polar vm_batch3_polar64
@@ -1538,6 +1542,10 @@
 #define vm_sph_dw vm_sph_dw32
 #define vm_sph_density vm_sph_density32
 #define vm_sph_pressure_grad vm_sph_pressure_grad32
+#define vm_sph_density_avx2 vm_sph_density32_avx2
+#define vm_sph_pressure_grad_avx2 vm_sph_pressure_grad32_avx2
+#define vm_sph_density_neon vm_sph_density32_neon
+#define vm_sph_pressure_grad_neon vm_sph_pressure_grad32_neon
 #define vm_batch3_mul vm_batch3_mul32
 #define vm_batch3_inverse vm_batch3_inverse32
 #define vm_batch3_polar vm_batch3_polar32

@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 cmake_minimum_required(VERSION 3.21)
-project(vecmat LANGUAGES C VERSION 0.4.2)
+project(vecmat LANGUAGES C VERSION 0.4.3)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -415,7 +415,8 @@ function(vecmat_add_float_objects name bits extra_private_defs)
         target_sources(${name} PRIVATE
                 src/simd/avx2/vector4_ptr.c
                 src/simd/avx2/matrix4_ptr.c
-                src/simd/avx2/gemm.c)
+                src/simd/avx2/gemm.c
+                src/simd/avx2/sph.c)
         if(MSVC)
             set(_opts /arch:AVX2)
         else()
@@ -425,6 +426,7 @@ function(vecmat_add_float_objects name bits extra_private_defs)
                 src/simd/avx2/vector4_ptr.c
                 src/simd/avx2/matrix4_ptr.c
                 src/simd/avx2/gemm.c
+                src/simd/avx2/sph.c
                 TARGET_DIRECTORY ${name}
                 PROPERTIES COMPILE_OPTIONS "${_opts}")
         target_compile_definitions(${name} PRIVATE VECMAT_ENABLE_AVX2)
@@ -451,12 +453,14 @@ function(vecmat_add_float_objects name bits extra_private_defs)
         target_sources(${name} PRIVATE
                 src/simd/neon/vector4_ptr.c
                 src/simd/neon/matrix4_ptr.c
-                src/simd/neon/gemm.c)
+                src/simd/neon/gemm.c
+                src/simd/neon/sph.c)
         if(NOT MSVC)
             set_source_files_properties(
                     src/simd/neon/vector4_ptr.c
                     src/simd/neon/matrix4_ptr.c
                     src/simd/neon/gemm.c
+                    src/simd/neon/sph.c
                     TARGET_DIRECTORY ${name}
                     PROPERTIES COMPILE_OPTIONS "-march=armv8-a+simd")
         endif()

@@ -5,9 +5,19 @@ machine learning, physics, and science.
 * Runtime SIMD dispatch
 * Modular backends, types, and features
 * Unified precision (fp64/fp32)
-* Dense algebra
-* GEMM
-* Solvers
+* Clip-space (OpenGL, Vulkan, D3D)
+* Dense algebra and GEMM
+* Sparse and dense solvers
+* Integrators
+
+### Advance Physics Features
+
+- **Continuum strain measures** — Right Cauchy-Green, Green-Lagrange, Almansi, and
+  logarithmic strain from the stretch or the deformation gradient.
+- **Local equations of state** — ideal gas, stiffened gas, Mie-Grüneisen on a linear
+  Hugoniot, and Jones-Wilkins-Lee, with sound speed from the same derivative.
+- **One-cell hydro primitives** — Newtonian viscous stress, von Neumann-Richtmyer
+  artificial viscosity, Rusanov face flux, and a CFL time-step limit.
 
 ## Philosophy
 
@@ -219,7 +229,7 @@ if(NOT TARGET vecmat::vecmat)
     include(FetchContent)
     FetchContent_Declare(vecmat
         GIT_REPOSITORY https://github.com/alkavan/vecmat.git
-        GIT_TAG v0.4.2
+        GIT_TAG v0.4.3
     )
     FetchContent_MakeAvailable(vecmat)
 endif()
@@ -308,6 +318,7 @@ Integer macros must match the linked library. `VECMAT_USE_F64` is per TU.
 | `VECMAT_MODULES`                         | empty                                   | Module paths such as `arm/fp16`, relative to `vendors/` or `VECMAT_MODULES_PATH`. |
 | `VECMAT_MODULES_PATH`                    | empty                                   | Extra roots when modules are not under `vendors/`.                                |
 | `VECMAT_ENABLE_FP16`                     | OFF                                     | IEEE binary16 and `vm_gemm_fp16f32`. See `doc/fp16.md`. Not a `vm_float_t` width. |
+| `VECMAT_ENABLE_BF16`                     | OFF                                     | bfloat16 and `vm_gemm_bf16f32`. See `doc/bf16.md`. Not a `vm_float_t` width.      |
 | `VECMAT_BUILD_TESTS`                     | ON when Vecmat is the top-level project | Build `vecmat_tests` and `vecmat_benchmarks`.                                     |
 | `VECMAT_INSTALL`                         | ON when Vecmat is the top-level project | Generate the install rules.                                                       |
 

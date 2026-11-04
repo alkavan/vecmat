@@ -5,6 +5,32 @@
 #include <math.h>
 #include <vecmat.h>
 #include "vecmat/sph.h"
+#include "vecmat/cpu.h"
+
+#if defined(VECMAT_ENABLE_AVX2)
+vm_float_t vm_sph_density_avx2(const vm_float_t *x, const vm_float_t *y,
+                               const vm_float_t *z, const vm_float_t *m,
+                               int i, const int *neighbors, int nn,
+                               vm_float_t h, int dim, int kernel);
+bool vm_sph_pressure_grad_avx2(vm_float_t *gx, vm_float_t *gy, vm_float_t *gz,
+                               const vm_float_t *x, const vm_float_t *y,
+                               const vm_float_t *z, const vm_float_t *m,
+                               const vm_float_t *rho, const vm_float_t *p,
+                               int i, const int *neighbors, int nn,
+                               vm_float_t h, int dim, int kernel);
+#endif
+#if defined(VECMAT_ENABLE_NEON)
+vm_float_t vm_sph_density_neon(const vm_float_t *x, const vm_float_t *y,
+                               const vm_float_t *z, const vm_float_t *m,
+                               int i, const int *neighbors, int nn,
+                               vm_float_t h, int dim, int kernel);
+bool vm_sph_pressure_grad_neon(vm_float_t *gx, vm_float_t *gy, vm_float_t *gz,
+                               const vm_float_t *x, const vm_float_t *y,
+                               const vm_float_t *z, const vm_float_t *m,
+                               const vm_float_t *rho, const vm_float_t *p,
+                               int i, const int *neighbors, int nn,
+                               vm_float_t h, int dim, int kernel);
+#endif
 
 /* Cubic spline shape and derivative, q = r/h, support q < 2. */
 static vm_float_t cubic_f(const vm_float_t q)
@@ -16,8 +42,8 @@ static vm_float_t cubic_f(const vm_float_t q)
     if (q <= VM_F(1.0)) {
         return VM_F(1.0) - VM_F(1.5) * q * q + VM_F(0.75) * q * q * q;
     }
-    const vm_float_t t = VM_F(2.0) - q;
 
+    const vm_float_t t = VM_F(2.0) - q;
     return VM_F(0.25) * t * t * t;
 }
 
@@ -30,8 +56,8 @@ static vm_float_t cubic_df(const vm_float_t q)
     if (q <= VM_F(1.0)) {
         return VM_F(-3.0) * q + VM_F(2.25) * q * q;
     }
-    const vm_float_t t = VM_F(2.0) - q;
 
+    const vm_float_t t = VM_F(2.0) - q;
     return VM_F(-0.75) * t * t;
 }
 
@@ -44,7 +70,6 @@ static vm_float_t wendland_f(const vm_float_t q)
 
     const vm_float_t u = VM_F(1.0) - VM_F(0.5) * q;
     const vm_float_t u2 = u * u;
-
     return u2 * u2 * (VM_F(1.0) + VM_F(2.0) * q);
 }
 
@@ -53,8 +78,8 @@ static vm_float_t wendland_df(const vm_float_t q)
     if (q <= VM_F(0.0) || q >= VM_F(2.0)) {
         return VM_F(0.0);
     }
-    const vm_float_t u = VM_F(1.0) - VM_F(0.5) * q;
 
+    const vm_float_t u = VM_F(1.0) - VM_F(0.5) * q;
     return VM_F(-5.0) * q * u * u * u;
 }
 
@@ -106,7 +131,6 @@ vm_float_t vm_sph_dw(const vm_float_t r, const vm_float_t h, const int dim, cons
     }
 
     const vm_float_t sign = (r < VM_F(0.0)) ? VM_F(-1.0) : VM_F(1.0);
-
     return sign * kernel_sigma(dim, kernel) * df / hd;
 }
 
@@ -117,7 +141,6 @@ static vm_float_t separation(const vm_float_t dx, const vm_float_t dy,
     if (dim >= 2) {
         r2 += dy * dy;
     }
-
     if (dim >= 3) {
         r2 += dz * dz;
     }
@@ -133,6 +156,17 @@ vm_float_t vm_sph_density(const vm_float_t *x, const vm_float_t *y,
     if (!x || !m || (dim >= 2 && !y) || (dim >= 3 && !z) || h <= VM_F(0.0)) {
         return VM_F(0.0);
     }
+
+#if defined(VECMAT_ENABLE_AVX2)
+    if ((vm_cpu_runtime_features() & VM_CPU_AVX2) != 0) {
+        return vm_sph_density_avx2(x, y, z, m, i, neighbors, nn, h, dim, kernel);
+    }
+#endif
+#if defined(VECMAT_ENABLE_NEON)
+    if ((vm_cpu_runtime_features() & VM_CPU_NEON) != 0) {
+        return vm_sph_density_neon(x, y, z, m, i, neighbors, nn, h, dim, kernel);
+    }
+#endif
 
     vm_float_t rho = m[i] * vm_sph_w(VM_F(0.0), h, dim, kernel);
     if (!neighbors || nn <= 0) {
@@ -162,6 +196,18 @@ bool vm_sph_pressure_grad(vm_float_t *gx, vm_float_t *gy, vm_float_t *gz,
         (dim >= 3 && (!z || !gz)) || h <= VM_F(0.0) || rho[i] <= VM_F(0.0)) {
         return false;
     }
+#if defined(VECMAT_ENABLE_AVX2)
+    if ((vm_cpu_runtime_features() & VM_CPU_AVX2) != 0) {
+        return vm_sph_pressure_grad_avx2(gx, gy, gz, x, y, z, m, rho, p,
+                                         i, neighbors, nn, h, dim, kernel);
+    }
+#endif
+#if defined(VECMAT_ENABLE_NEON)
+    if ((vm_cpu_runtime_features() & VM_CPU_NEON) != 0) {
+        return vm_sph_pressure_grad_neon(gx, gy, gz, x, y, z, m, rho, p,
+                                         i, neighbors, nn, h, dim, kernel);
+    }
+#endif
 
     *gx = VM_F(0.0);
     *gy = VM_F(0.0);
@@ -174,8 +220,7 @@ bool vm_sph_pressure_grad(vm_float_t *gx, vm_float_t *gy, vm_float_t *gz,
     }
 
     const vm_float_t pi_term = p[i] / (rho[i] * rho[i]);
-    for (int k = 0; k < nn; ++k)
-    {
+    for (int k = 0; k < nn; ++k) {
         const int j = neighbors[k];
         if (rho[j] <= VM_F(0.0)) {
             return false;
@@ -197,10 +242,10 @@ bool vm_sph_pressure_grad(vm_float_t *gx, vm_float_t *gy, vm_float_t *gz,
         if (dim >= 2) {
             *gy += scale * dy;
         }
-
         if (dim >= 3 && gz) {
             *gz += scale * dz;
         }
     }
+
     return true;
 }
