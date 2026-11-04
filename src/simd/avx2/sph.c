@@ -4,7 +4,7 @@
 
 /**
  * @file
- * @brief AVX2 neighbor loops for the SPH density sum and pressure gradient.
+ * @brief AVX2 neighbor loops for density, pressure gradient, and artificial viscosity.
  *
  * Same kernels as the scalar path: cubic spline and Wendland C2, support
  * \(r < 2h\), normalized. Neighbors are gathered 8-wide (f32) or 4-wide (f64).
@@ -324,6 +324,181 @@ bool vm_sph_pressure_grad_avx2(vm_float_t *gx, vm_float_t *gy, vm_float_t *gz,
         }
         if (dim >= 3 && gz) {
             *gz += scale * dz;
+        }
+    }
+
+    return true;
+}
+
+bool vm_sph_artvisc_avx2(vm_float_t *ax, vm_float_t *ay, vm_float_t *az,
+                         const vm_float_t *x, const vm_float_t *y,
+                         const vm_float_t *z,
+                         const vm_float_t *vx, const vm_float_t *vy,
+                         const vm_float_t *vz,
+                         const vm_float_t *m, const vm_float_t *rho,
+                         const vm_float_t *c,
+                         const int i, const int *neighbors, const int nn,
+                         const vm_float_t h, const vm_float_t alpha,
+                         const vm_float_t beta, const vm_float_t eta,
+                         const int dim, const int kernel)
+{
+    if (!ax || !ay || !x || !vx || !m || !rho || !c
+        || (dim >= 2 && (!y || !vy)) || (dim >= 3 && (!z || !vz || !az))
+        || h <= VM_F(0.0) || dim < 1 || dim > 3 || rho[i] <= VM_F(0.0)) {
+        return false;
+    }
+
+    *ax = VM_F(0.0);
+    *ay = VM_F(0.0);
+    if (az) {
+        *az = VM_F(0.0);
+    }
+
+    if (!neighbors || nn <= 0) {
+        return true;
+    }
+
+    const vm_float_t sig = sigma_of(dim, kernel);
+
+    /* dW/dr scales as h^(dim+1), same as vm_sph_dw and the pressure kernel. */
+    vm_float_t hd = h;
+    for (int d = 0; d < dim; ++d) {
+        hd *= h;
+    }
+
+    const vm_float_t inv_hd = sig / hd;
+    const vm_float_t inv_h = VM_F(1.0) / h;
+    const vm_float_t support2 = VM_F(4.0) * h * h;
+    const vm_float_t eta_h2 = (eta * h) * (eta * h);
+
+    const vm_vec xi = vm_set1(x[i]);
+    const vm_vec yi = (dim >= 2) ? vm_set1(y[i]) : vm_setzero();
+    const vm_vec zi = (dim >= 3) ? vm_set1(z[i]) : vm_setzero();
+    const vm_vec vxi = vm_set1(vx[i]);
+    const vm_vec vyi = (dim >= 2) ? vm_set1(vy[i]) : vm_setzero();
+    const vm_vec vzi = (dim >= 3) ? vm_set1(vz[i]) : vm_setzero();
+    const vm_vec vinv_h = vm_set1(inv_h);
+    const vm_vec vinv_hd = vm_set1(inv_hd);
+    const vm_vec vsupport = vm_set1(support2);
+    const vm_vec vh = vm_set1(h);
+    const vm_vec veta = vm_set1(eta_h2);
+    const vm_vec valpha = vm_set1(alpha);
+    const vm_vec vbeta = vm_set1(beta);
+    const vm_vec vrho_i = vm_set1(rho[i]);
+    const vm_vec vc_i = vm_set1(c[i]);
+    const vm_vec half = vm_set1(VM_F(0.5));
+
+    vm_vec aax = vm_setzero();
+    vm_vec aay = vm_setzero();
+    vm_vec aaz = vm_setzero();
+
+    int k = 0;
+    for (; k + VM_LANES <= nn; k += VM_LANES) {
+        const vm_vec xj = gather_f(x, neighbors + k);
+        const vm_vec dx = vm_sub(xi, xj);
+
+        vm_vec dy = vm_setzero();
+        vm_vec dz = vm_setzero();
+        vm_vec r2 = vm_mul(dx, dx);
+
+        if (dim >= 2) {
+            dy = vm_sub(yi, gather_f(y, neighbors + k));
+            r2 = vm_add(r2, vm_mul(dy, dy));
+        }
+
+        if (dim >= 3) {
+            dz = vm_sub(zi, gather_f(z, neighbors + k));
+            r2 = vm_add(r2, vm_mul(dz, dz));
+        }
+
+        const vm_vec inside = vm_cmp_lt(r2, vsupport);
+        const vm_vec alive = vm_cmp_gt(r2, vm_set1(VM_F(1.0e-20)));
+        const vm_vec rhoj = gather_f(rho, neighbors + k);
+
+#if defined(VECMAT_USE_F64)
+        if (_mm256_movemask_pd(_mm256_cmp_pd(rhoj, vm_set1(VM_F(0.0)), _CMP_LE_OQ)) != 0) {
+            return false;
+        }
+#else
+        if (_mm256_movemask_ps(_mm256_cmp_ps(rhoj, vm_set1(VM_F(0.0)), _CMP_LE_OQ)) != 0) {
+            return false;
+        }
+#endif
+
+        const vm_vec vxj = gather_f(vx, neighbors + k);
+        const vm_vec dvx = vm_sub(vxi, vxj);
+        vm_vec vdot = vm_mul(dvx, dx);
+
+        if (dim >= 2) {
+            const vm_vec vyj = gather_f(vy, neighbors + k);
+            vdot = vm_add(vdot, vm_mul(vm_sub(vyi, vyj), dy));
+        }
+        if (dim >= 3) {
+            const vm_vec vzj = gather_f(vz, neighbors + k);
+            vdot = vm_add(vdot, vm_mul(vm_sub(vzi, vzj), dz));
+        }
+
+        const vm_vec approaching = vm_cmp_lt(vdot, vm_setzero());
+        const vm_vec keep = vm_and(vm_and(inside, alive), approaching);
+        const vm_vec r = vm_sqrt(vm_max(r2, vm_set1(VM_F(1.0e-20))));
+        const vm_vec q = vm_mul(r, vinv_h);
+        const vm_vec dw = vm_mul(shape_df(q, kernel), vinv_hd);
+        const vm_vec mu = vm_div(vm_mul(vh, vdot), vm_add(r2, veta));
+        const vm_vec cj = gather_f(c, neighbors + k);
+        const vm_vec c_bar = vm_mul(half, vm_add(vc_i, cj));
+        const vm_vec rho_bar = vm_mul(half, vm_add(vrho_i, rhoj));
+        const vm_vec pi = vm_div(vm_add(vm_mul(vm_mul(vm_set1(VM_F(-1.0)), valpha), vm_mul(c_bar, mu)),
+                                        vm_mul(vbeta, vm_mul(mu, mu))),
+                                 rho_bar);
+        const vm_vec mj = gather_f(m, neighbors + k);
+        const vm_vec scale = vm_and(vm_mul(vm_mul(vm_set1(VM_F(-1.0)), mj), vm_mul(pi, vm_div(dw, r))), keep);
+        aax = vm_add(aax, vm_mul(scale, dx));
+
+        if (dim >= 2) {
+            aay = vm_add(aay, vm_mul(scale, dy));
+        }
+        if (dim >= 3) {
+            aaz = vm_add(aaz, vm_mul(scale, dz));
+        }
+    }
+
+    *ax = hsum(aax);
+    *ay = hsum(aay);
+
+    if (az) {
+        *az = hsum(aaz);
+    }
+
+    for (; k < nn; ++k) {
+        const int j = neighbors[k];
+        if (rho[j] <= VM_F(0.0)) {
+            return false;
+        }
+
+        const vm_float_t dx = x[i] - x[j];
+        const vm_float_t dy = (dim >= 2) ? (y[i] - y[j]) : VM_F(0.0);
+        const vm_float_t dz = (dim >= 3) ? (z[i] - z[j]) : VM_F(0.0);
+        const vm_float_t r2 = dx * dx + dy * dy + dz * dz;
+
+        if (r2 <= VM_F(0.0) || r2 >= support2) {
+            continue;
+        }
+
+        const vm_float_t r = VECMAT_SQRT(r2);
+        const vm_float_t vdot = (vx[i] - vx[j]) * dx
+            + ((dim >= 2) ? (vy[i] - vy[j]) * dy : VM_F(0.0))
+            + ((dim >= 3) ? (vz[i] - vz[j]) * dz : VM_F(0.0));
+        const vm_float_t pi = vm_sph_pi(r, vdot, rho[i], rho[j], c[i], c[j],
+                                        h, alpha, beta, eta);
+        const vm_float_t dw = vm_sph_dw(r, h, dim, kernel);
+        const vm_float_t scale = -m[j] * pi * dw / r;
+        *ax += scale * dx;
+
+        if (dim >= 2) {
+            *ay += scale * dy;
+        }
+        if (dim >= 3 && az) {
+            *az += scale * dz;
         }
     }
 

@@ -32,6 +32,16 @@ bool vm_sph_pressure_grad_avx2(vm_float_t *gx, vm_float_t *gy, vm_float_t *gz,
                                const vm_float_t *rho, const vm_float_t *p,
                                int i, const int *neighbors, int nn,
                                vm_float_t h, int dim, int kernel);
+bool vm_sph_artvisc_avx2(vm_float_t *ax, vm_float_t *ay, vm_float_t *az,
+                         const vm_float_t *x, const vm_float_t *y,
+                         const vm_float_t *z,
+                         const vm_float_t *vx, const vm_float_t *vy,
+                         const vm_float_t *vz,
+                         const vm_float_t *m, const vm_float_t *rho,
+                         const vm_float_t *c,
+                         int i, const int *neighbors, int nn,
+                         vm_float_t h, vm_float_t alpha, vm_float_t beta,
+                         vm_float_t eta, int dim, int kernel);
 #endif
 #if defined(VECMAT_ENABLE_SVE) || defined(VECMAT_ENABLE_SVE2)
 vm_float_t vm_sph_density_sve(const vm_float_t *x, const vm_float_t *y,
@@ -457,6 +467,13 @@ bool vm_sph_artvisc(vm_float_t *ax, vm_float_t *ay, vm_float_t *az,
         || h <= VM_F(0.0) || dim < 1 || dim > 3 || rho[i] <= VM_F(0.0)) {
         return false;
     }
+
+#if defined(VECMAT_ENABLE_AVX2)
+    if ((vm_cpu_runtime_features() & VM_CPU_AVX2) != 0) {
+        return vm_sph_artvisc_avx2(ax, ay, az, x, y, z, vx, vy, vz, m, rho, c,
+                                   i, neighbors, nn, h, alpha, beta, eta, dim, kernel);
+    }
+#endif
 
     *ax = VM_F(0.0);
     *ay = VM_F(0.0);

@@ -475,3 +475,43 @@ TEST_CASE(sph_boundary_repels_inside_r0, "[sph]") {
                             VM_F(1.0), VM_F(1.0), 1));
     REQUIRE(ax == VM_F(0.0));
 }
+
+TEST_CASE(sph_artvisc_matches_pi, "[sph]") {
+    enum { n = 10 };
+    vm_float_t x[n], vx[n], m[n], rho[n], c[n];
+    int nb[n - 1];
+    for (int i = 0; i < n; ++i) {
+        x[i] = VM_F(0.3) * (vm_float_t)i;
+        vx[i] = (i % 2) ? VM_F(-0.4) : VM_F(0.4);
+        m[i] = VM_F(1.0);
+        rho[i] = VM_F(1.0);
+        c[i] = VM_F(1.0);
+        if (i > 0) {
+            nb[i - 1] = i;
+        }
+    }
+    const vm_float_t h = VM_F(1.0);
+    vm_float_t ax, ay;
+    REQUIRE(vm_sph_artvisc(&ax, &ay, NULL, x, NULL, NULL, vx, NULL, NULL,
+                           m, rho, c, 0, nb, n - 1, h, VM_F(1.0), VM_F(2.0),
+                           VM_F(0.01), 1, VM_SPH_CUBIC));
+    vm_float_t expect = VM_F(0.0);
+    for (int k = 0; k < n - 1; ++k) {
+        const int j = nb[k];
+        const vm_float_t dx = x[0] - x[j];
+        const vm_float_t r = VECMAT_FABS(dx);
+        if (r == VM_F(0.0)) {
+            continue;
+        }
+        const vm_float_t vdot = (vx[0] - vx[j]) * dx;
+        const vm_float_t pi = vm_sph_pi(r, vdot, rho[0], rho[j], c[0], c[j],
+                                        h, VM_F(1.0), VM_F(2.0), VM_F(0.01));
+        const vm_float_t dw = vm_sph_dw(r, h, 1, VM_SPH_CUBIC);
+        expect += -m[j] * pi * dw / r * dx;
+    }
+    REQUIRE(VECMAT_EQ(ax, expect, EPSILON * VECMAT_FABS(expect) + EPSILON));
+    rho[2] = VM_F(0.0);
+    REQUIRE(!vm_sph_artvisc(&ax, &ay, NULL, x, NULL, NULL, vx, NULL, NULL,
+                            m, rho, c, 0, nb, n - 1, h, VM_F(1.0), VM_F(2.0),
+                            VM_F(0.01), 1, VM_SPH_CUBIC));
+}

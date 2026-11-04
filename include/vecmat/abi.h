@@ -569,6 +569,7 @@
 #define vm_sph_pressure_grad vm_sph_pressure_grad64
 #define vm_sph_density_avx2 vm_sph_density64_avx2
 #define vm_sph_pressure_grad_avx2 vm_sph_pressure_grad64_avx2
+#define vm_sph_artvisc_avx2 vm_sph_artvisc64_avx2
 #define vm_sph_density_neon vm_sph_density64_neon
 #define vm_sph_pressure_grad_neon vm_sph_pressure_grad64_neon
 #define vm_sph_density_avx512 vm_sph_density64_avx512
@@ -1584,6 +1585,7 @@
 #define vm_sph_pressure_grad vm_sph_pressure_grad32
 #define vm_sph_density_avx2 vm_sph_density32_avx2
 #define vm_sph_pressure_grad_avx2 vm_sph_pressure_grad32_avx2
+#define vm_sph_artvisc_avx2 vm_sph_artvisc32_avx2
 #define vm_sph_density_neon vm_sph_density32_neon
 #define vm_sph_pressure_grad_neon vm_sph_pressure_grad32_neon
 #define vm_sph_density_avx512 vm_sph_density32_avx512
