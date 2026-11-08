@@ -71,7 +71,7 @@ VECMAT_SCALAR_API void vec4_div_scalar_ptr_scalar(vector4 *res, const vector4 *v
     res->w = v->w / s;
 }
 
-/**
+/**_avx2
  * @brief Performs component-wise multiplication of two `vector4`.
  *
  * @param res Pointer to result `vector4`.

@@ -30,7 +30,7 @@
 // Version
 #define VECMAT_VERSION_MAJOR 0
 #define VECMAT_VERSION_MINOR 4
-#define VECMAT_VERSION_PATCH 3
+#define VECMAT_VERSION_PATCH 4
 
 // Version macros
 #define VECMAT_STR_HELPER(x) #x
@@ -63,6 +63,9 @@
 #include "vecmat/raddiff.h"
 #include "vecmat/sph.h"
 #include "vecmat/batch3.h"
+#include "vecmat/array.h"
+#include "vecmat/reduce.h"
+#include "vecmat/periodic.h"
 #include "vecmat/sparse.h"
 #include "vecmat/ode.h"
 

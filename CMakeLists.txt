@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 cmake_minimum_required(VERSION 3.21)
-project(vecmat LANGUAGES C VERSION 0.4.3)
+project(vecmat LANGUAGES C VERSION 0.4.4)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -278,6 +278,9 @@ set(VECMAT_FLOAT_SOURCES
         src/features/raddiff.c
         src/features/sph.c
         src/features/batch3.c
+        src/features/array.c
+        src/features/reduce.c
+        src/features/periodic.c
         src/solvers/lu.c
         src/solvers/qr.c
         src/solvers/svd.c
@@ -418,7 +421,8 @@ function(vecmat_add_float_objects name bits extra_private_defs)
                 src/simd/avx2/gemm.c
                 src/simd/avx2/sph.c
                 src/simd/avx2/batch3.c
-                src/simd/avx2/eos.c)
+                src/simd/avx2/eos.c
+                src/simd/avx2/array.c)
         if(MSVC)
             set(_opts /arch:AVX2)
         else()
@@ -431,6 +435,7 @@ function(vecmat_add_float_objects name bits extra_private_defs)
                 src/simd/avx2/sph.c
                 src/simd/avx2/batch3.c
                 src/simd/avx2/eos.c
+                src/simd/avx2/array.c
                 TARGET_DIRECTORY ${name}
                 PROPERTIES COMPILE_OPTIONS "${_opts}")
         target_compile_definitions(${name} PRIVATE VECMAT_ENABLE_AVX2)
@@ -462,7 +467,8 @@ function(vecmat_add_float_objects name bits extra_private_defs)
                 src/simd/neon/gemm.c
                 src/simd/neon/sph.c
                 src/simd/neon/batch3.c
-                src/simd/neon/eos.c)
+                src/simd/neon/eos.c
+                src/simd/neon/array.c)
         if(NOT MSVC)
             set_source_files_properties(
                     src/simd/neon/vector4_ptr.c
@@ -471,6 +477,7 @@ function(vecmat_add_float_objects name bits extra_private_defs)
                     src/simd/neon/sph.c
                     src/simd/neon/batch3.c
                     src/simd/neon/eos.c
+                    src/simd/neon/array.c
                     TARGET_DIRECTORY ${name}
                     PROPERTIES COMPILE_OPTIONS "-march=armv8-a+simd")
         endif()

@@ -37,6 +37,9 @@ add_executable(vecmat_tests
         test_raddiff.c
         test_sph.c
         test_batch3.c
+        test_array.c
+        test_reduce.c
+        test_periodic.c
         test_abi.c
         ${VECMAT_MODULE_TEST_SOURCES}
 )
@@ -98,6 +101,7 @@ add_executable(vecmat_benchmarks
         bench_matrix_float.c
         bench_quaternion.c
         bench_gemm.c
+        bench_array.c
         ${VECMAT_MODULE_BENCH_SOURCES}
 )
 if(VECMAT_USE_F64)

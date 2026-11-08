@@ -88,21 +88,6 @@ static vm_float_t vm_vec_norm2(const vm_float_t *a, const int n)
 }
 
 /**
- * @brief y := y + a * x (AXPY).
- *
- * @param y Input/output vector.
- * @param a Scalar.
- * @param x Input vector.
- * @param n Length.
- */
-static void vm_vec_axpy(vm_float_t *y, const vm_float_t a, const vm_float_t *x, const int n)
-{
-    for (int i = 0; i < n; ++i) {
-        y[i] += a * x[i];
-    }
-}
-
-/**
  * @brief Copy a vector.
  *
  * @param dst Destination.
@@ -665,8 +650,8 @@ bool vm_cg(const vm_spmat *A, const vm_float_t *b, vm_float_t *x,
             break;
         }
         const vm_float_t alpha = rz / pap;
-        vm_vec_axpy(x, alpha, p, n);
-        vm_vec_axpy(r, -alpha, ap, n);
+        vm_axpy(x, alpha, p, n);
+        vm_axpy(r, -alpha, ap, n);
         res_norm = vm_vec_norm2(r, n);
         if (res_norm / scale <= tol) {
             ok = true;
@@ -792,7 +777,7 @@ bool vm_bicgstab(const vm_spmat *A, const vm_float_t *b, vm_float_t *x,
             s[i] = r[i] - alpha * v[i];
         }
         if (vm_vec_norm2(s, n) / scale <= tol) {
-            vm_vec_axpy(x, alpha, y, n);
+            vm_axpy(x, alpha, y, n);
             res_norm = vm_vec_norm2(s, n);
             ok = true;
             break;

@@ -27,6 +27,27 @@ vm_gemm(C, n, A, n, B, n, n, n, n,
         1.0f, 0.0f, false, false, VM_LAYOUT_COL_MAJOR);
 ```
 
+## Contiguous arrays
+
+Scalar loops on length-`n` buffers. `n <= 0` does not read. An elementwise
+result may exactly alias an input. `vm_array_add`, `vm_array_sub`, `vm_array_mul`,
+`vm_array_fma`, and `vm_axpy` use AVX2 or NEON when the runtime CPU has it;
+the scalar path remains the fallback. `vm_array_fma` is one rounding through
+`VECMAT_FMA` (`fma` / `fmaf`). `vm_axpy` is `y += alpha * x`, a multiply
+then an add (not fused). Sums and dots use Neumaier compensation. `vm_sum_f32f64` and
+`vm_dot_f32f64` are compiled once and are not width-remapped; the dot widens
+each factor before the multiply.
+
+- `vm_array_add`, `vm_array_sub`, `vm_array_mul`, `vm_array_fma`, `vm_axpy`
+- `vm_rsqrt_array` is `1/sqrt`. `+0` → `+inf`, `−0` → `−inf`, `+inf` → `+0`, a negative nonzero → NaN
+- `vm_sum_compensated`, `vm_dot_compensated`, `vm_sum_f32f64`, `vm_dot_f32f64`
+- `vm_array_minmax` ignores NaNs. The minimum of `±0` is `−0` and the maximum is `+0`
+- `vm_periodic_delta_ortho` is the orthorhombic minimum image of `a − b` on `vector3` arrays, ties-to-even, in `[-L/2, L/2]`
+- `vm_wrap_ortho` folds a `vector3` array into `[0, L)`
+
+`VECMAT_REMAINDER` is `remainder` / `remainderf`. These are not a force
+field. They do not change `vm_verlet` or `vm_gemm`.
+
 ## Dense linear algebra
 
 Heap `vm_mat` (M×N, column-major). LU with partial pivoting, Householder

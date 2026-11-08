@@ -484,6 +484,8 @@ typedef void (*vm_acc_fn)(const vm_float_t *x, vm_float_t *a, void *ctx);
 #define VECMAT_LOG(x)           log((x))
 #define VECMAT_EXP(x)           exp((x))
 #define VECMAT_COPYSIGN(x, y)   copysign((x), (y))
+#define VECMAT_FMA(x, y, z)     fma((x), (y), (z))
+#define VECMAT_REMAINDER(x, y)  remainder((x), (y))
 #else
 #define VECMAT_FABS(x)          fabsf((x))
 #define VECMAT_SQRT(x)          sqrtf((x))
@@ -503,6 +505,8 @@ typedef void (*vm_acc_fn)(const vm_float_t *x, vm_float_t *a, void *ctx);
 #define VECMAT_LOG(x)           logf((x))
 #define VECMAT_EXP(x)           expf((x))
 #define VECMAT_COPYSIGN(x, y)   copysignf((x), (y))
+#define VECMAT_FMA(x, y, z)     fmaf((x), (y), (z))
+#define VECMAT_REMAINDER(x, y)  remainderf((x), (y))
 #endif
 
 #endif //VECMAT_TYPES_H
