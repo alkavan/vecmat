@@ -30,7 +30,7 @@ vm_gemm(C, n, A, n, B, n, n, n, n,
 ## Contiguous arrays
 
 Scalar loops on length-`n` buffers. `n <= 0` does not read. An elementwise
-result may exactly alias an input. `vm_array_add`, `vm_array_sub`, `vm_array_mul`,
+result may exactly alias an input. `vm_array_add`, `vm_array_sub`, `vm_array_mul`, `vm_array_div`,
 `vm_array_fma`, and `vm_axpy` use AVX2 or NEON when the runtime CPU has it;
 the scalar path remains the fallback. `vm_array_fma` is one rounding through
 `VECMAT_FMA` (`fma` / `fmaf`). `vm_axpy` is `y += alpha * x`, a multiply
@@ -38,7 +38,7 @@ then an add (not fused). Sums and dots use Neumaier compensation. `vm_sum_f32f64
 `vm_dot_f32f64` are compiled once and are not width-remapped; the dot widens
 each factor before the multiply.
 
-- `vm_array_add`, `vm_array_sub`, `vm_array_mul`, `vm_array_fma`, `vm_axpy`
+- `vm_array_add`, `vm_array_sub`, `vm_array_mul`, `vm_array_div`, `vm_array_fma`, `vm_axpy`
 - `vm_rsqrt_array` is `1/sqrt`. `+0` → `+inf`, `−0` → `−inf`, `+inf` → `+0`, a negative nonzero → NaN
 - `vm_sum_compensated`, `vm_dot_compensated`, `vm_sum_f32f64`, `vm_dot_f32f64`
 - `vm_array_minmax` ignores NaNs. The minimum of `±0` is `−0` and the maximum is `+0`

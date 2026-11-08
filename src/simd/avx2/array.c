@@ -22,6 +22,7 @@ typedef __m256d vec_t;
 #define vadd(a, b) _mm256_add_pd((a), (b))
 #define vsub(a, b) _mm256_sub_pd((a), (b))
 #define vmul(a, b) _mm256_mul_pd((a), (b))
+#define vdiv(a, b) _mm256_div_pd((a), (b))
 #define vfma(a, b, c) _mm256_fmadd_pd((a), (b), (c))
 #define vset1(x)   _mm256_set1_pd((x))
 #else
@@ -32,6 +33,7 @@ typedef __m256 vec_t;
 #define vadd(a, b) _mm256_add_ps((a), (b))
 #define vsub(a, b) _mm256_sub_ps((a), (b))
 #define vmul(a, b) _mm256_mul_ps((a), (b))
+#define vdiv(a, b) _mm256_div_ps((a), (b))
 #define vfma(a, b, c) _mm256_fmadd_ps((a), (b), (c))
 #define vset1(x)   _mm256_set1_ps((x))
 #endif
@@ -66,6 +68,17 @@ void vm_array_mul_avx2(vm_float_t *res, const vm_float_t *a, const vm_float_t *b
     }
     for (; i < n; ++i) {
         res[i] = a[i] * b[i];
+    }
+}
+
+void vm_array_div_avx2(vm_float_t *res, const vm_float_t *a, const vm_float_t *b, const int n)
+{
+    int i = 0;
+    for (; i + LANES <= n; i += LANES) {
+        vstore(res + i, vdiv(vload(a + i), vload(b + i)));
+    }
+    for (; i < n; ++i) {
+        res[i] = a[i] / b[i];
     }
 }
 

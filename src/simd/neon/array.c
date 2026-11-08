@@ -22,6 +22,7 @@ typedef float64x2_t vec_t;
 #define vadd(a, b) vaddq_f64((a), (b))
 #define vsub(a, b) vsubq_f64((a), (b))
 #define vmul(a, b) vmulq_f64((a), (b))
+#define vdiv(a, b) vdivq_f64((a), (b))
 #define vfma(a, b, c) vfmaq_f64((c), (a), (b))
 #define vset1(x)   vdupq_n_f64((x))
 #else
@@ -32,6 +33,7 @@ typedef float32x4_t vec_t;
 #define vadd(a, b) vaddq_f32((a), (b))
 #define vsub(a, b) vsubq_f32((a), (b))
 #define vmul(a, b) vmulq_f32((a), (b))
+#define vdiv(a, b) vdivq_f32((a), (b))
 #define vfma(a, b, c) vfmaq_f32((c), (a), (b))
 #define vset1(x)   vdupq_n_f32((x))
 #endif
@@ -66,6 +68,17 @@ void vm_array_mul_neon(vm_float_t *res, const vm_float_t *a, const vm_float_t *b
     }
     for (; i < n; ++i) {
         res[i] = a[i] * b[i];
+    }
+}
+
+void vm_array_div_neon(vm_float_t *res, const vm_float_t *a, const vm_float_t *b, const int n)
+{
+    int i = 0;
+    for (; i + LANES <= n; i += LANES) {
+        vstore(res + i, vdiv(vload(a + i), vload(b + i)));
+    }
+    for (; i < n; ++i) {
+        res[i] = a[i] / b[i];
     }
 }
 

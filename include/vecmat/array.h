@@ -58,6 +58,21 @@ VEC_API void vm_array_mul(vm_float_t *res, const vm_float_t *a,
                           const vm_float_t *b, int n);
 
 /**
+ * @brief `res[i] = a[i] / b[i]`.
+ *
+ * One rounding. Finite results are within 1 ULP of the correctly rounded
+ * quotient. Division by zero follows IEEE (finite nonzero → signed inf,
+ * `0/0` → NaN).
+ *
+ * @param res Output; length `n`. May exactly alias `a` or `b`.
+ * @param a   Dividend; length `n`.
+ * @param b   Divisor; length `n`.
+ * @param n   Element count. `n <= 0` is a no-op.
+ */
+VEC_API void vm_array_div(vm_float_t *res, const vm_float_t *a,
+                          const vm_float_t *b, int n);
+
+/**
  * @brief `res[i] = fma(a[i], b[i], c[i])`.
  *
  * One rounding, through `VECMAT_FMA` (`fma` / `fmaf`). This is not a license

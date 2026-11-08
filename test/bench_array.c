@@ -75,6 +75,11 @@ BENCHMARK(vm_array_mul_1024, "iterations: 10000 [array,mul,n=1024]")
     ARRAY_BENCH(vm_array_mul(r, a, b, 1024), 1024, 10000);
 }
 
+BENCHMARK(vm_array_div_1024, "iterations: 10000 [array,div,n=1024]")
+{
+    ARRAY_BENCH(vm_array_div(r, a, b, 1024), 1024, 10000);
+}
+
 BENCHMARK(vm_array_fma_1024, "iterations: 10000 [array,fma,n=1024]")
 {
     ARRAY_BENCH(vm_array_fma(r, a, b, c, 1024), 1024, 10000);

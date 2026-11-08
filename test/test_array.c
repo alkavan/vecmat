@@ -37,6 +37,31 @@ TEST_CASE(array_add_sub_mul_matches_scalar, "[array]") {
     }
 }
 
+TEST_CASE(array_div_matches_scalar, "[array]") {
+    const vm_float_t a[4] = { VM_F(8.0), VM_F(-6.0), VM_F(3.5), VM_F(1.0) };
+    const vm_float_t b[4] = { VM_F(2.0), VM_F(3.0), VM_F(-1.0), VM_F(4.0) };
+    vm_float_t r[4];
+    vm_array_div(r, a, b, 4);
+    for (int i = 0; i < 4; ++i) {
+        REQUIRE(VECMAT_EQ(r[i], a[i] / b[i], EPSILON));
+    }
+    /* exact alias */
+    vm_float_t c[3] = { VM_F(9.0), VM_F(4.0), VM_F(-2.0) };
+    const vm_float_t d[3] = { VM_F(3.0), VM_F(2.0), VM_F(4.0) };
+    vm_array_div(c, c, d, 3);
+    REQUIRE(VECMAT_EQ(c[0], VM_F(3.0), EPSILON));
+    REQUIRE(VECMAT_EQ(c[1], VM_F(2.0), EPSILON));
+    REQUIRE(VECMAT_EQ(c[2], VM_F(-0.5), EPSILON));
+    /* division by zero and empty */
+    vm_array_div(NULL, NULL, NULL, 0);
+    const vm_float_t z[2] = { VM_F(1.0), VM_F(0.0) };
+    const vm_float_t w[2] = { VM_F(0.0), VM_F(0.0) };
+    vm_float_t s[2];
+    vm_array_div(s, z, w, 2);
+    REQUIRE(isinf(s[0]) && !signbit(s[0]));
+    REQUIRE(isnan(s[1]));
+}
+
 TEST_CASE(array_fma_matches_libm, "[array]") {
     const vm_float_t a[3] = { VM_F(1.25), VM_F(-2.0), VM_F(0.5) };
     const vm_float_t b[3] = { VM_F(4.0), VM_F(3.5), VM_F(-8.0) };
@@ -88,6 +113,7 @@ TEST_CASE(array_empty_and_specials, "[array]") {
     vm_array_add(NULL, NULL, NULL, 0);
     vm_array_sub(NULL, NULL, NULL, -1);
     vm_array_mul(NULL, NULL, NULL, 0);
+    vm_array_div(NULL, NULL, NULL, 0);
     vm_array_fma(NULL, NULL, NULL, NULL, -4);
     vm_axpy(NULL, VM_F(1.0), NULL, 0);
 

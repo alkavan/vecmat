@@ -13,6 +13,7 @@
 void vm_array_add_avx2(vm_float_t *res, const vm_float_t *a, const vm_float_t *b, int n);
 void vm_array_sub_avx2(vm_float_t *res, const vm_float_t *a, const vm_float_t *b, int n);
 void vm_array_mul_avx2(vm_float_t *res, const vm_float_t *a, const vm_float_t *b, int n);
+void vm_array_div_avx2(vm_float_t *res, const vm_float_t *a, const vm_float_t *b, int n);
 void vm_array_fma_avx2(vm_float_t *res, const vm_float_t *a, const vm_float_t *b,
                        const vm_float_t *c, int n);
 void vm_axpy_avx2(vm_float_t *y, vm_float_t alpha, const vm_float_t *x, int n);
@@ -22,6 +23,7 @@ void vm_axpy_avx2(vm_float_t *y, vm_float_t alpha, const vm_float_t *x, int n);
 void vm_array_add_neon(vm_float_t *res, const vm_float_t *a, const vm_float_t *b, int n);
 void vm_array_sub_neon(vm_float_t *res, const vm_float_t *a, const vm_float_t *b, int n);
 void vm_array_mul_neon(vm_float_t *res, const vm_float_t *a, const vm_float_t *b, int n);
+void vm_array_div_neon(vm_float_t *res, const vm_float_t *a, const vm_float_t *b, int n);
 void vm_array_fma_neon(vm_float_t *res, const vm_float_t *a, const vm_float_t *b,
                        const vm_float_t *c, int n);
 void vm_axpy_neon(vm_float_t *y, vm_float_t alpha, const vm_float_t *x, int n);
@@ -102,6 +104,28 @@ void vm_array_mul(vm_float_t *res, const vm_float_t *a, const vm_float_t *b, con
 #endif
     for (int i = 0; i < n; ++i) {
         res[i] = a[i] * b[i];
+    }
+}
+
+void vm_array_div(vm_float_t *res, const vm_float_t *a, const vm_float_t *b, const int n)
+{
+    if (n <= 0 || !res || !a || !b) {
+        return;
+    }
+#if defined(VECMAT_ENABLE_AVX2)
+    if ((vm_cpu_runtime_features() & VM_CPU_AVX2) != 0) {
+        vm_array_div_avx2(res, a, b, n);
+        return;
+    }
+#endif
+#if defined(VECMAT_ENABLE_NEON)
+    if ((vm_cpu_runtime_features() & VM_CPU_NEON) != 0) {
+        vm_array_div_neon(res, a, b, n);
+        return;
+    }
+#endif
+    for (int i = 0; i < n; ++i) {
+        res[i] = a[i] / b[i];
     }
 }
 
