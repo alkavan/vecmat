@@ -22,6 +22,7 @@ typedef __m256d vec_t;
 #define vadd(a, b) _mm256_add_pd((a), (b))
 #define vsub(a, b) _mm256_sub_pd((a), (b))
 #define vmul(a, b) _mm256_mul_pd((a), (b))
+#define vsqrt(a)   _mm256_sqrt_pd((a))
 #define vdiv(a, b) _mm256_div_pd((a), (b))
 #define vfma(a, b, c) _mm256_fmadd_pd((a), (b), (c))
 #define vset1(x)   _mm256_set1_pd((x))
@@ -33,6 +34,7 @@ typedef __m256 vec_t;
 #define vadd(a, b) _mm256_add_ps((a), (b))
 #define vsub(a, b) _mm256_sub_ps((a), (b))
 #define vmul(a, b) _mm256_mul_ps((a), (b))
+#define vsqrt(a)   _mm256_sqrt_ps((a))
 #define vdiv(a, b) _mm256_div_ps((a), (b))
 #define vfma(a, b, c) _mm256_fmadd_ps((a), (b), (c))
 #define vset1(x)   _mm256_set1_ps((x))
@@ -104,5 +106,21 @@ void vm_axpy_avx2(vm_float_t *y, const vm_float_t alpha, const vm_float_t *x, co
     }
     for (; i < n; ++i) {
         y[i] = y[i] + alpha * x[i];
+    }
+}
+
+void vm_rsqrt_array_avx2(vm_float_t *res, const vm_float_t *x, const int n)
+{
+    const vec_t one = vset1(VM_F(1.0));
+    int i = 0;
+    for (; i + LANES <= n; i += LANES) {
+#if defined(VECMAT_USE_F64)
+        vstore(res + i, _mm256_div_pd(one, vsqrt(vload(x + i))));
+#else
+        vstore(res + i, _mm256_div_ps(one, vsqrt(vload(x + i))));
+#endif
+    }
+    for (; i < n; ++i) {
+        res[i] = VM_F(1.0) / VECMAT_SQRT(x[i]);
     }
 }

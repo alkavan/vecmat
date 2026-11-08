@@ -621,6 +621,8 @@
 #define vm_array_fma_neon vm_array_fma64_neon
 #define vm_axpy_neon vm_axpy64_neon
 #define vm_rsqrt_array vm_rsqrt_array64
+#define vm_rsqrt_array_avx2 vm_rsqrt_array64_avx2
+#define vm_rsqrt_array_neon vm_rsqrt_array64_neon
 #define vm_sum_compensated vm_sum_compensated64
 #define vm_dot_compensated vm_dot_compensated64
 #define vm_array_minmax vm_array_minmax64
@@ -1663,6 +1665,8 @@
 #define vm_array_fma_neon vm_array_fma32_neon
 #define vm_axpy_neon vm_axpy32_neon
 #define vm_rsqrt_array vm_rsqrt_array32
+#define vm_rsqrt_array_avx2 vm_rsqrt_array32_avx2
+#define vm_rsqrt_array_neon vm_rsqrt_array32_neon
 #define vm_sum_compensated vm_sum_compensated32
 #define vm_dot_compensated vm_dot_compensated32
 #define vm_array_minmax vm_array_minmax32

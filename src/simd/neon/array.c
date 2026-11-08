@@ -22,6 +22,7 @@ typedef float64x2_t vec_t;
 #define vadd(a, b) vaddq_f64((a), (b))
 #define vsub(a, b) vsubq_f64((a), (b))
 #define vmul(a, b) vmulq_f64((a), (b))
+#define vsqrt(a)   vsqrtq_f64((a))
 #define vdiv(a, b) vdivq_f64((a), (b))
 #define vfma(a, b, c) vfmaq_f64((c), (a), (b))
 #define vset1(x)   vdupq_n_f64((x))
@@ -33,6 +34,7 @@ typedef float32x4_t vec_t;
 #define vadd(a, b) vaddq_f32((a), (b))
 #define vsub(a, b) vsubq_f32((a), (b))
 #define vmul(a, b) vmulq_f32((a), (b))
+#define vsqrt(a)   vsqrtq_f32((a))
 #define vdiv(a, b) vdivq_f32((a), (b))
 #define vfma(a, b, c) vfmaq_f32((c), (a), (b))
 #define vset1(x)   vdupq_n_f32((x))
@@ -104,5 +106,21 @@ void vm_axpy_neon(vm_float_t *y, const vm_float_t alpha, const vm_float_t *x, co
     }
     for (; i < n; ++i) {
         y[i] = y[i] + alpha * x[i];
+    }
+}
+
+void vm_rsqrt_array_neon(vm_float_t *res, const vm_float_t *x, const int n)
+{
+    const vec_t one = vset1(VM_F(1.0));
+    int i = 0;
+    for (; i + LANES <= n; i += LANES) {
+#if defined(VECMAT_USE_F64)
+        vstore(res + i, vdivq_f64(one, vsqrt(vload(x + i))));
+#else
+        vstore(res + i, vdivq_f32(one, vsqrt(vload(x + i))));
+#endif
+    }
+    for (; i < n; ++i) {
+        res[i] = VM_F(1.0) / VECMAT_SQRT(x[i]);
     }
 }

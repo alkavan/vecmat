@@ -105,11 +105,11 @@ VEC_API void vm_axpy(vm_float_t *y, vm_float_t alpha, const vm_float_t *x, int n
 /**
  * @brief `res[i] = 1 / sqrt(x[i])`.
  *
- * Strict reciprocal square root. No estimate and no Newton iteration.
- * `+0` → `+inf`, `−0` → `−inf`, `+inf` → `+0`, a negative nonzero
- * (including `−inf`) → NaN, and a NaN stays a NaN. Positive finite normals
- * whose reciprocal square root is finite are within 2 ULP of the correctly
- * rounded value. `res` may exactly alias `x`.
+ * Strict reciprocal square root. The SIMD path uses hardware `sqrt` then
+ * `div` (not an estimate). `+0` → `+inf`, `−0` → `−inf`, `+inf` → `+0`, a
+ * negative nonzero (including `−inf`) → NaN, and a NaN stays a NaN. Positive
+ * finite normals whose reciprocal square root is finite are within 2 ULP of
+ * the correctly rounded value. `res` may exactly alias `x`.
  *
  * @param res Output; length `n`.
  * @param x   Input; length `n`.

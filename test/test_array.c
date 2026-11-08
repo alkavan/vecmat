@@ -176,4 +176,17 @@ TEST_CASE(rsqrt_specials_and_normals, "[array]") {
     const double ref = 1.0 / sqrt((double)sample);
     const double ulp = 2.0 * (double)MACH_EPS * fabs(ref);
     REQUIRE(fabs((double)got - ref) <= ulp + (double)MACH_EPS);
+
+    /* wider positive range, including a tail past the SIMD width */
+    vm_float_t xs[17];
+    vm_float_t ys[17];
+    for (int i = 0; i < 17; ++i) {
+        xs[i] = VM_F(0.1) * (vm_float_t)(i + 1);
+    }
+    vm_rsqrt_array(ys, xs, 17);
+    for (int i = 0; i < 17; ++i) {
+        const double r = 1.0 / sqrt((double)xs[i]);
+        const double bound = 2.0 * (double)MACH_EPS * fabs(r);
+        REQUIRE(fabs((double)ys[i] - r) <= bound + (double)MACH_EPS);
+    }
 }

@@ -39,7 +39,7 @@ then an add (not fused). Sums and dots use Neumaier compensation. `vm_sum_f32f64
 each factor before the multiply.
 
 - `vm_array_add`, `vm_array_sub`, `vm_array_mul`, `vm_array_div`, `vm_array_fma`, `vm_axpy`
-- `vm_rsqrt_array` is `1/sqrt`. `+0` → `+inf`, `−0` → `−inf`, `+inf` → `+0`, a negative nonzero → NaN
+- `vm_rsqrt_array` returns `1 / sqrt(x)` for each element using a real square root then a divide (not a cheap estimate). Ordinary positive numbers are accurate to within 2 ULP; `+0` → `+inf`, `−0` → `−inf`, `+inf` → `+0`, and any negative number → `NaN`.
 - `vm_sum_compensated`, `vm_dot_compensated`, `vm_sum_f32f64`, `vm_dot_f32f64`
 - `vm_array_minmax` ignores NaNs. The minimum of `±0` is `−0` and the maximum is `+0`
 - `vm_periodic_delta_ortho` is the orthorhombic minimum image of `a − b` on `vector3` arrays, ties-to-even, in `[-L/2, L/2]`
