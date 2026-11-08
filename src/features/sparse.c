@@ -45,7 +45,7 @@ void vm_spmat_free(vm_spmat *A)
  * @param pb Second triplet.
  * @return -1, 0, or 1.
  */
-static int vm_trip_cmp(const void *pa, const void *pb)
+static int trip_cmp(const void *pa, const void *pb)
 {
     const vm_trip *a = (const vm_trip *)pa;
     const vm_trip *b = (const vm_trip *)pb;
@@ -66,7 +66,7 @@ static int vm_trip_cmp(const void *pa, const void *pb)
  * @param n Length.
  * @return a·b.
  */
-static vm_float_t vm_vec_dot(const vm_float_t *a, const vm_float_t *b, const int n)
+static vm_float_t vec_dot(const vm_float_t *a, const vm_float_t *b, const int n)
 {
     vm_float_t s = VM_F(0.0);
     for (int i = 0; i < n; ++i) {
@@ -82,9 +82,9 @@ static vm_float_t vm_vec_dot(const vm_float_t *a, const vm_float_t *b, const int
  * @param n Length.
  * @return ||a||₂.
  */
-static vm_float_t vm_vec_norm2(const vm_float_t *a, const int n)
+static vm_float_t vec_norm2(const vm_float_t *a, const int n)
 {
-    return VECMAT_SQRT(vm_vec_dot(a, a, n));
+    return VECMAT_SQRT(vec_dot(a, a, n));
 }
 
 /**
@@ -94,7 +94,7 @@ static vm_float_t vm_vec_norm2(const vm_float_t *a, const int n)
  * @param src Source.
  * @param n Length.
  */
-static void vm_vec_copy(vm_float_t *dst, const vm_float_t *src, const int n)
+static void vec_copy(vm_float_t *dst, const vm_float_t *src, const int n)
 {
     memcpy(dst, src, (size_t)n * sizeof(vm_float_t));
 }
@@ -105,7 +105,7 @@ static void vm_vec_copy(vm_float_t *dst, const vm_float_t *src, const int n)
  * @param y Vector.
  * @param n Length.
  */
-static void vm_vec_zero(vm_float_t *y, const int n)
+static void vec_zero(vm_float_t *y, const int n)
 {
     memset(y, 0, (size_t)n * sizeof(vm_float_t));
 }
@@ -137,7 +137,7 @@ bool vm_spmat_from_triplets(vm_spmat *A, const int n, const int nnz,
     }
 
     if (kept > 1) {
-        qsort(t, (size_t)kept, sizeof(vm_trip), vm_trip_cmp);
+        qsort(t, (size_t)kept, sizeof(vm_trip), trip_cmp);
     }
 
     int uniq = 0;
@@ -207,7 +207,7 @@ bool vm_spmat_diag(const vm_spmat *A, vm_float_t *d)
         return false;
     }
     const int n = A->n;
-    vm_vec_zero(d, n);
+    vec_zero(d, n);
     for (int i = 0; i < n; ++i) {
         const int end = A->row_ptr[i + 1];
         for (int k = A->row_ptr[i]; k < end; ++k) {
@@ -228,7 +228,7 @@ bool vm_spmat_diag(const vm_spmat *A, vm_float_t *d)
  * @param r Residual.
  * @param n Length.
  */
-static void vm_jacobi_apply(vm_float_t *z, const vm_float_t *d, const vm_float_t *r, const int n)
+static void jacobi_apply(vm_float_t *z, const vm_float_t *d, const vm_float_t *r, const int n)
 {
     for (int i = 0; i < n; ++i) {
         const vm_float_t di = d[i];
@@ -245,7 +245,7 @@ static void vm_jacobi_apply(vm_float_t *z, const vm_float_t *d, const vm_float_t
  * @param r Residual.
  * @param tmp Workspace (length n).
  */
-static void vm_ssor_apply(vm_float_t *z, const vm_spmat *A, const vm_float_t *d,
+static void ssor_apply(vm_float_t *z, const vm_spmat *A, const vm_float_t *d,
                           const vm_float_t *r, vm_float_t *tmp)
 {
     const int n = A->n;
@@ -289,7 +289,7 @@ typedef struct {
  *
  * @param ic IC(0) handle (may be NULL).
  */
-static void vm_ic0_free(vm_ic0 *ic)
+static void ic0_free(vm_ic0 *ic)
 {
     if (!ic) {
         return;
@@ -307,7 +307,7 @@ static void vm_ic0_free(vm_ic0 *ic)
  * @param A SPD-like CSR matrix with a full diagonal.
  * @return true on success, false on breakdown or error.
  */
-static bool vm_ic0_factor(vm_ic0 *ic, const vm_spmat *A)
+static bool ic0_factor(vm_ic0 *ic, const vm_spmat *A)
 {
     vm_spmat_init(&ic->L);
     ic->diag = NULL;
@@ -396,13 +396,13 @@ static bool vm_ic0_factor(vm_ic0 *ic, const vm_spmat *A)
             if (j < i) {
                 const vm_float_t ljj = val[diag[j]];
                 if (VECMAT_FABS(ljj) <= VECMAT_EPSILON) {
-                    vm_ic0_free(ic);
+                    ic0_free(ic);
                     return false;
                 }
                 val[p] = s / ljj;
             } else {
                 if (s <= VECMAT_EPSILON) {
-                    vm_ic0_free(ic);
+                    ic0_free(ic);
                     return false;
                 }
                 val[p] = VECMAT_SQRT(s);
@@ -422,7 +422,7 @@ static bool vm_ic0_factor(vm_ic0 *ic, const vm_spmat *A)
  * @param r Residual.
  * @param tmp Workspace (length n).
  */
-static void vm_ic0_apply(vm_float_t *z, const vm_ic0 *ic, const vm_float_t *r, vm_float_t *tmp)
+static void ic0_apply(vm_float_t *z, const vm_ic0 *ic, const vm_float_t *r, vm_float_t *tmp)
 {
     const vm_spmat *L = &ic->L;
     const int n = L->n;
@@ -440,7 +440,7 @@ static void vm_ic0_apply(vm_float_t *z, const vm_ic0 *ic, const vm_float_t *r, v
     }
 
     /* Lᵀ z = tmp, scatter off-diagonals of each row of L. */
-    vm_vec_copy(z, tmp, n);
+    vec_copy(z, tmp, n);
     for (int i = n - 1; i >= 0; --i) {
         z[i] /= L->val[ic->diag[i]];
         const int end = L->row_ptr[i + 1];
@@ -469,14 +469,14 @@ typedef struct {
  *
  * @param p Preconditioner (may be NULL).
  */
-static void vm_prec_free(vm_prec *p)
+static void prec_free(vm_prec *p)
 {
     if (!p) {
         return;
     }
     free(p->diag);
     free(p->tmp);
-    vm_ic0_free(&p->ic);
+    ic0_free(&p->ic);
     p->diag = NULL;
     p->tmp = NULL;
 }
@@ -491,7 +491,7 @@ static void vm_prec_free(vm_prec *p)
  * @param kind NONE, JACOBI, SSOR, or IC0.
  * @return true on success, false on allocation/setup failure.
  */
-static bool vm_prec_setup(vm_prec *p, const vm_spmat *A, const vm_ksp_prec_t kind)
+static bool prec_setup(vm_prec *p, const vm_spmat *A, const vm_ksp_prec_t kind)
 {
     memset(p, 0, sizeof(*p));
     p->kind = VM_KSP_PREC_NONE;
@@ -504,7 +504,7 @@ static bool vm_prec_setup(vm_prec *p, const vm_spmat *A, const vm_ksp_prec_t kin
     const int n = A->n;
     p->diag = malloc((size_t)n * sizeof(vm_float_t));
     if (!p->diag || !vm_spmat_diag(A, p->diag)) {
-        vm_prec_free(p);
+        prec_free(p);
         return false;
     }
 
@@ -515,7 +515,7 @@ static bool vm_prec_setup(vm_prec *p, const vm_spmat *A, const vm_ksp_prec_t kin
 
     p->tmp = malloc((size_t)n * sizeof(vm_float_t));
     if (!p->tmp) {
-        vm_prec_free(p);
+        prec_free(p);
         return false;
     }
 
@@ -524,7 +524,7 @@ static bool vm_prec_setup(vm_prec *p, const vm_spmat *A, const vm_ksp_prec_t kin
         return true;
     }
 
-    if (kind == VM_KSP_PREC_IC0 && vm_ic0_factor(&p->ic, A)) {
+    if (kind == VM_KSP_PREC_IC0 && ic0_factor(&p->ic, A)) {
         p->kind = VM_KSP_PREC_IC0;
         return true;
     }
@@ -541,21 +541,21 @@ static bool vm_prec_setup(vm_prec *p, const vm_spmat *A, const vm_ksp_prec_t kin
  * @param p Preconditioner.
  * @param r Residual.
  */
-static void vm_prec_apply(vm_float_t *z, const vm_prec *p, const vm_float_t *r)
+static void prec_apply(vm_float_t *z, const vm_prec *p, const vm_float_t *r)
 {
     const int n = p->A->n;
     switch (p->kind) {
     case VM_KSP_PREC_JACOBI:
-        vm_jacobi_apply(z, p->diag, r, n);
+        jacobi_apply(z, p->diag, r, n);
         break;
     case VM_KSP_PREC_SSOR:
-        vm_ssor_apply(z, p->A, p->diag, r, p->tmp);
+        ssor_apply(z, p->A, p->diag, r, p->tmp);
         break;
     case VM_KSP_PREC_IC0:
-        vm_ic0_apply(z, &p->ic, r, p->tmp);
+        ic0_apply(z, &p->ic, r, p->tmp);
         break;
     default:
-        vm_vec_copy(z, r, n);
+        vec_copy(z, r, n);
         break;
     }
 }
@@ -568,7 +568,7 @@ static void vm_prec_apply(vm_float_t *z, const vm_prec *p, const vm_float_t *r)
  * @param relres Relative residual.
  * @param ok Convergence flag.
  */
-static void vm_ksp_set(vm_ksp_info *info, const int iters, const vm_float_t relres, const bool ok)
+static void ksp_set(vm_ksp_info *info, const int iters, const vm_float_t relres, const bool ok)
 {
     if (!info) {
         return;
@@ -581,7 +581,7 @@ static void vm_ksp_set(vm_ksp_info *info, const int iters, const vm_float_t relr
 bool vm_cg(const vm_spmat *A, const vm_float_t *b, vm_float_t *x,
            vm_float_t tol, int max_iter, const vm_ksp_prec_t pre_cond, vm_ksp_info *info)
 {
-    vm_ksp_set(info, 0, VM_F(0.0), false);
+    ksp_set(info, 0, VM_F(0.0), false);
     if (!A || !A->row_ptr || !b || !x || A->n <= 0) {
         return false;
     }
@@ -609,7 +609,7 @@ bool vm_cg(const vm_spmat *A, const vm_float_t *b, vm_float_t *x,
     }
 
     vm_prec P;
-    if (!vm_prec_setup(&P, A, pre_cond)) {
+    if (!prec_setup(&P, A, pre_cond)) {
         free(r);
         free(z);
         free(p);
@@ -622,13 +622,13 @@ bool vm_cg(const vm_spmat *A, const vm_float_t *b, vm_float_t *x,
         r[i] = b[i] - ap[i];
     }
 
-    const vm_float_t rhs_norm = vm_vec_norm2(b, n);
+    const vm_float_t rhs_norm = vec_norm2(b, n);
     const vm_float_t scale = (rhs_norm > VECMAT_EPSILON) ? rhs_norm : VM_F(1.0);
-    vm_float_t res_norm = vm_vec_norm2(r, n);
+    vm_float_t res_norm = vec_norm2(r, n);
 
     if (res_norm / scale <= tol) {
-        vm_ksp_set(info, 0, res_norm / scale, true);
-        vm_prec_free(&P);
+        ksp_set(info, 0, res_norm / scale, true);
+        prec_free(&P);
         free(r);
         free(z);
         free(p);
@@ -636,29 +636,29 @@ bool vm_cg(const vm_spmat *A, const vm_float_t *b, vm_float_t *x,
         return true;
     }
 
-    vm_prec_apply(z, &P, r);
-    vm_vec_copy(p, z, n);
-    vm_float_t rz = vm_vec_dot(r, z, n);
+    prec_apply(z, &P, r);
+    vec_copy(p, z, n);
+    vm_float_t rz = vec_dot(r, z, n);
 
     int it = 0;
     bool ok = false;
     for (it = 1; it <= max_iter; ++it) {
         vm_spmv(ap, A, p);
-        const vm_float_t pap = vm_vec_dot(p, ap, n);
-        const vm_float_t pnorm2 = vm_vec_dot(p, p, n);
+        const vm_float_t pap = vec_dot(p, ap, n);
+        const vm_float_t pnorm2 = vec_dot(p, p, n);
         if (VECMAT_FABS(pap) <= VECMAT_EPSILON * (pnorm2 + VECMAT_EPSILON)) {
             break;
         }
         const vm_float_t alpha = rz / pap;
         vm_axpy(x, alpha, p, n);
         vm_axpy(r, -alpha, ap, n);
-        res_norm = vm_vec_norm2(r, n);
+        res_norm = vec_norm2(r, n);
         if (res_norm / scale <= tol) {
             ok = true;
             break;
         }
-        vm_prec_apply(z, &P, r);
-        const vm_float_t rz_new = vm_vec_dot(r, z, n);
+        prec_apply(z, &P, r);
+        const vm_float_t rz_new = vec_dot(r, z, n);
         if (VECMAT_FABS(rz) <= VECMAT_EPSILON * (VECMAT_FABS(rz_new) + VECMAT_EPSILON)) {
             break;
         }
@@ -669,8 +669,8 @@ bool vm_cg(const vm_spmat *A, const vm_float_t *b, vm_float_t *x,
         rz = rz_new;
     }
 
-    vm_ksp_set(info, it, res_norm / scale, ok);
-    vm_prec_free(&P);
+    ksp_set(info, it, res_norm / scale, ok);
+    prec_free(&P);
     free(r);
     free(z);
     free(p);
@@ -681,7 +681,7 @@ bool vm_cg(const vm_spmat *A, const vm_float_t *b, vm_float_t *x,
 bool vm_bicgstab(const vm_spmat *A, const vm_float_t *b, vm_float_t *x,
                  vm_float_t tol, int max_iter, const vm_ksp_prec_t pre_cond, vm_ksp_info *info)
 {
-    vm_ksp_set(info, 0, VM_F(0.0), false);
+    ksp_set(info, 0, VM_F(0.0), false);
     if (!A || !A->row_ptr || !b || !x || A->n <= 0) {
         return false;
     }
@@ -714,7 +714,7 @@ bool vm_bicgstab(const vm_spmat *A, const vm_float_t *b, vm_float_t *x,
     }
 
     vm_prec P;
-    if (!vm_prec_setup(&P, A, pre_cond)) {
+    if (!prec_setup(&P, A, pre_cond)) {
         free(r);
         free(r0);
         free(p);
@@ -730,16 +730,16 @@ bool vm_bicgstab(const vm_spmat *A, const vm_float_t *b, vm_float_t *x,
     for (int i = 0; i < n; ++i) {
         r[i] = b[i] - v[i];
     }
-    vm_vec_copy(r0, r, n);
-    vm_vec_zero(p, n);
-    vm_vec_zero(v, n);
+    vec_copy(r0, r, n);
+    vec_zero(p, n);
+    vec_zero(v, n);
 
-    const vm_float_t rhs_norm = vm_vec_norm2(b, n);
+    const vm_float_t rhs_norm = vec_norm2(b, n);
     const vm_float_t scale = (rhs_norm > VECMAT_EPSILON) ? rhs_norm : VM_F(1.0);
-    vm_float_t res_norm = vm_vec_norm2(r, n);
+    vm_float_t res_norm = vec_norm2(r, n);
     if (res_norm / scale <= tol) {
-        vm_ksp_set(info, 0, res_norm / scale, true);
-        vm_prec_free(&P);
+        ksp_set(info, 0, res_norm / scale, true);
+        prec_free(&P);
         free(r);
         free(r0);
         free(p);
@@ -758,7 +758,7 @@ bool vm_bicgstab(const vm_spmat *A, const vm_float_t *b, vm_float_t *x,
     bool ok = false;
 
     for (it = 1; it <= max_iter; ++it) {
-        const vm_float_t rho_new = vm_vec_dot(r0, r, n);
+        const vm_float_t rho_new = vec_dot(r0, r, n);
         if (VECMAT_FABS(rho_new) <= VECMAT_EPSILON) {
             break;
         }
@@ -766,9 +766,9 @@ bool vm_bicgstab(const vm_spmat *A, const vm_float_t *b, vm_float_t *x,
         for (int i = 0; i < n; ++i) {
             p[i] = r[i] + beta * (p[i] - omega * v[i]);
         }
-        vm_prec_apply(y, &P, p);
+        prec_apply(y, &P, p);
         vm_spmv(v, A, y);
-        const vm_float_t r0v = vm_vec_dot(r0, v, n);
+        const vm_float_t r0v = vec_dot(r0, v, n);
         if (VECMAT_FABS(r0v) <= VECMAT_EPSILON) {
             break;
         }
@@ -776,24 +776,24 @@ bool vm_bicgstab(const vm_spmat *A, const vm_float_t *b, vm_float_t *x,
         for (int i = 0; i < n; ++i) {
             s[i] = r[i] - alpha * v[i];
         }
-        if (vm_vec_norm2(s, n) / scale <= tol) {
+        if (vec_norm2(s, n) / scale <= tol) {
             vm_axpy(x, alpha, y, n);
-            res_norm = vm_vec_norm2(s, n);
+            res_norm = vec_norm2(s, n);
             ok = true;
             break;
         }
-        vm_prec_apply(z, &P, s);
+        prec_apply(z, &P, s);
         vm_spmv(t, A, z);
-        const vm_float_t tt = vm_vec_dot(t, t, n);
+        const vm_float_t tt = vec_dot(t, t, n);
         if (VECMAT_FABS(tt) <= VECMAT_EPSILON) {
             break;
         }
-        omega = vm_vec_dot(t, s, n) / tt;
+        omega = vec_dot(t, s, n) / tt;
         for (int i = 0; i < n; ++i) {
             x[i] += alpha * y[i] + omega * z[i];
             r[i] = s[i] - omega * t[i];
         }
-        res_norm = vm_vec_norm2(r, n);
+        res_norm = vec_norm2(r, n);
         if (res_norm / scale <= tol) {
             ok = true;
             break;
@@ -804,8 +804,8 @@ bool vm_bicgstab(const vm_spmat *A, const vm_float_t *b, vm_float_t *x,
         rho = rho_new;
     }
 
-    vm_ksp_set(info, it, res_norm / scale, ok);
-    vm_prec_free(&P);
+    ksp_set(info, it, res_norm / scale, ok);
+    prec_free(&P);
     free(r);
     free(r0);
     free(p);
@@ -825,7 +825,7 @@ bool vm_bicgstab(const vm_spmat *A, const vm_float_t *b, vm_float_t *x,
  * @param c Column index.
  * @return Pointer to the entry.
  */
-static vm_float_t *vm_mat_at(const vm_mat *m, const int r, const int c)
+static vm_float_t *mat_at(const vm_mat *m, const int r, const int c)
 {
     return &m->data[r + c * m->rows];
 }
@@ -837,22 +837,22 @@ bool vm_chol_factor(vm_mat *A)
     }
     const int n = A->rows;
     for (int j = 0; j < n; ++j) {
-        vm_float_t d = *vm_mat_at(A, j, j);
+        vm_float_t d = *mat_at(A, j, j);
         for (int k = 0; k < j; ++k) {
-            const vm_float_t ljk = *vm_mat_at(A, j, k);
+            const vm_float_t ljk = *mat_at(A, j, k);
             d -= ljk * ljk;
         }
         if (d <= VECMAT_EPSILON) {
             return false;
         }
         d = VECMAT_SQRT(d);
-        *vm_mat_at(A, j, j) = d;
+        *mat_at(A, j, j) = d;
         for (int i = j + 1; i < n; ++i) {
-            vm_float_t s = *vm_mat_at(A, i, j);
+            vm_float_t s = *mat_at(A, i, j);
             for (int k = 0; k < j; ++k) {
-                s -= *vm_mat_at(A, i, k) * *vm_mat_at(A, j, k);
+                s -= *mat_at(A, i, k) * *mat_at(A, j, k);
             }
-            *vm_mat_at(A, i, j) = s / d;
+            *mat_at(A, i, j) = s / d;
         }
     }
     return true;
@@ -875,9 +875,9 @@ bool vm_chol_solve(const vm_mat *L, const vm_float_t *b, vm_float_t *x)
     for (int i = 0; i < n; ++i) {
         vm_float_t s = b[i];
         for (int k = 0; k < i; ++k) {
-            s -= *vm_mat_at(L, i, k) * x[k];
+            s -= *mat_at(L, i, k) * x[k];
         }
-        const vm_float_t d = *vm_mat_at(L, i, i);
+        const vm_float_t d = *mat_at(L, i, i);
         if (VECMAT_FABS(d) <= VECMAT_EPSILON) {
             return false;
         }
@@ -886,9 +886,9 @@ bool vm_chol_solve(const vm_mat *L, const vm_float_t *b, vm_float_t *x)
     for (int i = n - 1; i >= 0; --i) {
         vm_float_t s = x[i];
         for (int k = i + 1; k < n; ++k) {
-            s -= *vm_mat_at(L, k, i) * x[k];
+            s -= *mat_at(L, k, i) * x[k];
         }
-        const vm_float_t d = *vm_mat_at(L, i, i);
+        const vm_float_t d = *mat_at(L, i, i);
         if (VECMAT_FABS(d) <= VECMAT_EPSILON) {
             return false;
         }

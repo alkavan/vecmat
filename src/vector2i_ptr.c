@@ -84,7 +84,7 @@ void vec2i_cross_ptr(vector2i *res, const vector2i *a, const vector2i *b)
  * @return `floor(a / b)`, or 0 if `b` is 0.
  */
 
-static vm_int_t vm_div_floor(const vm_int_t a, const vm_int_t b)
+static vm_int_t div_floor(const vm_int_t a, const vm_int_t b)
 {
     if (b == 0) {
         return 0;
@@ -98,7 +98,7 @@ static vm_int_t vm_div_floor(const vm_int_t a, const vm_int_t b)
 }
 
 /**
- * @brief Floor modulo matching `vm_div_floor`.
+ * @brief Floor modulo matching `div_floor`.
  *
  * Result is in [0, b) for b > 0 (or (b, 0] for b < 0); 0 if b == 0.
  *
@@ -107,7 +107,7 @@ static vm_int_t vm_div_floor(const vm_int_t a, const vm_int_t b)
  * @return Floor modulus.
  */
 
-static vm_int_t vm_mod_floor(const vm_int_t a, const vm_int_t b)
+static vm_int_t mod_floor(const vm_int_t a, const vm_int_t b)
 {
     if (b == 0) {
         return 0;
@@ -145,20 +145,20 @@ void vec2i_sub_scalar_ptr(vector2i *res, const vector2i *v, const vm_int_t s)
 
 void vec2i_mod_ptr(vector2i *res, const vector2i *a, const vector2i *b)
 {
-    res->x = vm_mod_floor(a->x, b->x);
-    res->y = vm_mod_floor(a->y, b->y);
+    res->x = mod_floor(a->x, b->x);
+    res->y = mod_floor(a->y, b->y);
 }
 
 void vec2i_div_floor_ptr(vector2i *res, const vector2i *a, const vector2i *b)
 {
-    res->x = vm_div_floor(a->x, b->x);
-    res->y = vm_div_floor(a->y, b->y);
+    res->x = div_floor(a->x, b->x);
+    res->y = div_floor(a->y, b->y);
 }
 
 void vec2i_wrap_ptr(vector2i *res, const vector2i *v, const vector2i *period)
 {
-    res->x = vm_mod_floor(v->x, period->x);
-    res->y = vm_mod_floor(v->y, period->y);
+    res->x = mod_floor(v->x, period->x);
+    res->y = mod_floor(v->y, period->y);
 }
 
 void vec2i_to_vec3i_ptr(vector3i *res, const vector2i *v, const vm_int_t z)

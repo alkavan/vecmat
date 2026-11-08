@@ -17,7 +17,7 @@
  * @param c column index
  * @return pointer to the matrix element at (r, c)
  */
-static vm_float_t *vm_mat_at(const vm_mat *m, const int r, const int c)
+static vm_float_t *mat_at(const vm_mat *m, const int r, const int c)
 {
     return &m->data[r + c * m->rows];
 }
@@ -61,7 +61,7 @@ vm_float_t vm_mat_get(const vm_mat *m, const int r, const int c)
     if (!m || !m->data || r < 0 || c < 0 || r >= m->rows || c >= m->cols) {
         return VM_F(0.0);
     }
-    return *vm_mat_at(m, r, c);
+    return *mat_at(m, r, c);
 }
 
 void vm_mat_set(vm_mat *m, const int r, const int c, const vm_float_t v)
@@ -69,7 +69,7 @@ void vm_mat_set(vm_mat *m, const int r, const int c, const vm_float_t v)
     if (!m || !m->data || r < 0 || c < 0 || r >= m->rows || c >= m->cols) {
         return;
     }
-    *vm_mat_at(m, r, c) = v;
+    *mat_at(m, r, c) = v;
 }
 
 bool vm_mat_copy(vm_mat *dst, const vm_mat *src)

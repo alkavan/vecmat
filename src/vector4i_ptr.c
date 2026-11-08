@@ -120,7 +120,7 @@ void vec4i_to_vec3i_ptr(vector3i *res, const vector4i *v)
  * @return `floor(a / b)`, or 0 if `b` is 0.
  */
 
-static vm_int_t vm_div_floor4(const vm_int_t a, const vm_int_t b)
+static vm_int_t div_floor4(const vm_int_t a, const vm_int_t b)
 {
     if (b == 0) {
         return 0;
@@ -134,14 +134,14 @@ static vm_int_t vm_div_floor4(const vm_int_t a, const vm_int_t b)
 }
 
 /**
- * @brief Floor modulo matching `vm_div_floor4`.
+ * @brief Floor modulo matching `div_floor4`.
  *
  * @param a Dividend.
  * @param b Divisor.
  * @return Floor modulus.
  */
 
-static vm_int_t vm_mod_floor4(const vm_int_t a, const vm_int_t b)
+static vm_int_t mod_floor4(const vm_int_t a, const vm_int_t b)
 {
     if (b == 0) {
         return 0;
@@ -179,26 +179,26 @@ void vec4i_sub_scalar_ptr(vector4i *res, const vector4i *v, const vm_int_t s)
 
 void vec4i_mod_ptr(vector4i *res, const vector4i *a, const vector4i *b)
 {
-    res->x = vm_mod_floor4(a->x, b->x);
-    res->y = vm_mod_floor4(a->y, b->y);
-    res->z = vm_mod_floor4(a->z, b->z);
-    res->w = vm_mod_floor4(a->w, b->w);
+    res->x = mod_floor4(a->x, b->x);
+    res->y = mod_floor4(a->y, b->y);
+    res->z = mod_floor4(a->z, b->z);
+    res->w = mod_floor4(a->w, b->w);
 }
 
 void vec4i_div_floor_ptr(vector4i *res, const vector4i *a, const vector4i *b)
 {
-    res->x = vm_div_floor4(a->x, b->x);
-    res->y = vm_div_floor4(a->y, b->y);
-    res->z = vm_div_floor4(a->z, b->z);
-    res->w = vm_div_floor4(a->w, b->w);
+    res->x = div_floor4(a->x, b->x);
+    res->y = div_floor4(a->y, b->y);
+    res->z = div_floor4(a->z, b->z);
+    res->w = div_floor4(a->w, b->w);
 }
 
 void vec4i_wrap_ptr(vector4i *res, const vector4i *v, const vector4i *period)
 {
-    res->x = vm_mod_floor4(v->x, period->x);
-    res->y = vm_mod_floor4(v->y, period->y);
-    res->z = vm_mod_floor4(v->z, period->z);
-    res->w = vm_mod_floor4(v->w, period->w);
+    res->x = mod_floor4(v->x, period->x);
+    res->y = mod_floor4(v->y, period->y);
+    res->z = mod_floor4(v->z, period->z);
+    res->w = mod_floor4(v->w, period->w);
 }
 
 #endif /* VECMAT_INT_ONCE */

@@ -13,7 +13,7 @@
  * @param c Column index.
  * @return Pointer to element (r, c).
  */
-static vm_float_t *vm_mat_at(const vm_mat *m, const int r, const int c)
+static vm_float_t *mat_at(const vm_mat *m, const int r, const int c)
 {
     return &m->data[r + c * m->rows];
 }
@@ -24,7 +24,7 @@ static vm_float_t *vm_mat_at(const vm_mat *m, const int r, const int c)
  * @param m Matrix.
  * @return Max |m_ij|, or 0 if empty.
  */
-static vm_float_t vm_mat_max_abs(const vm_mat *m)
+static vm_float_t mat_max_abs(const vm_mat *m)
 {
     vm_float_t s = VM_F(0.0);
     const int n = m->rows * m->cols;
@@ -44,7 +44,7 @@ static vm_float_t vm_mat_max_abs(const vm_mat *m)
  * @param n Matrix order (clamped to at least 1).
  * @return Factorization / rank tolerance.
  */
-static vm_float_t vm_factor_tol(const vm_float_t scale, const int n)
+static vm_float_t factor_tol(const vm_float_t scale, const int n)
 {
     if (scale <= VM_F(0.0)) {
         return VECMAT_EPSILON;
@@ -60,7 +60,7 @@ static vm_float_t vm_factor_tol(const vm_float_t scale, const int n)
  * @param b Second value.
  * @return The smaller of `a` and `b`.
  */
-static int vm_min_int(const int a, const int b)
+static int min_int(const int a, const int b)
 {
     return a < b ? a : b;
 }
@@ -75,7 +75,7 @@ static int vm_min_int(const int a, const int b)
  * @param cols Desired columns.
  * @return True if `m->data` is valid.
  */
-static bool vm_mat_resize(vm_mat *m, const int rows, const int cols)
+static bool mat_resize(vm_mat *m, const int rows, const int cols)
 {
     if (m && m->data && m->rows == rows && m->cols == cols) {
         vm_mat_zero(m);
@@ -94,11 +94,11 @@ static bool vm_mat_resize(vm_mat *m, const int rows, const int cols)
  * @param c Column index.
  * @return 2-norm of the slice.
  */
-static vm_float_t vm_householder_norm(const vm_mat *A, const int r0, const int c)
+static vm_float_t householder_norm(const vm_mat *A, const int r0, const int c)
 {
     vm_float_t s = VM_F(0.0);
     for (int r = r0; r < A->rows; ++r) {
-        const vm_float_t v = *vm_mat_at(A, r, c);
+        const vm_float_t v = *mat_at(A, r, c);
         s += v * v;
     }
     return VECMAT_SQRT(s);
@@ -116,7 +116,7 @@ static vm_float_t vm_householder_norm(const vm_mat *A, const int r0, const int c
  * @param c0 First column of the panel.
  * @param n_cols Number of columns to update.
  */
-static void vm_apply_householder(const vm_mat *M, const vm_mat *QR, const vm_float_t tau,
+static void apply_householder(const vm_mat *M, const vm_mat *QR, const vm_float_t tau,
                                  const int k, const int c0, const int n_cols)
 {
     if (tau == VM_F(0.0)) {
@@ -124,14 +124,14 @@ static void vm_apply_householder(const vm_mat *M, const vm_mat *QR, const vm_flo
     }
     for (int j = 0; j < n_cols; ++j) {
         const int c = c0 + j;
-        vm_float_t dot = *vm_mat_at(M, k, c);
+        vm_float_t dot = *mat_at(M, k, c);
         for (int r = k + 1; r < QR->rows; ++r) {
-            dot += *vm_mat_at(QR, r, k) * *vm_mat_at(M, r, c);
+            dot += *mat_at(QR, r, k) * *mat_at(M, r, c);
         }
         const vm_float_t w = tau * dot;
-        *vm_mat_at(M, k, c) -= w;
+        *mat_at(M, k, c) -= w;
         for (int r = k + 1; r < QR->rows; ++r) {
-            *vm_mat_at(M, r, c) -= w * *vm_mat_at(QR, r, k);
+            *mat_at(M, r, c) -= w * *mat_at(QR, r, k);
         }
     }
 }
@@ -144,12 +144,12 @@ bool vm_qr_factor(vm_mat *A, vm_float_t *tau)
 
     const int m = A->rows;
     const int n = A->cols;
-    const int kmax = vm_min_int(m, n);
-    const vm_float_t tol = vm_factor_tol(vm_mat_max_abs(A), vm_min_int(m, n));
+    const int kmax = min_int(m, n);
+    const vm_float_t tol = factor_tol(mat_max_abs(A), min_int(m, n));
 
     for (int k = 0; k < kmax; ++k) {
-        const vm_float_t nrm = vm_householder_norm(A, k, k);
-        const vm_float_t akk = *vm_mat_at(A, k, k);
+        const vm_float_t nrm = householder_norm(A, k, k);
+        const vm_float_t akk = *mat_at(A, k, k);
 
         if (nrm <= tol) {
             tau[k] = VM_F(0.0);
@@ -160,12 +160,12 @@ bool vm_qr_factor(vm_mat *A, vm_float_t *tau)
         tau[k] = (beta - akk) / beta;
         const vm_float_t scale = VM_F(1.0) / (akk - beta);
         for (int r = k + 1; r < m; ++r) {
-            *vm_mat_at(A, r, k) *= scale;
+            *mat_at(A, r, k) *= scale;
         }
-        *vm_mat_at(A, k, k) = beta;
+        *mat_at(A, k, k) = beta;
 
         if (k + 1 < n) {
-            vm_apply_householder(A, A, tau[k], k, k + 1, n - (k + 1));
+            apply_householder(A, A, tau[k], k, k + 1, n - (k + 1));
         }
     }
     return true;
@@ -179,9 +179,9 @@ bool vm_qr_unpack(vm_mat *Q, vm_mat *R, const vm_mat *QR, const vm_float_t *tau)
 
     const int m = QR->rows;
     const int n = QR->cols;
-    const int k = vm_min_int(m, n);
+    const int k = min_int(m, n);
 
-    if (!vm_mat_resize(Q, m, k) || !vm_mat_resize(R, k, n)) {
+    if (!mat_resize(Q, m, k) || !mat_resize(R, k, n)) {
         return false;
     }
 
@@ -190,13 +190,13 @@ bool vm_qr_unpack(vm_mat *Q, vm_mat *R, const vm_mat *QR, const vm_float_t *tau)
     }
 
     for (int i = k - 1; i >= 0; --i) {
-        vm_apply_householder(Q, QR, tau[i], i, 0, k);
+        apply_householder(Q, QR, tau[i], i, 0, k);
     }
 
     for (int c = 0; c < n; ++c) {
-        const int rmax = vm_min_int(c + 1, k);
+        const int rmax = min_int(c + 1, k);
         for (int r = 0; r < rmax; ++r) {
-            vm_mat_set(R, r, c, *vm_mat_at(QR, r, c));
+            vm_mat_set(R, r, c, *mat_at(QR, r, c));
         }
     }
     return true;
@@ -212,12 +212,12 @@ bool vm_qr_solve(const vm_mat *QR, const vm_float_t *tau, const vm_float_t *b, v
     const int n = QR->cols;
     vm_float_t r_diag_max = VM_F(0.0);
     for (int i = 0; i < n; ++i) {
-        const vm_float_t a = VECMAT_FABS(*vm_mat_at(QR, i, i));
+        const vm_float_t a = VECMAT_FABS(*mat_at(QR, i, i));
         if (a > r_diag_max) {
             r_diag_max = a;
         }
     }
-    const vm_float_t tol = vm_factor_tol(r_diag_max, n);
+    const vm_float_t tol = factor_tol(r_diag_max, n);
     vm_float_t *y = (vm_float_t *)malloc((size_t)m * sizeof(vm_float_t));
     if (!y) {
         return false;
@@ -233,21 +233,21 @@ bool vm_qr_solve(const vm_mat *QR, const vm_float_t *tau, const vm_float_t *b, v
         }
         vm_float_t dot = y[k];
         for (int r = k + 1; r < m; ++r) {
-            dot += *vm_mat_at(QR, r, k) * y[r];
+            dot += *mat_at(QR, r, k) * y[r];
         }
         const vm_float_t w = tau[k] * dot;
         y[k] -= w;
         for (int r = k + 1; r < m; ++r) {
-            y[r] -= w * *vm_mat_at(QR, r, k);
+            y[r] -= w * *mat_at(QR, r, k);
         }
     }
 
     for (int i = n - 1; i >= 0; --i) {
         vm_float_t s = y[i];
         for (int j = i + 1; j < n; ++j) {
-            s -= *vm_mat_at(QR, i, j) * x[j];
+            s -= *mat_at(QR, i, j) * x[j];
         }
-        const vm_float_t rii = *vm_mat_at(QR, i, i);
+        const vm_float_t rii = *mat_at(QR, i, i);
         if (VECMAT_FABS(rii) <= tol) {
             free(y);
             return false;

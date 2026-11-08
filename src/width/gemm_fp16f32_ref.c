@@ -11,7 +11,7 @@ static const char *fp16_note = "fp16=scalar";
 
 void vm_fp16_modules_register(void);
 
-static void vm_gemm_fp16f32_scalar(
+static void gemm_fp16f32_scalar(
     float *c, const int ldc,
     const vm_fp16_t *a, const int lda,
     const vm_fp16_t *b, const int ldb,
@@ -58,7 +58,7 @@ static void vm_gemm_fp16f32_scalar(
 void vm_fp16_init(void)
 {
     if (!gemm_slot) {
-        gemm_slot = vm_gemm_fp16f32_scalar;
+        gemm_slot = gemm_fp16f32_scalar;
         fp16_note = "fp16=scalar";
     }
     vm_fp16_modules_register();

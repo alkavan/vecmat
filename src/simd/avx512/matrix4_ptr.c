@@ -10,12 +10,12 @@
 
 /* One f64 column is 256 bits. Duplicate it into both halves of a ZMM so two
  * result columns can FMA in one instruction. */
-static inline __m512d vm_avx512_dupcol(const __m256d col)
+static inline __m512d avx512_dupcol(const __m256d col)
 {
     return _mm512_insertf64x4(_mm512_castpd256_pd512(col), col, 1);
 }
 
-static inline __m512d vm_avx512_dup2(const double s0, const double s1)
+static inline __m512d avx512_dup2(const double s0, const double s1)
 {
     return _mm512_setr_pd(s0, s0, s0, s0, s1, s1, s1, s1);
 }
@@ -23,17 +23,17 @@ static inline __m512d vm_avx512_dup2(const double s0, const double s1)
 void mat4_mul_ptr_avx512(matrix4 *res, const matrix4 *a, const matrix4 *b)
 {
     matrix4 tmp;
-    const __m512d a0 = vm_avx512_dupcol(_mm256_loadu_pd(&a->v[0]));
-    const __m512d a1 = vm_avx512_dupcol(_mm256_loadu_pd(&a->v[4]));
-    const __m512d a2 = vm_avx512_dupcol(_mm256_loadu_pd(&a->v[8]));
-    const __m512d a3 = vm_avx512_dupcol(_mm256_loadu_pd(&a->v[12]));
+    const __m512d a0 = avx512_dupcol(_mm256_loadu_pd(&a->v[0]));
+    const __m512d a1 = avx512_dupcol(_mm256_loadu_pd(&a->v[4]));
+    const __m512d a2 = avx512_dupcol(_mm256_loadu_pd(&a->v[8]));
+    const __m512d a3 = avx512_dupcol(_mm256_loadu_pd(&a->v[12]));
 
     /* C.col[j] and C.col[j+1] packed in one ZMM. */
     for (int c = 0; c < 4; c += 2) {
-        __m512d acc = _mm512_mul_pd(a0, vm_avx512_dup2(b->v[c * 4 + 0], b->v[(c + 1) * 4 + 0]));
-        acc = _mm512_fmadd_pd(a1, vm_avx512_dup2(b->v[c * 4 + 1], b->v[(c + 1) * 4 + 1]), acc);
-        acc = _mm512_fmadd_pd(a2, vm_avx512_dup2(b->v[c * 4 + 2], b->v[(c + 1) * 4 + 2]), acc);
-        acc = _mm512_fmadd_pd(a3, vm_avx512_dup2(b->v[c * 4 + 3], b->v[(c + 1) * 4 + 3]), acc);
+        __m512d acc = _mm512_mul_pd(a0, avx512_dup2(b->v[c * 4 + 0], b->v[(c + 1) * 4 + 0]));
+        acc = _mm512_fmadd_pd(a1, avx512_dup2(b->v[c * 4 + 1], b->v[(c + 1) * 4 + 1]), acc);
+        acc = _mm512_fmadd_pd(a2, avx512_dup2(b->v[c * 4 + 2], b->v[(c + 1) * 4 + 2]), acc);
+        acc = _mm512_fmadd_pd(a3, avx512_dup2(b->v[c * 4 + 3], b->v[(c + 1) * 4 + 3]), acc);
         _mm512_storeu_pd(&tmp.v[c * 4], acc);
     }
     memcpy(res->v, tmp.v, sizeof(tmp.v));

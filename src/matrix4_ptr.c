@@ -676,7 +676,7 @@ void mat4_infinite_reverse_z_clip_deg_ptr(matrix4 *res, const vm_float_t fov_y_d
  * @brief Return true if clip uses a [0, 1] (ZO) depth range.
  * @param clip Clip space convention.
  */
-static int vm_clip_is_zo(const vm_clip_t clip)
+static int clip_is_zo(const vm_clip_t clip)
 {
     return clip == VM_CLIP_RH_ZO || clip == VM_CLIP_LH_ZO;
 }
@@ -699,7 +699,7 @@ void vec3_world_to_window_clip_ptr(vector3 *res, const vector3 *world, const mat
     const vm_float_t ndc_z = clip_v.z * inv_w;
     res->x = viewport->x + viewport->z * (ndc_x + VM_F(1.0)) * VM_F(0.5);
     res->y = viewport->y + viewport->w * (ndc_y + VM_F(1.0)) * VM_F(0.5);
-    res->z = vm_clip_is_zo(clip) ? ndc_z : (ndc_z + VM_F(1.0)) * VM_F(0.5);
+    res->z = clip_is_zo(clip) ? ndc_z : (ndc_z + VM_F(1.0)) * VM_F(0.5);
 }
 
 void vec3_world_to_window_ptr(vector3 *res, const vector3 *world, const matrix4 *model,
@@ -722,7 +722,7 @@ void vec3_window_to_world_clip_ptr(vector3 *res, const vector3 *window, const ma
 
     const vm_float_t ndc_x = VM_F(2.0) * (window->x - viewport->x) / w - VM_F(1.0);
     const vm_float_t ndc_y = VM_F(2.0) * (window->y - viewport->y) / h - VM_F(1.0);
-    const vm_float_t ndc_z = vm_clip_is_zo(clip) ? window->z
+    const vm_float_t ndc_z = clip_is_zo(clip) ? window->z
                                                  : VM_F(2.0) * window->z - VM_F(1.0);
 
     const matrix4 mvp = mat4_mul(*projection, *model);

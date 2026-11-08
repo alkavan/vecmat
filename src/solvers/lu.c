@@ -13,7 +13,7 @@
  * @param c Column index.
  * @return Pointer to element (r, c).
  */
-static vm_float_t *vm_mat_at(const vm_mat *m, const int r, const int c)
+static vm_float_t *mat_at(const vm_mat *m, const int r, const int c)
 {
     return &m->data[r + c * m->rows];
 }
@@ -24,7 +24,7 @@ static vm_float_t *vm_mat_at(const vm_mat *m, const int r, const int c)
  * @param m Matrix.
  * @return Max |m_ij|, or 0 if empty.
  */
-static vm_float_t vm_mat_max_abs(const vm_mat *m)
+static vm_float_t mat_max_abs(const vm_mat *m)
 {
     vm_float_t s = VM_F(0.0);
     const int n = m->rows * m->cols;
@@ -44,7 +44,7 @@ static vm_float_t vm_mat_max_abs(const vm_mat *m)
  * @param n Matrix order (clamped to at least 1).
  * @return Factorization / rank tolerance.
  */
-static vm_float_t vm_factor_tol(const vm_float_t scale, const int n)
+static vm_float_t factor_tol(const vm_float_t scale, const int n)
 {
     if (scale <= VM_F(0.0)) {
         return VECMAT_EPSILON;
@@ -61,7 +61,7 @@ bool vm_lu_factor(vm_mat *A, int *pivot, int *sign)
 
     const int n = A->rows;
     int sgn = 1;
-    const vm_float_t tol = vm_factor_tol(vm_mat_max_abs(A), n);
+    const vm_float_t tol = factor_tol(mat_max_abs(A), n);
 
     for (int i = 0; i < n; ++i) {
         pivot[i] = i;
@@ -69,9 +69,9 @@ bool vm_lu_factor(vm_mat *A, int *pivot, int *sign)
 
     for (int k = 0; k < n; ++k) {
         int piv = k;
-        vm_float_t max_abs = VECMAT_FABS(*vm_mat_at(A, k, k));
+        vm_float_t max_abs = VECMAT_FABS(*mat_at(A, k, k));
         for (int i = k + 1; i < n; ++i) {
-            const vm_float_t a = VECMAT_FABS(*vm_mat_at(A, i, k));
+            const vm_float_t a = VECMAT_FABS(*mat_at(A, i, k));
             if (a > max_abs) {
                 max_abs = a;
                 piv = i;
@@ -82,9 +82,9 @@ bool vm_lu_factor(vm_mat *A, int *pivot, int *sign)
         }
         if (piv != k) {
             for (int j = 0; j < n; ++j) {
-                const vm_float_t tmp = *vm_mat_at(A, k, j);
-                *vm_mat_at(A, k, j) = *vm_mat_at(A, piv, j);
-                *vm_mat_at(A, piv, j) = tmp;
+                const vm_float_t tmp = *mat_at(A, k, j);
+                *mat_at(A, k, j) = *mat_at(A, piv, j);
+                *mat_at(A, piv, j) = tmp;
             }
             const int tp = pivot[k];
             pivot[k] = pivot[piv];
@@ -92,12 +92,12 @@ bool vm_lu_factor(vm_mat *A, int *pivot, int *sign)
             sgn = -sgn;
         }
 
-        const vm_float_t akk = *vm_mat_at(A, k, k);
+        const vm_float_t akk = *mat_at(A, k, k);
         for (int i = k + 1; i < n; ++i) {
-            *vm_mat_at(A, i, k) /= akk;
-            const vm_float_t lik = *vm_mat_at(A, i, k);
+            *mat_at(A, i, k) /= akk;
+            const vm_float_t lik = *mat_at(A, i, k);
             for (int j = k + 1; j < n; ++j) {
-                *vm_mat_at(A, i, j) -= lik * *vm_mat_at(A, k, j);
+                *mat_at(A, i, j) -= lik * *mat_at(A, k, j);
             }
         }
     }
@@ -117,12 +117,12 @@ bool vm_lu_solve(const vm_mat *LU, const int *pivot, const vm_float_t *b, vm_flo
     const int n = LU->rows;
     vm_float_t uscale = VM_F(0.0);
     for (int i = 0; i < n; ++i) {
-        const vm_float_t a = VECMAT_FABS(*vm_mat_at(LU, i, i));
+        const vm_float_t a = VECMAT_FABS(*mat_at(LU, i, i));
         if (a > uscale) {
             uscale = a;
         }
     }
-    const vm_float_t tol = vm_factor_tol(uscale, n);
+    const vm_float_t tol = factor_tol(uscale, n);
     for (int i = 0; i < n; ++i) {
         x[i] = b[pivot[i]];
     }
@@ -130,7 +130,7 @@ bool vm_lu_solve(const vm_mat *LU, const int *pivot, const vm_float_t *b, vm_flo
     for (int i = 0; i < n; ++i) {
         vm_float_t s = x[i];
         for (int j = 0; j < i; ++j) {
-            s -= *vm_mat_at(LU, i, j) * x[j];
+            s -= *mat_at(LU, i, j) * x[j];
         }
         x[i] = s;
     }
@@ -138,9 +138,9 @@ bool vm_lu_solve(const vm_mat *LU, const int *pivot, const vm_float_t *b, vm_flo
     for (int i = n - 1; i >= 0; --i) {
         vm_float_t s = x[i];
         for (int j = i + 1; j < n; ++j) {
-            s -= *vm_mat_at(LU, i, j) * x[j];
+            s -= *mat_at(LU, i, j) * x[j];
         }
-        const vm_float_t uii = *vm_mat_at(LU, i, i);
+        const vm_float_t uii = *mat_at(LU, i, i);
         if (VECMAT_FABS(uii) <= tol) {
             return false;
         }
@@ -171,7 +171,7 @@ vm_float_t vm_mat_det(const vm_mat *A)
     if (vm_lu_factor(&lu, pivot, &sign)) {
         det = (vm_float_t)sign;
         for (int i = 0; i < lu.rows; ++i) {
-            det *= *vm_mat_at(&lu, i, i);
+            det *= *mat_at(&lu, i, i);
         }
     }
 

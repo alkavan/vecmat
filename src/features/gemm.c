@@ -63,7 +63,7 @@ static int vm_gemm_env_threads;
  *
  * @return Hardware thread count estimate (>= 1).
  */
-static int vm_gemm_hw_threads(void)
+static int gemm_hw_threads(void)
 {
 #if defined(_WIN32)
     SYSTEM_INFO info;
@@ -96,7 +96,7 @@ int vm_gemm_threads(void)
     if (vm_gemm_env_threads > 0) {
         return vm_gemm_env_threads;
     }
-    return vm_gemm_hw_threads();
+    return gemm_hw_threads();
 }
 
 void vm_gemm_set_threads(const int n)
@@ -115,9 +115,9 @@ void vm_gemm_set_threads(const int n)
  * @param M     Rows of op(A)/C per problem.
  * @param N     Columns of op(B)/C per problem.
  * @param K     Inner-product length per problem.
- * @return Thread count to pass to `vm_gemm_parallel_for`.
+ * @return Thread count to pass to `gemm_parallel_for`.
  */
-static int vm_gemm_pick_threads(const int batch, const int M, const int N, const int K)
+static int gemm_pick_threads(const int batch, const int M, const int N, const int K)
 {
     if (batch <= 1) {
         return 1;
@@ -151,7 +151,7 @@ static int vm_gemm_pick_threads(const int batch, const int M, const int N, const
 /**
  * @brief One parallel-for chunk: invoke `fn(begin, end, ctx)`.
  *
- * Filled by `vm_gemm_parallel_for` and passed to worker entry points.
+ * Filled by `gemm_parallel_for` and passed to worker entry points.
  */
 typedef struct {
     int begin; /**< First index (inclusive). */
@@ -187,7 +187,7 @@ static HANDLE vm_gemm_pool_handles[VM_GEMM_MAX_THREADS];
  * @param arg Worker index as `INT_PTR` (1 .. MAX-1).
  * @return 0.
  */
-static DWORD WINAPI vm_gemm_pool_worker_win(LPVOID arg)
+static DWORD WINAPI gemm_pool_worker_win(LPVOID arg)
 {
     const int idx = (int)(INT_PTR)arg;
     unsigned seen = 0;
@@ -213,7 +213,7 @@ static DWORD WINAPI vm_gemm_pool_worker_win(LPVOID arg)
 /**
  * @brief Start Win32 pool workers on first use.
  */
-static void vm_gemm_pool_init(void)
+static void gemm_pool_init(void)
 {
     if (vm_gemm_pool_ready) {
         return;
@@ -222,7 +222,7 @@ static void vm_gemm_pool_init(void)
     if (!vm_gemm_pool_ready) {
         int started = 0;
         for (int i = 0; i < VM_GEMM_MAX_THREADS - 1; ++i) {
-            HANDLE h = CreateThread(NULL, 0, vm_gemm_pool_worker_win,
+            HANDLE h = CreateThread(NULL, 0, gemm_pool_worker_win,
                                     (LPVOID)(INT_PTR)(i + 1), 0, NULL);
             if (h) {
                 vm_gemm_pool_handles[started++] = h;
@@ -247,7 +247,7 @@ static pthread_t vm_gemm_pool_ids[VM_GEMM_MAX_THREADS];
  * @param arg Worker index as `intptr_t` (1 .. MAX-1).
  * @return NULL.
  */
-static void *vm_gemm_pool_worker_pthread(void *arg)
+static void *gemm_pool_worker_pthread(void *arg)
 {
     const int idx = (int)(intptr_t)arg;
     unsigned seen = 0;
@@ -273,7 +273,7 @@ static void *vm_gemm_pool_worker_pthread(void *arg)
 /**
  * @brief Start pthreads pool workers on first use.
  */
-static void vm_gemm_pool_init(void)
+static void gemm_pool_init(void)
 {
     if (vm_gemm_pool_ready) {
         return;
@@ -283,7 +283,7 @@ static void vm_gemm_pool_init(void)
         vm_gemm_pool_nworkers = VM_GEMM_MAX_THREADS - 1;
         int started = 0;
         for (int i = 0; i < vm_gemm_pool_nworkers; ++i) {
-            if (pthread_create(&vm_gemm_pool_ids[i], NULL, vm_gemm_pool_worker_pthread,
+            if (pthread_create(&vm_gemm_pool_ids[i], NULL, gemm_pool_worker_pthread,
                                (void *)(intptr_t)(i + 1)) == 0) {
                 started++;
             }
@@ -305,9 +305,9 @@ static void vm_gemm_pool_init(void)
  *
  * @param parts Number of job slots filled in `vm_gemm_pool_jobs`.
  */
-static void vm_gemm_pool_post(const int parts)
+static void gemm_pool_post(const int parts)
 {
-    vm_gemm_pool_init();
+    gemm_pool_init();
 #if defined(_WIN32) && defined(_MSC_VER)
     AcquireSRWLockExclusive(&vm_gemm_pool_lock);
     vm_gemm_pool_parts = parts;
@@ -328,7 +328,7 @@ static void vm_gemm_pool_post(const int parts)
 /**
  * @brief Block until every pool worker has consumed the current generation.
  */
-static void vm_gemm_pool_wait(void)
+static void gemm_pool_wait(void)
 {
 #if defined(_WIN32) && defined(_MSC_VER)
     AcquireSRWLockExclusive(&vm_gemm_pool_lock);
@@ -360,7 +360,7 @@ static void vm_gemm_pool_wait(void)
  * @param ctx     Opaque pointer passed through to `fn`.
  * @param threads Requested worker count (clamped; <= 1 forces serial).
  */
-static void vm_gemm_parallel_for(const int n, void (*fn)(int begin, int end, void *ctx),
+static void gemm_parallel_for(const int n, void (*fn)(int begin, int end, void *ctx),
                                  void *ctx, const int threads)
 {
     if (n <= 0) {
@@ -404,9 +404,9 @@ static void vm_gemm_parallel_for(const int n, void (*fn)(int begin, int end, voi
         return;
     }
 
-    vm_gemm_pool_post(parts);
+    gemm_pool_post(parts);
     fn(vm_gemm_pool_jobs[0].begin, vm_gemm_pool_jobs[0].end, ctx);
-    vm_gemm_pool_wait();
+    gemm_pool_wait();
     for (int i = vm_gemm_pool_nworkers + 1; i < parts; ++i) {
         fn(vm_gemm_pool_jobs[i].begin, vm_gemm_pool_jobs[i].end, ctx);
     }
@@ -420,7 +420,7 @@ static void vm_gemm_parallel_for(const int n, void (*fn)(int begin, int end, voi
  * @param b Second value.
  * @return The minimum of `a` and `b`.
  */
-static int vm_gemm_min(const int a, const int b)
+static int gemm_min(const int a, const int b)
 {
     return a < b ? a : b;
 }
@@ -439,7 +439,7 @@ static int vm_gemm_min(const int a, const int b)
  * @param layout Row-major or column-major storage.
  * @return The value at the mapped location.
  */
-static vm_float_t vm_panel_at(const vm_float_t *M, const int ld, const int r, const int c,
+static vm_float_t panel_at(const vm_float_t *M, const int ld, const int r, const int c,
                               const bool trans, const vm_layout_t layout)
 {
     const int rr = trans ? c : r;
@@ -460,7 +460,7 @@ static vm_float_t vm_panel_at(const vm_float_t *M, const int ld, const int r, co
  * @param layout Row-major or column-major storage.
  * @return C at (r, c).
  */
-static vm_float_t vm_panel_get_c(const vm_float_t *C, const int ldc, const int r, const int c,
+static vm_float_t panel_get_c(const vm_float_t *C, const int ldc, const int r, const int c,
                                  const vm_layout_t layout)
 {
     if (layout == VM_LAYOUT_ROW_MAJOR) {
@@ -479,7 +479,7 @@ static vm_float_t vm_panel_get_c(const vm_float_t *C, const int ldc, const int r
  * @param v      Value to store.
  * @param layout Row-major or column-major storage.
  */
-static void vm_panel_set_c(vm_float_t *C, const int ldc, const int r, const int c,
+static void panel_set_c(vm_float_t *C, const int ldc, const int r, const int c,
                            const vm_float_t v, const vm_layout_t layout)
 {
     if (layout == VM_LAYOUT_ROW_MAJOR) {
@@ -506,16 +506,16 @@ void vm_gemm_ref(vm_float_t *C, const int ldc,
             vm_float_t acc = VM_F(0.0);
             if (alpha != VM_F(0.0) && A && B && K > 0) {
                 for (int k = 0; k < K; ++k) {
-                    acc += vm_panel_at(A, lda, i, k, transA, layout)
-                         * vm_panel_at(B, ldb, k, j, transB, layout);
+                    acc += panel_at(A, lda, i, k, transA, layout)
+                         * panel_at(B, ldb, k, j, transB, layout);
                 }
                 acc *= alpha;
             }
             if (beta == VM_F(0.0)) {
-                vm_panel_set_c(C, ldc, i, j, acc, layout);
+                panel_set_c(C, ldc, i, j, acc, layout);
             } else {
-                vm_panel_set_c(C, ldc, i, j,
-                    acc + beta * vm_panel_get_c(C, ldc, i, j, layout), layout);
+                panel_set_c(C, ldc, i, j,
+                    acc + beta * panel_get_c(C, ldc, i, j, layout), layout);
             }
         }
     }
@@ -563,7 +563,7 @@ VECMAT_SCALAR_API void vm_gemm_ukernel_scalar(vm_float_t *acc,
  * When built with `VECMAT_RUNTIME_DISPATCH`, calls `vm_cpu_init()` so the
  * selected GEMM micro-kernel is ready. Otherwise does nothing.
  */
-static void vm_gemm_ensure_dispatch(void)
+static void gemm_ensure_dispatch(void)
 {
 #ifdef VECMAT_RUNTIME_DISPATCH
     vm_cpu_init();
@@ -581,7 +581,7 @@ static void vm_gemm_ensure_dispatch(void)
  * @param Bp  Packed B micro-panel (NR values per k, NR-padded).
  * @param K   Inner-dimension length for this tile.
  */
-static void vm_gemm_ukernel_call(vm_float_t *acc, const vm_float_t *Ap, const vm_float_t *Bp, const int K)
+static void gemm_ukernel_call(vm_float_t *acc, const vm_float_t *Ap, const vm_float_t *Bp, const int K)
 {
 #ifdef VECMAT_RUNTIME_DISPATCH
     vm_gemm_ukernel_(acc, Ap, Bp, K);
@@ -605,7 +605,7 @@ static void vm_gemm_ukernel_call(vm_float_t *acc, const vm_float_t *Ap, const vm
  * @param transA If true, read A as transposed.
  * @param layout Row-major or column-major storage of A.
  */
-static void vm_gemm_pack_a(vm_float_t *Ap,
+static void gemm_pack_a(vm_float_t *Ap,
                            const vm_float_t *A, const int lda,
                            const int i0, const int k0,
                            const int ib, const int kb,
@@ -616,7 +616,7 @@ static void vm_gemm_pack_a(vm_float_t *Ap,
                       || (transA && layout == VM_LAYOUT_ROW_MAJOR);
     if (contig_i) {
         for (int ir = 0; ir < ib; ir += VM_GEMM_MR) {
-            const int mr = vm_gemm_min(VM_GEMM_MR, ib - ir);
+            const int mr = gemm_min(VM_GEMM_MR, ib - ir);
             for (int k = 0; k < kb; ++k) {
                 const vm_float_t *src = A + (i0 + ir) + (k0 + k) * lda;
                 int i = 0;
@@ -632,11 +632,11 @@ static void vm_gemm_pack_a(vm_float_t *Ap,
     }
 
     for (int ir = 0; ir < ib; ir += VM_GEMM_MR) {
-        const int mr = vm_gemm_min(VM_GEMM_MR, ib - ir);
+        const int mr = gemm_min(VM_GEMM_MR, ib - ir);
         for (int k = 0; k < kb; ++k) {
             int i = 0;
             for (; i < mr; ++i) {
-                *Ap++ = vm_panel_at(A, lda, i0 + ir + i, k0 + k, transA, layout);
+                *Ap++ = panel_at(A, lda, i0 + ir + i, k0 + k, transA, layout);
             }
             for (; i < VM_GEMM_MR; ++i) {
                 *Ap++ = VM_F(0.0);
@@ -660,7 +660,7 @@ static void vm_gemm_pack_a(vm_float_t *Ap,
  * @param transB If true, read B as transposed.
  * @param layout Row-major or column-major storage of B.
  */
-static void vm_gemm_pack_b(vm_float_t *Bp,
+static void gemm_pack_b(vm_float_t *Bp,
                            const vm_float_t *B, const int ldb,
                            const int k0, const int j0,
                            const int kb, const int jb,
@@ -671,7 +671,7 @@ static void vm_gemm_pack_b(vm_float_t *Bp,
                       || (transB && layout != VM_LAYOUT_ROW_MAJOR);
     if (contig_j) {
         for (int jr = 0; jr < jb; jr += VM_GEMM_NR) {
-            const int nr = vm_gemm_min(VM_GEMM_NR, jb - jr);
+            const int nr = gemm_min(VM_GEMM_NR, jb - jr);
             for (int k = 0; k < kb; ++k) {
                 const vm_float_t *src = B + (j0 + jr) + (k0 + k) * ldb;
                 int j = 0;
@@ -686,11 +686,11 @@ static void vm_gemm_pack_b(vm_float_t *Bp,
         return;
     }
     for (int jr = 0; jr < jb; jr += VM_GEMM_NR) {
-        const int nr = vm_gemm_min(VM_GEMM_NR, jb - jr);
+        const int nr = gemm_min(VM_GEMM_NR, jb - jr);
         for (int k = 0; k < kb; ++k) {
             int j = 0;
             for (; j < nr; ++j) {
-                *Bp++ = vm_panel_at(B, ldb, k0 + k, j0 + jr + j, transB, layout);
+                *Bp++ = panel_at(B, ldb, k0 + k, j0 + jr + j, transB, layout);
             }
             for (; j < VM_GEMM_NR; ++j) {
                 *Bp++ = VM_F(0.0);
@@ -719,7 +719,7 @@ static void vm_gemm_pack_b(vm_float_t *Bp,
  * @param op     Epilogue flags (`VM_GEMM_OP_*`); `VM_GEMM_OP_NONE` skips bias/ReLU.
  * @param bias   Optional length-N bias vector (used with `VM_GEMM_OP_BIAS`).
  */
-static void vm_gemm_store_tile(vm_float_t *C, const int ldc,
+static void gemm_store_tile(vm_float_t *C, const int ldc,
                                const vm_float_t *acc,
                                const int i0, const int j0,
                                const int mr, const int nr,
@@ -736,12 +736,12 @@ static void vm_gemm_store_tile(vm_float_t *C, const int ldc,
             if (beta == VM_F(0.0)) {
                 v += bj;
             } else {
-                v += beta * vm_panel_get_c(C, ldc, i0 + i, j0 + j, layout) + bj;
+                v += beta * panel_get_c(C, ldc, i0 + i, j0 + j, layout) + bj;
             }
             if ((op & VM_GEMM_OP_RELU) && last_k && v < VM_F(0.0)) {
                 v = VM_F(0.0);
             }
-            vm_panel_set_c(C, ldc, i0 + i, j0 + j, v, layout);
+            panel_set_c(C, ldc, i0 + i, j0 + j, v, layout);
         }
     }
 }
@@ -756,17 +756,17 @@ static void vm_gemm_store_tile(vm_float_t *C, const int ldc,
  * @param beta   Scale factor (0 zeros the panel).
  * @param layout Row-major or column-major storage of C.
  */
-static void vm_gemm_scale_c(vm_float_t *C, const int ldc,
+static void gemm_scale_c(vm_float_t *C, const int ldc,
                             const int M, const int N,
                             const vm_float_t beta, const vm_layout_t layout)
 {
     for (int j = 0; j < N; ++j) {
         for (int i = 0; i < M; ++i) {
             if (beta == VM_F(0.0)) {
-                vm_panel_set_c(C, ldc, i, j, VM_F(0.0), layout);
+                panel_set_c(C, ldc, i, j, VM_F(0.0), layout);
             } else {
-                vm_panel_set_c(C, ldc, i, j,
-                               beta * vm_panel_get_c(C, ldc, i, j, layout),
+                panel_set_c(C, ldc, i, j,
+                               beta * panel_get_c(C, ldc, i, j, layout),
                                layout);
             }
         }
@@ -796,7 +796,7 @@ static VM_TLS vm_gemm_ws vm_gemm_tls;
  * @param need Required element count.
  * @return Aligned buffer pointer, or NULL on allocation failure.
  */
-static vm_float_t *vm_gemm_alloc_pack(const size_t need)
+static vm_float_t *gemm_alloc_pack(const size_t need)
 {
     size_t bytes = need * sizeof(vm_float_t);
     if (bytes < 32u) {
@@ -811,11 +811,11 @@ static vm_float_t *vm_gemm_alloc_pack(const size_t need)
 }
 
 /**
- * @brief Free a pack buffer from `vm_gemm_alloc_pack`.
+ * @brief Free a pack buffer from `gemm_alloc_pack`.
  *
- * @param p Buffer pointer returned by `vm_gemm_alloc_pack` (or NULL).
+ * @param p Buffer pointer returned by `gemm_alloc_pack` (or NULL).
  */
-static void vm_gemm_free_pack(vm_float_t *p)
+static void gemm_free_pack(vm_float_t *p)
 {
 #if defined(_WIN32)
     _aligned_free(p);
@@ -835,16 +835,16 @@ static void vm_gemm_free_pack(vm_float_t *p)
  * @param need Required element count.
  * @return Pointer to a buffer with capacity >= need, or NULL on OOM.
  */
-static vm_float_t *vm_gemm_ws_fit(vm_float_t **buf, size_t *cap, const size_t need)
+static vm_float_t *gemm_ws_fit(vm_float_t **buf, size_t *cap, const size_t need)
 {
     if (*cap >= need) {
         return *buf;
     }
-    vm_float_t *n = vm_gemm_alloc_pack(need);
+    vm_float_t *n = gemm_alloc_pack(need);
     if (!n) {
         return NULL;
     }
-    vm_gemm_free_pack(*buf);
+    gemm_free_pack(*buf);
     *buf = n;
     *cap = need;
     return n;
@@ -857,7 +857,7 @@ static vm_float_t *vm_gemm_ws_fit(vm_float_t **buf, size_t *cap, const size_t ne
  * @param kb K-panel width.
  * @return Number of `vm_float_t` elements required (MR-padded).
  */
-static size_t vm_gemm_pack_a_elems(const int ib, const int kb)
+static size_t gemm_pack_a_elems(const int ib, const int kb)
 {
     return ((size_t)((ib + VM_GEMM_MR - 1) / VM_GEMM_MR)) * (size_t)kb * VM_GEMM_MR;
 }
@@ -869,7 +869,7 @@ static size_t vm_gemm_pack_a_elems(const int ib, const int kb)
  * @param kb K-panel width.
  * @return Number of `vm_float_t` elements required (NR-padded).
  */
-static size_t vm_gemm_pack_b_elems(const int jb, const int kb)
+static size_t gemm_pack_b_elems(const int jb, const int kb)
 {
     return ((size_t)((jb + VM_GEMM_NR - 1) / VM_GEMM_NR)) * (size_t)kb * VM_GEMM_NR;
 }
@@ -900,7 +900,7 @@ static size_t vm_gemm_pack_b_elems(const int jb, const int kb)
  * @param op         Epilogue flags applied on last K (`VM_GEMM_OP_*`).
  * @param bias       Optional bias vector for `VM_GEMM_OP_BIAS`.
  */
-static void vm_gemm_apply_packed(vm_float_t *C, const int ldc,
+static void gemm_apply_packed(vm_float_t *C, const int ldc,
                                  const vm_float_t *A, const int lda,
                                  const vm_float_t *Bp,
                                  const int M, const int jb, const int kb,
@@ -912,27 +912,27 @@ static void vm_gemm_apply_packed(vm_float_t *C, const int ldc,
     if (!A || !Bp) {
         return;
     }
-    vm_float_t *Ap = vm_gemm_ws_fit(&vm_gemm_tls.Ap, &vm_gemm_tls.cap_a,
-                                    vm_gemm_pack_a_elems(vm_gemm_min(VM_GEMM_MC, M), kb));
+    vm_float_t *Ap = gemm_ws_fit(&vm_gemm_tls.Ap, &vm_gemm_tls.cap_a,
+                                    gemm_pack_a_elems(gemm_min(VM_GEMM_MC, M), kb));
     if (!Ap) {
         return;
     }
 
     for (int ic = 0; ic < M; ic += VM_GEMM_MC) {
-        const int ib = vm_gemm_min(VM_GEMM_MC, M - ic);
-        vm_gemm_pack_a(Ap, A, lda, ic0 + ic, kc, ib, kb, transA, layout);
+        const int ib = gemm_min(VM_GEMM_MC, M - ic);
+        gemm_pack_a(Ap, A, lda, ic0 + ic, kc, ib, kb, transA, layout);
         for (int jr = 0; jr < jb; jr += VM_GEMM_NR) {
-            const int nr = vm_gemm_min(VM_GEMM_NR, jb - jr);
+            const int nr = gemm_min(VM_GEMM_NR, jb - jr);
             const vm_float_t *Bp_tile = Bp + (jr / VM_GEMM_NR) * (kb * VM_GEMM_NR);
             for (int ir = 0; ir < ib; ir += VM_GEMM_MR) {
-                const int mr = vm_gemm_min(VM_GEMM_MR, ib - ir);
+                const int mr = gemm_min(VM_GEMM_MR, ib - ir);
                 const vm_float_t *Ap_tile = Ap + (ir / VM_GEMM_MR) * (kb * VM_GEMM_MR);
                 vm_float_t acc[VM_GEMM_MR * VM_GEMM_NR];
                 for (int t = 0; t < VM_GEMM_MR * VM_GEMM_NR; ++t) {
                     acc[t] = VM_F(0.0);
                 }
-                vm_gemm_ukernel_call(acc, Ap_tile, Bp_tile, kb);
-                vm_gemm_store_tile(C, ldc, acc, ic0 + ic + ir, jc + jr,
+                gemm_ukernel_call(acc, Ap_tile, Bp_tile, kb);
+                gemm_store_tile(C, ldc, acc, ic0 + ic + ir, jc + jr,
                                    mr, nr, alpha, beta_panel, layout,
                                    last_k ? op : VM_GEMM_OP_NONE, bias);
             }
@@ -964,7 +964,7 @@ static void vm_gemm_apply_packed(vm_float_t *C, const int ldc,
  * @param op     Epilogue flags (`VM_GEMM_OP_NONE`, bias, ReLU, …).
  * @param bias   Optional length-N bias; used when `op` includes bias.
  */
-static void vm_gemm_ex_body(vm_float_t *C, const int ldc,
+static void gemm_ex_body(vm_float_t *C, const int ldc,
                             const vm_float_t *A, const int lda,
                             const vm_float_t *B, const int ldb,
                             const int M, const int N, const int K,
@@ -973,22 +973,22 @@ static void vm_gemm_ex_body(vm_float_t *C, const int ldc,
                             const vm_layout_t layout,
                             const int op, const vm_float_t *bias)
 {
-    vm_gemm_ensure_dispatch();
+    gemm_ensure_dispatch();
     if (!C || M <= 0 || N <= 0) {
         return;
     }
 
     if (alpha == VM_F(0.0) || !A || !B || K <= 0) {
-        vm_gemm_scale_c(C, ldc, M, N, beta, layout);
+        gemm_scale_c(C, ldc, M, N, beta, layout);
         if (op != VM_GEMM_OP_NONE) {
             for (int j = 0; j < N; ++j) {
                 const vm_float_t bj = (bias && (op & VM_GEMM_OP_BIAS)) ? bias[j] : VM_F(0.0);
                 for (int i = 0; i < M; ++i) {
-                    vm_float_t v = vm_panel_get_c(C, ldc, i, j, layout) + bj;
+                    vm_float_t v = panel_get_c(C, ldc, i, j, layout) + bj;
                     if ((op & VM_GEMM_OP_RELU) && v < VM_F(0.0)) {
                         v = VM_F(0.0);
                     }
-                    vm_panel_set_c(C, ldc, i, j, v, layout);
+                    panel_set_c(C, ldc, i, j, v, layout);
                 }
             }
         }
@@ -997,30 +997,30 @@ static void vm_gemm_ex_body(vm_float_t *C, const int ldc,
 
     /* One MR×NR tile: pack once per K-panel, accumulate, store once. */
     if (M <= VM_GEMM_MR && N <= VM_GEMM_NR) {
-        vm_float_t *Ap = vm_gemm_ws_fit(&vm_gemm_tls.Ap, &vm_gemm_tls.cap_a,
-                                        vm_gemm_pack_a_elems(M, vm_gemm_min(VM_GEMM_KC, K)));
-        vm_float_t *Bp = vm_gemm_ws_fit(&vm_gemm_tls.Bp, &vm_gemm_tls.cap_b,
-                                        vm_gemm_pack_b_elems(N, vm_gemm_min(VM_GEMM_KC, K)));
+        vm_float_t *Ap = gemm_ws_fit(&vm_gemm_tls.Ap, &vm_gemm_tls.cap_a,
+                                        gemm_pack_a_elems(M, gemm_min(VM_GEMM_KC, K)));
+        vm_float_t *Bp = gemm_ws_fit(&vm_gemm_tls.Bp, &vm_gemm_tls.cap_b,
+                                        gemm_pack_b_elems(N, gemm_min(VM_GEMM_KC, K)));
         if (Ap && Bp) {
             vm_float_t acc[VM_GEMM_MR * VM_GEMM_NR];
             for (int t = 0; t < VM_GEMM_MR * VM_GEMM_NR; ++t) {
                 acc[t] = VM_F(0.0);
             }
             for (int kc = 0; kc < K; kc += VM_GEMM_KC) {
-                const int kb = vm_gemm_min(VM_GEMM_KC, K - kc);
-                vm_gemm_pack_a(Ap, A, lda, 0, kc, M, kb, transA, layout);
-                vm_gemm_pack_b(Bp, B, ldb, kc, 0, kb, N, transB, layout);
-                vm_gemm_ukernel_call(acc, Ap, Bp, kb);
+                const int kb = gemm_min(VM_GEMM_KC, K - kc);
+                gemm_pack_a(Ap, A, lda, 0, kc, M, kb, transA, layout);
+                gemm_pack_b(Bp, B, ldb, kc, 0, kb, N, transB, layout);
+                gemm_ukernel_call(acc, Ap, Bp, kb);
             }
-            vm_gemm_store_tile(C, ldc, acc, 0, 0, M, N, alpha, beta, layout, op, bias);
+            gemm_store_tile(C, ldc, acc, 0, 0, M, N, alpha, beta, layout, op, bias);
             return;
         }
     }
 
-    vm_float_t *Ap = vm_gemm_ws_fit(&vm_gemm_tls.Ap, &vm_gemm_tls.cap_a,
-        vm_gemm_pack_a_elems(vm_gemm_min(VM_GEMM_MC, M),vm_gemm_min(VM_GEMM_KC, K)));
-    vm_float_t *Bp = vm_gemm_ws_fit(&vm_gemm_tls.Bp, &vm_gemm_tls.cap_b,
-        vm_gemm_pack_b_elems(vm_gemm_min(VM_GEMM_NC, N),vm_gemm_min(VM_GEMM_KC, K)));
+    vm_float_t *Ap = gemm_ws_fit(&vm_gemm_tls.Ap, &vm_gemm_tls.cap_a,
+        gemm_pack_a_elems(gemm_min(VM_GEMM_MC, M),gemm_min(VM_GEMM_KC, K)));
+    vm_float_t *Bp = gemm_ws_fit(&vm_gemm_tls.Bp, &vm_gemm_tls.cap_b,
+        gemm_pack_b_elems(gemm_min(VM_GEMM_NC, N),gemm_min(VM_GEMM_KC, K)));
 
     if (!Ap || !Bp) {
         vm_gemm_ref(C, ldc, A, lda, B, ldb, M, N, K, alpha, beta, transA, transB, layout);
@@ -1028,13 +1028,13 @@ static void vm_gemm_ex_body(vm_float_t *C, const int ldc,
     }
 
     for (int jc = 0; jc < N; jc += VM_GEMM_NC) {
-        const int jb = vm_gemm_min(VM_GEMM_NC, N - jc);
+        const int jb = gemm_min(VM_GEMM_NC, N - jc);
         for (int kc = 0; kc < K; kc += VM_GEMM_KC) {
-            const int kb = vm_gemm_min(VM_GEMM_KC, K - kc);
+            const int kb = gemm_min(VM_GEMM_KC, K - kc);
             const vm_float_t beta_panel = (kc == 0) ? beta : VM_F(1.0);
             const int last_k = (kc + kb >= K);
-            vm_gemm_pack_b(Bp, B, ldb, kc, jc, kb, jb, transB, layout);
-            vm_gemm_apply_packed(C, ldc, A, lda, Bp, M, jb, kb, 0, jc, kc,
+            gemm_pack_b(Bp, B, ldb, kc, jc, kb, jb, transB, layout);
+            gemm_apply_packed(C, ldc, A, lda, Bp, M, jb, kb, 0, jc, kc,
                                  alpha, beta_panel, transA, layout,
                                  last_k, op, bias);
         }
@@ -1050,7 +1050,7 @@ void vm_gemm_ex(vm_float_t *C, const int ldc,
                 const vm_layout_t layout,
                 const int op, const vm_float_t *bias)
 {
-    vm_gemm_ex_body(C, ldc, A, lda, B, ldb, M, N, K,
+    gemm_ex_body(C, ldc, A, lda, B, ldb, M, N, K,
                     alpha, beta, transA, transB, layout, op, bias);
 }
 
@@ -1062,7 +1062,7 @@ void vm_gemm(vm_float_t *C, const int ldc,
              const bool transA, const bool transB,
              const vm_layout_t layout)
 {
-    vm_gemm_ex_body(C, ldc, A, lda, B, ldb, M, N, K,
+    gemm_ex_body(C, ldc, A, lda, B, ldb, M, N, K,
                     alpha, beta, transA, transB, layout,
                     VM_GEMM_OP_NONE, NULL);
 }
@@ -1092,7 +1092,7 @@ void vm_gemm(vm_float_t *C, const int ldc,
  * @param begin  First batch index (inclusive).
  * @param end    Last batch index (exclusive).
  */
-static void vm_gemm_batch_shared_b(vm_float_t * const *C, const int ldc,
+static void gemm_batch_shared_b(vm_float_t * const *C, const int ldc,
                                    const vm_float_t * const *A, const int lda,
                                    const vm_float_t *B, const int ldb,
                                    const int M, const int N, const int K,
@@ -1104,8 +1104,8 @@ static void vm_gemm_batch_shared_b(vm_float_t * const *C, const int ldc,
     if (begin >= end) {
         return;
     }
-    const size_t nb = vm_gemm_pack_b_elems(vm_gemm_min(VM_GEMM_NC, N),
-                                          vm_gemm_min(VM_GEMM_KC, K));
+    const size_t nb = gemm_pack_b_elems(gemm_min(VM_GEMM_NC, N),
+                                          gemm_min(VM_GEMM_KC, K));
     vm_float_t *Bp = (vm_float_t *)malloc(nb * sizeof(vm_float_t));
     if (!Bp) {
         for (int p = begin; p < end; ++p) {
@@ -1116,16 +1116,16 @@ static void vm_gemm_batch_shared_b(vm_float_t * const *C, const int ldc,
     }
 
     for (int jc = 0; jc < N; jc += VM_GEMM_NC) {
-        const int jb = vm_gemm_min(VM_GEMM_NC, N - jc);
+        const int jb = gemm_min(VM_GEMM_NC, N - jc);
         for (int kc = 0; kc < K; kc += VM_GEMM_KC) {
-            const int kb = vm_gemm_min(VM_GEMM_KC, K - kc);
+            const int kb = gemm_min(VM_GEMM_KC, K - kc);
             const vm_float_t beta_panel = (kc == 0) ? beta : VM_F(1.0);
-            vm_gemm_pack_b(Bp, B, ldb, kc, jc, kb, jb, transB, layout);
+            gemm_pack_b(Bp, B, ldb, kc, jc, kb, jb, transB, layout);
             for (int p = begin; p < end; ++p) {
                 if (!C[p]) {
                     continue;
                 }
-                vm_gemm_apply_packed(C[p], ldc, A ? A[p] : NULL, lda, Bp,
+                gemm_apply_packed(C[p], ldc, A ? A[p] : NULL, lda, Bp,
                                      M, jb, kb, 0, jc, kc,
                                      alpha, beta_panel, transA, layout,
                                      0, VM_GEMM_OP_NONE, NULL);
@@ -1160,11 +1160,11 @@ typedef struct {
  * @param end Last batch index (exclusive).
  * @param arg Pointer to a `vm_gemm_batch_ctx`.
  */
-static void vm_gemm_batch_range(const int begin, const int end, void *arg)
+static void gemm_batch_range(const int begin, const int end, void *arg)
 {
     const vm_gemm_batch_ctx *c = arg;
     if (c->shared) {
-        vm_gemm_batch_shared_b(c->C, c->ldc, c->A, c->lda, c->B_shared, c->ldb,
+        gemm_batch_shared_b(c->C, c->ldc, c->A, c->lda, c->B_shared, c->ldb,
                                c->M, c->N, c->K, c->alpha, c->beta,
                                c->transA, c->transB, c->layout, begin, end);
         return;
@@ -1189,7 +1189,7 @@ void vm_gemm_batch(vm_float_t * const *C, const int ldc,
     if (!C || batch <= 0) {
         return;
     }
-    vm_gemm_ensure_dispatch();
+    gemm_ensure_dispatch();
 
     int shared_b = (B != NULL && B[0] != NULL);
     for (int p = 1; shared_b && p < batch; ++p) {
@@ -1206,8 +1206,8 @@ void vm_gemm_batch(vm_float_t * const *C, const int ldc,
         .transA = transA, .transB = transB, .layout = layout,
         .shared = (shared_b && A && alpha != VM_F(0.0) && K > 0 && M > 0 && N > 0)
     };
-    vm_gemm_parallel_for(batch, vm_gemm_batch_range, &ctx,
-                         vm_gemm_pick_threads(batch, M, N, K));
+    gemm_parallel_for(batch, gemm_batch_range, &ctx,
+                         gemm_pick_threads(batch, M, N, K));
 }
 
 void vm_gemm_strided_batch(vm_float_t *C, const int ldc, const int strideC,

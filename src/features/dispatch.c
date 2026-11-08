@@ -24,7 +24,7 @@ static volatile int dispatch_ready;
 static const vm_backend *vm_backends[VM_BACKEND_MAX];
 static int vm_backend_count;
 
-static int vm_backend_ops_complete(const vm_backend_ops *ops)
+static int backend_ops_complete(const vm_backend_ops *ops)
 {
 #define VECMAT_REQUIRE_OP(name, params, args) \
     if (ops->name == NULL)                    \
@@ -46,7 +46,7 @@ const vm_backend *vm_backend_best(void)
     return best;
 }
 
-static void vm_cpu_bind_backend(const vm_backend *backend)
+static void cpu_bind_backend(const vm_backend *backend)
 {
 #define VECMAT_BIND_BACKEND(name, params, args) name##_ = backend->ops->name;
     VECMAT_DISPATCH_LIST(VECMAT_BIND_BACKEND)
@@ -125,12 +125,12 @@ static void vm_cpu_bind_backend(const vm_backend *backend)
  *
  * @param features Selected ISA mask.
  */
-static void vm_cpu_bind(const vm_cpu_features_t features)
+static void cpu_bind(const vm_cpu_features_t features)
 {
     const vm_backend *backend = vm_backend_best();
 
     if (backend) {
-        vm_cpu_bind_backend(backend);
+        cpu_bind_backend(backend);
         return;
     }
 #define VECMAT_BIND(name, params, args) VECMAT_PICK(name);
@@ -144,7 +144,7 @@ int vm_backend_register(const vm_backend *backend)
 
     if (!backend || !backend->name || backend->name[0] == '\0' || !backend->ops)
         return VM_BACKEND_ERR_INVAL;
-    if (!vm_backend_ops_complete(backend->ops))
+    if (!backend_ops_complete(backend->ops))
         return VM_BACKEND_ERR_INVAL;
 
 #if !defined(__STDC_NO_ATOMICS__)
@@ -183,7 +183,7 @@ int vm_backend_register(const vm_backend *backend)
     ready = dispatch_ready;
 #endif
     if (ready)
-        vm_cpu_bind(vm_cpu_selected_features());
+        cpu_bind(vm_cpu_selected_features());
 
 #if !defined(__STDC_NO_ATOMICS__)
     atomic_flag_clear_explicit(&dispatch_lock, memory_order_release);
@@ -203,14 +203,14 @@ void vm_dispatch_init(void)
         /* spin until the initializing thread finishes */
     }
     if (!atomic_load_explicit(&dispatch_ready, memory_order_relaxed)) {
-        vm_cpu_bind(vm_cpu_selected_features());
+        cpu_bind(vm_cpu_selected_features());
         atomic_store_explicit(&dispatch_ready, 1, memory_order_release);
     }
     atomic_flag_clear_explicit(&dispatch_lock, memory_order_release);
 #else
     if (dispatch_ready)
         return;
-    vm_cpu_bind(vm_cpu_selected_features());
+    cpu_bind(vm_cpu_selected_features());
     dispatch_ready = 1;
 #endif
 }

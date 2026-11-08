@@ -322,7 +322,7 @@ int vm_mac_w(const vm_grid3 g, const int i, const int j, const int k)
  *
  * @return true if the cell lies on any face of the grid, false otherwise.
  */
-static bool vm_grid_on_boundary(const vm_grid3 g, const int i, const int j, const int k)
+static bool grid_on_boundary(const vm_grid3 g, const int i, const int j, const int k)
 {
     const int nz = (g.nz > 0) ? g.nz : 1;
     if (i == 0 || i == g.nx - 1 || j == 0 || j == g.ny - 1) {
@@ -363,7 +363,7 @@ bool vm_grid_laplacian(vm_spmat *A, const vm_grid3 g, const vm_bc_t bc)
         for (int j = 0; j < g.ny; ++j) {
             for (int i = 0; i < g.nx; ++i) {
                 const int p = vm_grid_cell(g, i, j, k);
-                if (bc == VM_BC_DIRICHLET && vm_grid_on_boundary(g, i, j, k)) {
+                if (bc == VM_BC_DIRICHLET && grid_on_boundary(g, i, j, k)) {
                     row[nnz] = p;
                     col[nnz] = p;
                     val[nnz] = VM_F(1.0);
@@ -392,7 +392,7 @@ bool vm_grid_laplacian(vm_spmat *A, const vm_grid3 g, const vm_bc_t bc)
                     }
                     /* Homogeneous Dirichlet: keep the weight on the diagonal
                      * and omit the boundary column so A stays SPD. */
-                    if (bc == VM_BC_DIRICHLET && vm_grid_on_boundary(g, ni, nj, nk)) {
+                    if (bc == VM_BC_DIRICHLET && grid_on_boundary(g, ni, nj, nk)) {
                         diag += w[t];
                         continue;
                     }

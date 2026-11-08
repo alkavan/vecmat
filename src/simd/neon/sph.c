@@ -34,7 +34,7 @@ typedef uint64x2_t vm_mask;
 #define vm_mask_and(a, b) vandq_u64((a), (b))
 #define vm_blend(a, b, m) vbslq_f64((m), (b), (a))
 #define vm_load        vld1q_f64
-/* vm_any_le defined below as a static inline */
+/* any_le defined below as a static inline */
 #else
 #define VM_LANES 4
 typedef float32x4_t vm_vec;
@@ -53,7 +53,7 @@ typedef uint32x4_t vm_mask;
 #define vm_mask_and(a, b) vandq_u32((a), (b))
 #define vm_blend(a, b, m) vbslq_f32((m), (b), (a))
 #define vm_load        vld1q_f32
-/* vm_any_le defined below as a static inline */
+/* any_le defined below as a static inline */
 #endif
 
 static vm_float_t hsum(const vm_vec v)
@@ -67,7 +67,7 @@ static vm_float_t hsum(const vm_vec v)
 }
 
 /* True if any lane of v is <= s. f64 path avoids vmaxvq_u64 (Armv8.1). */
-static int vm_any_le(const vm_vec v, const vm_float_t s)
+static int any_le(const vm_vec v, const vm_float_t s)
 {
 #if defined(VECMAT_USE_F64)
     const uint64x2_t m = vcleq_f64(v, vdupq_n_f64(s));
@@ -286,7 +286,7 @@ bool vm_sph_pressure_grad_neon(vm_float_t *gx, vm_float_t *gy, vm_float_t *gz,
         const vm_vec pj = gather_f(p, neighbors + k);
         const vm_vec rhoj = gather_f(rho, neighbors + k);
 
-        if (vm_any_le(rhoj, VM_F(0.0))) {
+        if (any_le(rhoj, VM_F(0.0))) {
             return false;
         }
 

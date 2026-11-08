@@ -81,7 +81,7 @@ static volatile int runtime_cached;
  * @param edx EDX result.
  * @return 1 on success.
  */
-static int vm_cpuid(unsigned leaf, unsigned sub,
+static int cpuid(unsigned leaf, unsigned sub,
                     unsigned *eax, unsigned *ebx, unsigned *ecx, unsigned *edx)
 {
     int regs[4];
@@ -99,7 +99,7 @@ static int vm_cpuid(unsigned leaf, unsigned sub,
  * @param idx XCR index (`0` for XCR0).
  * @return Low 32 bits of the XCR value.
  */
-static unsigned vm_xgetbv(unsigned idx)
+static unsigned xgetbv(unsigned idx)
 {
     return (unsigned)_xgetbv(idx);
 }
@@ -115,7 +115,7 @@ static unsigned vm_xgetbv(unsigned idx)
  * @param edx EDX result.
  * @return Non-zero on success.
  */
-static int vm_cpuid(const unsigned leaf, const unsigned sub,
+static int cpuid(const unsigned leaf, const unsigned sub,
                     unsigned *eax, unsigned *ebx, unsigned *ecx, unsigned *edx)
 {
     const unsigned max = __get_cpuid_max(leaf & 0x80000000u, 0);
@@ -130,7 +130,7 @@ static int vm_cpuid(const unsigned leaf, const unsigned sub,
  * @param idx XCR index (`0` for XCR0).
  * @return Low 32 bits of the XCR value.
  */
-static unsigned vm_xgetbv(unsigned idx)
+static unsigned xgetbv(unsigned idx)
 {
     unsigned eax, edx;
     __asm__ volatile("xgetbv" : "=a"(eax), "=d"(edx) : "c"(idx));
@@ -143,15 +143,15 @@ static unsigned vm_xgetbv(unsigned idx)
  *
  * @return Non-zero if AVX is usable.
  */
-static int vm_cpu_probe_avx(void)
+static int cpu_probe_avx(void)
 {
     unsigned eax = 0, ebx = 0, ecx = 0, edx = 0;
-    if (!vm_cpuid(1, 0, &eax, &ebx, &ecx, &edx))
+    if (!cpuid(1, 0, &eax, &ebx, &ecx, &edx))
         return 0;
     /* OSXSAVE (27) and AVX (28) */
     if ((ecx & (1u << 27)) == 0 || (ecx & (1u << 28)) == 0)
         return 0;
-    return (vm_xgetbv(0) & 0x6u) == 0x6u; /* XMM+YMM state */
+    return (xgetbv(0) & 0x6u) == 0x6u; /* XMM+YMM state */
 }
 
 /**
@@ -159,12 +159,12 @@ static int vm_cpu_probe_avx(void)
  *
  * @return Non-zero if AVX2 is usable.
  */
-static int vm_cpu_probe_avx2(void)
+static int cpu_probe_avx2(void)
 {
     unsigned eax = 0, ebx = 0, ecx = 0, edx = 0;
-    if (!vm_cpu_probe_avx())
+    if (!cpu_probe_avx())
         return 0;
-    if (!vm_cpuid(7, 0, &eax, &ebx, &ecx, &edx))
+    if (!cpuid(7, 0, &eax, &ebx, &ecx, &edx))
         return 0;
     return (ebx & (1u << 5)) != 0; /* AVX2 */
 }
@@ -174,23 +174,23 @@ static int vm_cpu_probe_avx2(void)
  *
  * @return Non-zero if AVX-512F is usable.
  */
-static int vm_cpu_probe_avx512f(void)
+static int cpu_probe_avx512f(void)
 {
     unsigned eax = 0, ebx = 0, ecx = 0, edx = 0;
-    if (!vm_cpuid(1, 0, &eax, &ebx, &ecx, &edx))
+    if (!cpuid(1, 0, &eax, &ebx, &ecx, &edx))
         return 0;
     if ((ecx & (1u << 27)) == 0)
         return 0;
     /* XMM+YMM (bits 1-2) and opmask+ZMM_Hi256+Hi16_ZMM (bits 5-7) */
-    if ((vm_xgetbv(0) & 0xe6u) != 0xe6u)
+    if ((xgetbv(0) & 0xe6u) != 0xe6u)
         return 0;
-    if (!vm_cpuid(7, 0, &eax, &ebx, &ecx, &edx))
+    if (!cpuid(7, 0, &eax, &ebx, &ecx, &edx))
         return 0;
     return (ebx & (1u << 16)) != 0; /* AVX512F */
 }
 #endif /* VECMAT_ARCH_X86 */
 
-static vm_cpu_features_t vm_force_isa(void)
+static vm_cpu_features_t force_isa(void)
 {
     const char *name = getenv("VECMAT_FORCE_ISA");
 
@@ -221,7 +221,7 @@ static vm_cpu_features_t vm_force_isa(void)
  *
  * @return Non-zero if NEON / ASIMD is usable.
  */
-static int vm_cpu_probe_neon(void)
+static int cpu_probe_neon(void)
 {
 #if defined(VECMAT_ARCH_AARCH64)
 #if defined(__linux__)
@@ -239,7 +239,7 @@ static int vm_cpu_probe_neon(void)
  *
  * @return Non-zero if SVE is usable.
  */
-static int vm_cpu_probe_sve(void)
+static int cpu_probe_sve(void)
 {
 #if defined(VECMAT_ARCH_AARCH64) && defined(__linux__)
     if ((getauxval(AT_HWCAP) & HWCAP_SVE) == 0)
@@ -273,10 +273,10 @@ static int vm_cpu_probe_sve(void)
  *
  * @return Non-zero if SVE2 is usable.
  */
-static int vm_cpu_probe_sve2(void)
+static int cpu_probe_sve2(void)
 {
 #if defined(VECMAT_ARCH_AARCH64) && defined(__linux__)
-    if (!vm_cpu_probe_sve())
+    if (!cpu_probe_sve())
         return 0;
     return (getauxval(AT_HWCAP2) & HWCAP2_SVE2) != 0;
 #else
@@ -330,18 +330,18 @@ vm_cpu_features_t vm_cpu_runtime_features(void)
 
     vm_cpu_features_t f = VM_CPU_SCALAR;
 #if defined(VECMAT_ARCH_X86)
-    if (vm_cpu_probe_avx())
+    if (cpu_probe_avx())
         f |= VM_CPU_AVX;
-    if (vm_cpu_probe_avx2())
+    if (cpu_probe_avx2())
         f |= VM_CPU_AVX2;
-    if (vm_cpu_probe_avx512f())
+    if (cpu_probe_avx512f())
         f |= VM_CPU_AVX512F;
 #endif
-    if (vm_cpu_probe_neon())
+    if (cpu_probe_neon())
         f |= VM_CPU_NEON;
-    if (vm_cpu_probe_sve())
+    if (cpu_probe_sve())
         f |= VM_CPU_SVE;
-    if (vm_cpu_probe_sve2())
+    if (cpu_probe_sve2())
         f |= VM_CPU_SVE2;
 
 #if !defined(__STDC_NO_ATOMICS__)
@@ -379,7 +379,7 @@ vm_cpu_features_t vm_cpu_selected_features(void)
 #endif
     {
         const vm_cpu_features_t compiled = vm_cpu_compiled_features();
-        const vm_cpu_features_t forced = vm_force_isa();
+        const vm_cpu_features_t forced = force_isa();
         const vm_cpu_features_t have = compiled & vm_cpu_runtime_features();
 
         /* A registered backend already returned. Force wins over the picker. */

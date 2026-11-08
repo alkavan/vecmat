@@ -13,7 +13,7 @@
  * @param c Column index.
  * @return Pointer to element (r, c).
  */
-static vm_float_t *vm_mat_at(const vm_mat *m, const int r, const int c)
+static vm_float_t *mat_at(const vm_mat *m, const int r, const int c)
 {
     return &m->data[r + c * m->rows];
 }
@@ -24,7 +24,7 @@ static vm_float_t *vm_mat_at(const vm_mat *m, const int r, const int c)
  * @param m Matrix.
  * @return Max |m_ij|, or 0 if empty.
  */
-static vm_float_t vm_mat_max_abs(const vm_mat *m)
+static vm_float_t mat_max_abs(const vm_mat *m)
 {
     vm_float_t s = VM_F(0.0);
     const int n = m->rows * m->cols;
@@ -44,7 +44,7 @@ static vm_float_t vm_mat_max_abs(const vm_mat *m)
  * @param n Matrix order (clamped to at least 1).
  * @return Factorization / rank tolerance.
  */
-static vm_float_t vm_factor_tol(const vm_float_t scale, const int n)
+static vm_float_t factor_tol(const vm_float_t scale, const int n)
 {
     if (scale <= VM_F(0.0)) {
         return VECMAT_EPSILON;
@@ -60,7 +60,7 @@ static vm_float_t vm_factor_tol(const vm_float_t scale, const int n)
  * @param b Second value.
  * @return The smaller of `a` and `b`.
  */
-static int vm_min_int(const int a, const int b)
+static int min_int(const int a, const int b)
 {
     return a < b ? a : b;
 }
@@ -75,7 +75,7 @@ static int vm_min_int(const int a, const int b)
  * @param cols Desired columns.
  * @return True if `m->data` is valid.
  */
-static bool vm_mat_resize(vm_mat *m, const int rows, const int cols)
+static bool mat_resize(vm_mat *m, const int rows, const int cols)
 {
     if (m && m->data && m->rows == rows && m->cols == cols) {
         vm_mat_zero(m);
@@ -93,14 +93,14 @@ static bool vm_mat_resize(vm_mat *m, const int rows, const int cols)
  * @param in Source matrix.
  * @return True on success.
  */
-static bool vm_mat_transpose_copy(vm_mat *out, const vm_mat *in)
+static bool mat_transpose_copy(vm_mat *out, const vm_mat *in)
 {
-    if (!vm_mat_resize(out, in->cols, in->rows)) {
+    if (!mat_resize(out, in->cols, in->rows)) {
         return false;
     }
     for (int c = 0; c < in->cols; ++c) {
         for (int r = 0; r < in->rows; ++r) {
-            *vm_mat_at(out, c, r) = *vm_mat_at(in, r, c);
+            *mat_at(out, c, r) = *mat_at(in, r, c);
         }
     }
     return true;
@@ -114,11 +114,11 @@ static bool vm_mat_transpose_copy(vm_mat *out, const vm_mat *in)
  * @param q Second column.
  * @return Column inner product.
  */
-static vm_float_t vm_col_dot(const vm_mat *A, const int p, const int q)
+static vm_float_t col_dot(const vm_mat *A, const int p, const int q)
 {
     vm_float_t s = VM_F(0.0);
     for (int r = 0; r < A->rows; ++r) {
-        s += *vm_mat_at(A, r, p) * *vm_mat_at(A, r, q);
+        s += *mat_at(A, r, p) * *mat_at(A, r, q);
     }
     return s;
 }
@@ -130,15 +130,15 @@ static vm_float_t vm_col_dot(const vm_mat *A, const int p, const int q)
  * @param p First column.
  * @param q Second column.
  */
-static void vm_swap_columns(const vm_mat *A, const int p, const int q)
+static void swap_columns(const vm_mat *A, const int p, const int q)
 {
     if (p == q) {
         return;
     }
     for (int r = 0; r < A->rows; ++r) {
-        const vm_float_t t = *vm_mat_at(A, r, p);
-        *vm_mat_at(A, r, p) = *vm_mat_at(A, r, q);
-        *vm_mat_at(A, r, q) = t;
+        const vm_float_t t = *mat_at(A, r, p);
+        *mat_at(A, r, p) = *mat_at(A, r, q);
+        *mat_at(A, r, q) = t;
     }
 }
 
@@ -150,7 +150,7 @@ static void vm_swap_columns(const vm_mat *A, const int p, const int q)
  * @param V Right singular vectors.
  * @param k Number of values / columns.
  */
-static void vm_sort_singular(const vm_mat *U, vm_float_t *s, const vm_mat *V, const int k)
+static void sort_singular(const vm_mat *U, vm_float_t *s, const vm_mat *V, const int k)
 {
     for (int i = 0; i < k; ++i) {
         int best = i;
@@ -165,8 +165,8 @@ static void vm_sort_singular(const vm_mat *U, vm_float_t *s, const vm_mat *V, co
         const vm_float_t tmp = s[i];
         s[i] = s[best];
         s[best] = tmp;
-        vm_swap_columns(U, i, best);
-        vm_swap_columns(V, i, best);
+        swap_columns(U, i, best);
+        swap_columns(V, i, best);
     }
 }
 
@@ -179,29 +179,29 @@ static void vm_sort_singular(const vm_mat *U, vm_float_t *s, const vm_mat *V, co
  * @param V Right factor, resized to n x n.
  * @return True on success.
  */
-static bool vm_svd_jacobi_tall(const vm_mat *B, vm_mat *V)
+static bool svd_jacobi_tall(const vm_mat *B, vm_mat *V)
 {
     const int m = B->rows;
     const int n = B->cols;
     (void)m;
 
-    if (!vm_mat_resize(V, n, n)) {
+    if (!mat_resize(V, n, n)) {
         return false;
     }
     for (int i = 0; i < n; ++i) {
         vm_mat_set(V, i, i, VM_F(1.0));
     }
 
-    const vm_float_t scale = vm_mat_max_abs(B);
-    const vm_float_t off_tol = vm_factor_tol(scale * scale, n);
+    const vm_float_t scale = mat_max_abs(B);
+    const vm_float_t off_tol = factor_tol(scale * scale, n);
 
     for (int sweep = 0; sweep < 64; ++sweep) {
         vm_float_t off = VM_F(0.0);
         for (int p = 0; p < n - 1; ++p) {
             for (int q = p + 1; q < n; ++q) {
-                const vm_float_t a = vm_col_dot(B, p, p);
-                const vm_float_t b = vm_col_dot(B, q, q);
-                const vm_float_t c = vm_col_dot(B, p, q);
+                const vm_float_t a = col_dot(B, p, p);
+                const vm_float_t b = col_dot(B, q, q);
+                const vm_float_t c = col_dot(B, p, q);
                 off += VECMAT_FABS(c);
                 const vm_float_t pair_scale = VECMAT_FMAX(a + b, scale * scale);
                 if (VECMAT_FABS(c) <= VECMAT_EPSILON * (VM_F(1.0) + pair_scale)) {
@@ -216,16 +216,16 @@ static bool vm_svd_jacobi_tall(const vm_mat *B, vm_mat *V)
                 const vm_float_t sn = t * cs;
 
                 for (int r = 0; r < B->rows; ++r) {
-                    const vm_float_t bp = *vm_mat_at(B, r, p);
-                    const vm_float_t bq = *vm_mat_at(B, r, q);
-                    *vm_mat_at(B, r, p) = cs * bp - sn * bq;
-                    *vm_mat_at(B, r, q) = sn * bp + cs * bq;
+                    const vm_float_t bp = *mat_at(B, r, p);
+                    const vm_float_t bq = *mat_at(B, r, q);
+                    *mat_at(B, r, p) = cs * bp - sn * bq;
+                    *mat_at(B, r, q) = sn * bp + cs * bq;
                 }
                 for (int r = 0; r < n; ++r) {
-                    const vm_float_t vp = *vm_mat_at(V, r, p);
-                    const vm_float_t vq = *vm_mat_at(V, r, q);
-                    *vm_mat_at(V, r, p) = cs * vp - sn * vq;
-                    *vm_mat_at(V, r, q) = sn * vp + cs * vq;
+                    const vm_float_t vp = *mat_at(V, r, p);
+                    const vm_float_t vq = *mat_at(V, r, q);
+                    *mat_at(V, r, p) = cs * vp - sn * vq;
+                    *mat_at(V, r, q) = sn * vp + cs * vq;
                 }
             }
         }
@@ -244,7 +244,7 @@ bool vm_svd_factor(const vm_mat *A, vm_mat *U, vm_float_t *s, vm_mat *V)
 
     const int m = A->rows;
     const int n = A->cols;
-    const int k = vm_min_int(m, n);
+    const int k = min_int(m, n);
     const int tall = (m >= n);
 
     vm_mat B = { 0 };
@@ -253,11 +253,11 @@ bool vm_svd_factor(const vm_mat *A, vm_mat *U, vm_float_t *s, vm_mat *V)
         if (!vm_mat_copy(&B, A)) {
             return false;
         }
-    } else if (!vm_mat_transpose_copy(&B, A)) {
+    } else if (!mat_transpose_copy(&B, A)) {
         return false;
     }
 
-    if (!vm_svd_jacobi_tall(&B, &V_full)) {
+    if (!svd_jacobi_tall(&B, &V_full)) {
         vm_mat_free(&B);
         vm_mat_free(&V_full);
         return false;
@@ -265,7 +265,7 @@ bool vm_svd_factor(const vm_mat *A, vm_mat *U, vm_float_t *s, vm_mat *V)
 
     /* B is now (tall ? m : n) × k_work, k_work = min side of original as cols. */
     const int work_n = B.cols;
-    if (!vm_mat_resize(U, m, k) || !vm_mat_resize(V, n, k)) {
+    if (!mat_resize(U, m, k) || !mat_resize(V, n, k)) {
         vm_mat_free(&B);
         vm_mat_free(&V_full);
         return false;
@@ -273,12 +273,12 @@ bool vm_svd_factor(const vm_mat *A, vm_mat *U, vm_float_t *s, vm_mat *V)
 
     vm_float_t smax = VM_F(0.0);
     for (int j = 0; j < work_n; ++j) {
-        s[j] = VECMAT_SQRT(vm_col_dot(&B, j, j));
+        s[j] = VECMAT_SQRT(col_dot(&B, j, j));
         if (s[j] > smax) {
             smax = s[j];
         }
     }
-    const vm_float_t zero_tol = vm_factor_tol(smax, work_n);
+    const vm_float_t zero_tol = factor_tol(smax, work_n);
 
     for (int j = 0; j < work_n; ++j) {
         vm_float_t nrm = s[j];
@@ -288,23 +288,23 @@ bool vm_svd_factor(const vm_mat *A, vm_mat *U, vm_float_t *s, vm_mat *V)
         }
         if (tall) {
             for (int r = 0; r < m; ++r) {
-                vm_mat_set(U, r, j, *vm_mat_at(&B, r, j) / nrm);
+                vm_mat_set(U, r, j, *mat_at(&B, r, j) / nrm);
             }
             for (int r = 0; r < n; ++r) {
-                vm_mat_set(V, r, j, *vm_mat_at(&V_full, r, j));
+                vm_mat_set(V, r, j, *mat_at(&V_full, r, j));
             }
         } else {
             /* SVD(A^T) = V_A Σ U_A^T, so U comes from V_full and V from B. */
             for (int r = 0; r < n; ++r) {
-                vm_mat_set(V, r, j, *vm_mat_at(&B, r, j) / nrm);
+                vm_mat_set(V, r, j, *mat_at(&B, r, j) / nrm);
             }
             for (int r = 0; r < m; ++r) {
-                vm_mat_set(U, r, j, *vm_mat_at(&V_full, r, j));
+                vm_mat_set(U, r, j, *mat_at(&V_full, r, j));
             }
         }
     }
 
-    vm_sort_singular(U, s, V, k);
+    sort_singular(U, s, V, k);
     vm_mat_free(&B);
     vm_mat_free(&V_full);
     return true;

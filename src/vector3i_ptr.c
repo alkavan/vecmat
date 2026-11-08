@@ -108,7 +108,7 @@ void vec3i_clamp_ptr(vector3i *res, const vector3i *v, const vector3i *min, cons
  * @return `floor(a / b)`, or 0 if `b` is 0.
  */
 
-static vm_int_t vm_div_floor3(const vm_int_t a, const vm_int_t b)
+static vm_int_t div_floor3(const vm_int_t a, const vm_int_t b)
 {
     if (b == 0) {
         return 0;
@@ -122,14 +122,14 @@ static vm_int_t vm_div_floor3(const vm_int_t a, const vm_int_t b)
 }
 
 /**
- * @brief Floor modulo matching `vm_div_floor3`.
+ * @brief Floor modulo matching `div_floor3`.
  *
  * @param a Dividend.
  * @param b Divisor.
  * @return Floor modulus.
  */
 
-static vm_int_t vm_mod_floor3(const vm_int_t a, const vm_int_t b)
+static vm_int_t mod_floor3(const vm_int_t a, const vm_int_t b)
 {
     if (b == 0) {
         return 0;
@@ -164,23 +164,23 @@ void vec3i_sub_scalar_ptr(vector3i *res, const vector3i *v, const vm_int_t s)
 
 void vec3i_mod_ptr(vector3i *res, const vector3i *a, const vector3i *b)
 {
-    res->x = vm_mod_floor3(a->x, b->x);
-    res->y = vm_mod_floor3(a->y, b->y);
-    res->z = vm_mod_floor3(a->z, b->z);
+    res->x = mod_floor3(a->x, b->x);
+    res->y = mod_floor3(a->y, b->y);
+    res->z = mod_floor3(a->z, b->z);
 }
 
 void vec3i_div_floor_ptr(vector3i *res, const vector3i *a, const vector3i *b)
 {
-    res->x = vm_div_floor3(a->x, b->x);
-    res->y = vm_div_floor3(a->y, b->y);
-    res->z = vm_div_floor3(a->z, b->z);
+    res->x = div_floor3(a->x, b->x);
+    res->y = div_floor3(a->y, b->y);
+    res->z = div_floor3(a->z, b->z);
 }
 
 void vec3i_wrap_ptr(vector3i *res, const vector3i *v, const vector3i *period)
 {
-    res->x = vm_mod_floor3(v->x, period->x);
-    res->y = vm_mod_floor3(v->y, period->y);
-    res->z = vm_mod_floor3(v->z, period->z);
+    res->x = mod_floor3(v->x, period->x);
+    res->y = mod_floor3(v->y, period->y);
+    res->z = mod_floor3(v->z, period->z);
 }
 
 void vec3i_from_vec2i_ptr(vector3i *res, const vector2i *v, const vm_int_t z)
