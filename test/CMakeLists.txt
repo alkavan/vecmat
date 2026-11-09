@@ -103,6 +103,8 @@ add_executable(vecmat_benchmarks
         bench_quaternion.c
         bench_gemm.c
         bench_array.c
+        bench_periodic.c
+        bench_reduce.c
         ${VECMAT_MODULE_BENCH_SOURCES}
 )
 if(VECMAT_USE_F64)
