@@ -48,6 +48,20 @@ each factor before the multiply.
 `VECMAT_REMAINDER` is `remainder` / `remainderf`. These are not a force
 field. They do not change `vm_verlet` or `vm_gemm`.
 
+## SoA geometry
+
+`include/vecmat/soa3.h` batches independent 3-vectors held as a
+structure of arrays. `vm_soa3` / `vm_csoa3` are borrowed views of three
+unit-stride component pointers; they carry no size, ownership, padding, or
+SIMD width, and the component arrays must not overlap. `vm_soa3_dot`,
+`vm_soa3_cross`, `vm_soa3_length_squared`, and `vm_soa3_distance_squared`
+take `n` vectors; `n <= 0` is a no-op. Products and sums are separate
+roundings in the scalar order, never fused, so the AVX2 and NEON paths match
+the scalar loop bit for bit. Cross loads every component before it stores,
+so its output view may exactly equal an input view. Accuracy is an absolute
+bound, 16 eps × the sum of the absolute terms, not a ULP claim. This does
+not change `vector3` normalization.
+
 ## Dense linear algebra
 
 Heap `vm_mat` (M×N, column-major). LU with partial pivoting, Householder

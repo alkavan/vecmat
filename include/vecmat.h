@@ -66,6 +66,7 @@
 #include "vecmat/array.h"
 #include "vecmat/reduce.h"
 #include "vecmat/periodic.h"
+#include "vecmat/soa3.h"
 #include "vecmat/sparse.h"
 #include "vecmat/ode.h"
 
