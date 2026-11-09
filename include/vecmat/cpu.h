@@ -27,7 +27,14 @@ enum {
     VM_CPU_AVX     = 1u << 5,
     VM_CPU_NEON    = 1u << 6,
     /** Registered external backend with no ISA bit of its own. */
-    VM_CPU_BACKEND = 1u << 7
+    VM_CPU_BACKEND = 1u << 7,
+    /**
+     * x86 FMA3 (`vfmadd*`) with usable YMM state. Not a tier of its own:
+     * the AVX2 and AVX-512F tiers are built with `-mfma` and are selected
+     * only when this bit is also present. Never returned by
+     * `vm_cpu_selected_features()`.
+     */
+    VM_CPU_FMA     = 1u << 8
 };
 
 /**

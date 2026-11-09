@@ -170,6 +170,21 @@ static int cpu_probe_avx2(void)
 }
 
 /**
+ * @brief Probes FMA3 (requires usable AVX / YMM state).
+ *
+ * @return Non-zero if FMA3 is usable.
+ */
+static int cpu_probe_fma(void)
+{
+    unsigned eax = 0, ebx = 0, ecx = 0, edx = 0;
+    if (!cpu_probe_avx())
+        return 0;
+    if (!cpuid(1, 0, &eax, &ebx, &ecx, &edx))
+        return 0;
+    return (ecx & (1u << 12)) != 0; /* FMA */
+}
+
+/**
  * @brief Probes AVX-512F plus required XCR0 state.
  *
  * @return Non-zero if AVX-512F is usable.
@@ -301,6 +316,10 @@ vm_cpu_features_t vm_cpu_compiled_features(void)
 #if defined(VECMAT_ENABLE_AVX512F) || defined(__AVX512F__)
     f |= VM_CPU_AVX512F;
 #endif
+    /* The AVX2 and AVX-512F kernels are built with -mfma. */
+#if defined(VECMAT_ENABLE_AVX2) || defined(VECMAT_ENABLE_AVX512F) || defined(__FMA__)
+    f |= VM_CPU_FMA;
+#endif
 #if defined(VECMAT_ENABLE_NEON)
     f |= VM_CPU_NEON;
 #endif
@@ -336,6 +355,8 @@ vm_cpu_features_t vm_cpu_runtime_features(void)
         f |= VM_CPU_AVX2;
     if (cpu_probe_avx512f())
         f |= VM_CPU_AVX512F;
+    if (cpu_probe_fma())
+        f |= VM_CPU_FMA;
 #endif
     if (cpu_probe_neon())
         f |= VM_CPU_NEON;
@@ -392,9 +413,11 @@ vm_cpu_features_t vm_cpu_selected_features(void)
             return VM_CPU_SVE;
         if (have & VM_CPU_NEON)
             return VM_CPU_NEON;
-        if (have & VM_CPU_AVX512F)
+        /* The AVX-512F and AVX2 tiers are built with -mfma: without FMA
+         * they fall to the next tier down, ending at AVX or scalar. */
+        if ((have & VM_CPU_AVX512F) && (have & VM_CPU_FMA))
             return VM_CPU_AVX512F;
-        if (have & VM_CPU_AVX2)
+        if ((have & VM_CPU_AVX2) && (have & VM_CPU_FMA))
             return VM_CPU_AVX2;
         if (have & VM_CPU_AVX)
             return VM_CPU_AVX;
@@ -435,6 +458,8 @@ const char *vm_cpu_name(const vm_cpu_features_t features)
         return "avx2";
     if (features & VM_CPU_AVX)
         return "avx";
+    if (features & VM_CPU_FMA)
+        return "fma";
     if (features & VM_CPU_BACKEND)
         return "backend";
     if (features & VM_CPU_SCALAR)

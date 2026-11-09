@@ -115,7 +115,12 @@ The base library keeps this surface for backends:
   NEON, SVE, and SVE2 are provided. Returns NULL if that ISA was not compiled.
 - `vm_cpu_set_note()` / `vm_cpu_note()` — one extra banner line, printed only if set
 - `vm_backend_modules_register()` — test and benchmark hook, generated, not a library export
-- `VECMAT_FORCE_ISA` — override the compiled/runtime pick when no backend is registered
+- `VECMAT_FORCE_ISA` — override the ISA bound for the table-dispatched `_ptr`
+  set (vec4, mat4, quat, GEMM ukernel) through `vm_cpu_selected_features()`,
+  when no backend is registered and that ISA is compiled in. By design it does
+  not reach the direct-call kernels (`vm_array_*`, `vm_axpy`, `vm_rsqrt_array`,
+  `vm_soa3_*`, `vm_batch3_*`, `vm_eos_*_n`, and the SIMD `vm_sph_*` kernels):
+  they test the raw `vm_cpu_runtime_features()` mask on each call
 
 Tests and benchmarks do not include a backend header. They call the
 generated hook, then `vm_cpu_init()`:

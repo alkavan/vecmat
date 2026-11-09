@@ -114,7 +114,7 @@ keep the by-value function as the body. Their `_ptr` names are header adapters:
 same result, inputs passed by pointer, not exported kernels.
 
 **Selection order:**
-`registered backends (by priority) → SVE2 → SVE → NEON → AVX-512F → AVX2 → AVX → scalar`
+`registered backends (by priority) → SVE2 → SVE → NEON → AVX-512F (+FMA) → AVX2 (+FMA) → AVX → scalar`
 
 `vm_backend_register()` installs a complete `_ptr` table (`vm_backend_ops`).
 Call it before the first `vm_cpu_init()`. The same pointer is idempotent; a
@@ -145,6 +145,16 @@ idempotent. Concurrent first-use of dispatched kernels is safe.
 
 **x86 floor is AVX.** Pre-AVX x86 runs scalar kernels. There is no SSE
 backend, and none will be added for completeness.
+
+**AVX2 and AVX-512F also need FMA.** Their kernels are built with `-mfma`,
+so each tier is picked only when `vm_cpu_runtime_features()` also has
+`VM_CPU_FMA` (CPUID.1:ECX bit 12 plus the OS YMM state AVX needs). A CPU or
+VM that hides FMA falls to the next tier: AVX for the dispatched set, scalar
+for the direct-call kernels (array, batch3, eos, sph). The `vm_soa3_*` AVX2
+kernels emit no FMA and need only AVX2. `VM_CPU_FMA` is a feature bit, not a
+tier: `vm_cpu_selected_features()` never returns it and `VECMAT_FORCE_ISA`
+has no `fma` value. A forced `avx2` or `avx512f` binds that tier without
+checking FMA, just as it does not check the ISA itself.
 
 **Supported means a green job with that label.** A native run counts.
 A qemu run counts only when the label says qemu. SVE and SVE2 stay

@@ -14,6 +14,9 @@
 #pragma GCC optimize("fp-contract=off")
 #endif
 
+/* The AVX2 kernels need only AVX2, not VM_CPU_FMA: their TU is built with
+ * -mfma but disables contraction and uses no fma intrinsics, so it emits no
+ * FMA instructions. Gate on VM_CPU_FMA too if that ever changes. */
 #if defined(VECMAT_ENABLE_AVX2)
 void vm_soa3_dot_avx2(vm_float_t *res, vm_csoa3 a, vm_csoa3 b, int n);
 void vm_soa3_cross_avx2(vm_soa3 res, vm_csoa3 a, vm_csoa3 b, int n);

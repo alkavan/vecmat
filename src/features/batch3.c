@@ -54,7 +54,7 @@ bool vm_batch3_mul(vm_float_t *C, const int c_stride,
     }
 
 #if defined(VECMAT_ENABLE_AVX2)
-    if ((vm_cpu_runtime_features() & VM_CPU_AVX2) != 0) {
+    if ((vm_cpu_runtime_features() & (VM_CPU_AVX2 | VM_CPU_FMA)) == (VM_CPU_AVX2 | VM_CPU_FMA)) {
         return vm_batch3_mul_avx2(C, c_stride, A, a_stride, B, b_stride, n);
     }
 #endif
@@ -85,7 +85,7 @@ bool vm_batch3_inverse(vm_float_t *C, const int c_stride,
     }
 
 #if defined(VECMAT_ENABLE_AVX2)
-    if ((vm_cpu_runtime_features() & VM_CPU_AVX2) != 0) {
+    if ((vm_cpu_runtime_features() & (VM_CPU_AVX2 | VM_CPU_FMA)) == (VM_CPU_AVX2 | VM_CPU_FMA)) {
         return vm_batch3_inverse_avx2(C, c_stride, A, a_stride, n);
     }
 #endif
@@ -144,7 +144,7 @@ bool vm_batch3_ddot(vm_float_t *d,
     }
 
 #if defined(VECMAT_ENABLE_AVX2)
-    if ((vm_cpu_runtime_features() & VM_CPU_AVX2) != 0) {
+    if ((vm_cpu_runtime_features() & (VM_CPU_AVX2 | VM_CPU_FMA)) == (VM_CPU_AVX2 | VM_CPU_FMA)) {
         return vm_batch3_ddot_avx2(d, a, a_stride, b, b_stride, n);
     }
 #endif

@@ -44,7 +44,8 @@ TEST_CASE(cpu_features_test, "[cpu]") {
         if (forced && forced[0] != '\0' && strcmp(forced, "avx512") != 0)
             REQUIRE(strcmp(vm_cpu_name(selected), forced) == 0);
         else {
-            if ((compiled & VM_CPU_AVX512F) && (runtime & VM_CPU_AVX512F))
+            if ((compiled & VM_CPU_AVX512F) && (runtime & VM_CPU_AVX512F) &&
+                (runtime & VM_CPU_FMA))
                 REQUIRE(selected == VM_CPU_AVX512F);
             if ((compiled & VM_CPU_SVE2) && (runtime & VM_CPU_SVE2))
                 REQUIRE(selected == VM_CPU_SVE2);
@@ -56,6 +57,35 @@ TEST_CASE(cpu_features_test, "[cpu]") {
     REQUIRE(vm_cpu_name(VM_CPU_SVE2)[0] == 's');
     REQUIRE(vm_cpu_name(VM_CPU_NEON)[0] == 'n');
     REQUIRE(vm_cpu_note() == NULL || vm_cpu_note()[0] != '\0');
+}
+
+TEST_CASE(cpu_fma_bit_is_consistent, "[cpu]") {
+    vm_cpu_init();
+
+    const vm_cpu_features_t compiled = vm_cpu_compiled_features();
+    const vm_cpu_features_t runtime = vm_cpu_runtime_features();
+    const vm_cpu_features_t selected = vm_cpu_selected_features();
+
+    /* FMA needs the same YMM state as AVX. */
+    if (runtime & VM_CPU_FMA)
+        REQUIRE((runtime & VM_CPU_AVX) != 0);
+    /* The AVX2 and AVX-512F kernels are built with -mfma. */
+    if (compiled & (VM_CPU_AVX2 | VM_CPU_AVX512F))
+        REQUIRE((compiled & VM_CPU_FMA) != 0);
+    /* FMA is a feature bit, never a selected tier. */
+    REQUIRE(selected != VM_CPU_FMA);
+    REQUIRE(strcmp(vm_cpu_name(VM_CPU_FMA), "fma") == 0);
+    REQUIRE(strcmp(vm_cpu_name(VM_CPU_AVX2 | VM_CPU_FMA), "avx2") == 0);
+
+    /* Without a force or a backend, an FMA tier implies the FMA bit. */
+    const char *forced = getenv("VECMAT_FORCE_ISA");
+    if (selected != VM_CPU_BACKEND && !(forced && forced[0] != '\0')) {
+        if (selected == VM_CPU_AVX2 || selected == VM_CPU_AVX512F)
+            REQUIRE((runtime & VM_CPU_FMA) != 0);
+        if ((compiled & VM_CPU_AVX2) && (runtime & VM_CPU_AVX2) &&
+            (runtime & VM_CPU_FMA) == 0)
+            REQUIRE(selected != VM_CPU_AVX2 && selected != VM_CPU_AVX512F);
+    }
 }
 
 TEST_CASE(cpu_dispatched_vec4_add_matches_scalar_shape, "[cpu][vector4]") {

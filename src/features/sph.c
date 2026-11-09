@@ -205,13 +205,13 @@ vm_float_t vm_sph_density(const vm_float_t *x, const vm_float_t *y,
     }
 
 #if defined(VECMAT_ENABLE_AVX512F)
-    if ((vm_cpu_runtime_features() & VM_CPU_AVX512F) != 0) {
+    if ((vm_cpu_runtime_features() & (VM_CPU_AVX512F | VM_CPU_FMA)) == (VM_CPU_AVX512F | VM_CPU_FMA)) {
         return vm_sph_density_avx512(x, y, z, m, i, neighbors, nn, h, dim, kernel);
     }
 #endif
 
 #if defined(VECMAT_ENABLE_AVX2)
-    if ((vm_cpu_runtime_features() & VM_CPU_AVX2) != 0) {
+    if ((vm_cpu_runtime_features() & (VM_CPU_AVX2 | VM_CPU_FMA)) == (VM_CPU_AVX2 | VM_CPU_FMA)) {
         return vm_sph_density_avx2(x, y, z, m, i, neighbors, nn, h, dim, kernel);
     }
 #endif
@@ -258,14 +258,14 @@ bool vm_sph_pressure_grad(vm_float_t *gx, vm_float_t *gy, vm_float_t *gz,
     }
 
 #if defined(VECMAT_ENABLE_AVX512F)
-    if ((vm_cpu_runtime_features() & VM_CPU_AVX512F) != 0) {
+    if ((vm_cpu_runtime_features() & (VM_CPU_AVX512F | VM_CPU_FMA)) == (VM_CPU_AVX512F | VM_CPU_FMA)) {
         return vm_sph_pressure_grad_avx512(gx, gy, gz, x, y, z, m, rho, p,
                                            i, neighbors, nn, h, dim, kernel);
     }
 #endif
 
 #if defined(VECMAT_ENABLE_AVX2)
-    if ((vm_cpu_runtime_features() & VM_CPU_AVX2) != 0) {
+    if ((vm_cpu_runtime_features() & (VM_CPU_AVX2 | VM_CPU_FMA)) == (VM_CPU_AVX2 | VM_CPU_FMA)) {
         return vm_sph_pressure_grad_avx2(gx, gy, gz, x, y, z, m, rho, p,
                                          i, neighbors, nn, h, dim, kernel);
     }
@@ -480,7 +480,7 @@ bool vm_sph_artvisc(vm_float_t *ax, vm_float_t *ay, vm_float_t *az,
     }
 
 #if defined(VECMAT_ENABLE_AVX2)
-    if ((vm_cpu_runtime_features() & VM_CPU_AVX2) != 0) {
+    if ((vm_cpu_runtime_features() & (VM_CPU_AVX2 | VM_CPU_FMA)) == (VM_CPU_AVX2 | VM_CPU_FMA)) {
         return vm_sph_artvisc_avx2(ax, ay, az, x, y, z, vx, vy, vz, m, rho, c,
                                    i, neighbors, nn, h, alpha, beta, eta, dim, kernel);
     }
@@ -553,7 +553,7 @@ bool vm_sph_forces(vm_float_t *gx, vm_float_t *gy, vm_float_t *gz,
     }
 
 #if defined(VECMAT_ENABLE_AVX2)
-    if ((vm_cpu_runtime_features() & VM_CPU_AVX2) != 0) {
+    if ((vm_cpu_runtime_features() & (VM_CPU_AVX2 | VM_CPU_FMA)) == (VM_CPU_AVX2 | VM_CPU_FMA)) {
         return vm_sph_forces_avx2(gx, gy, gz, ax, ay, az, x, y, z, vx, vy, vz,
                                   m, rho, p, c, i, neighbors, nn, h, alpha, beta,
                                   eta, dim, kernel);
