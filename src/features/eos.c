@@ -184,12 +184,12 @@ bool vm_eos_ideal_n(vm_float_t *p, vm_float_t *c, const vm_ideal_gas *eos,
     }
 
 #if defined(VECMAT_ENABLE_AVX2)
-    if ((vm_cpu_runtime_features() & (VM_CPU_AVX2 | VM_CPU_FMA)) == (VM_CPU_AVX2 | VM_CPU_FMA)) {
+    if (vm_cpu_has(VM_LEVEL_AVX2)) {
         return vm_eos_ideal_n_avx2(p, c, eos, rho, rho_stride, e, e_stride, n);
     }
 #endif
 #if defined(VECMAT_ENABLE_NEON)
-    if ((vm_cpu_runtime_features() & VM_CPU_NEON) != 0) {
+    if (vm_cpu_has(VM_LEVEL_NEON)) {
         return vm_eos_ideal_n_neon(p, c, eos, rho, rho_stride, e, e_stride, n);
     }
 #endif
@@ -215,12 +215,12 @@ bool vm_eos_stiffened_n(vm_float_t *p, vm_float_t *c, const vm_stiff_gas *eos,
     }
 
 #if defined(VECMAT_ENABLE_AVX2)
-    if ((vm_cpu_runtime_features() & (VM_CPU_AVX2 | VM_CPU_FMA)) == (VM_CPU_AVX2 | VM_CPU_FMA)) {
+    if (vm_cpu_has(VM_LEVEL_AVX2)) {
         return vm_eos_stiffened_n_avx2(p, c, eos, rho, rho_stride, e, e_stride, n);
     }
 #endif
 #if defined(VECMAT_ENABLE_NEON)
-    if ((vm_cpu_runtime_features() & VM_CPU_NEON) != 0) {
+    if (vm_cpu_has(VM_LEVEL_NEON)) {
         return vm_eos_stiffened_n_neon(p, c, eos, rho, rho_stride, e, e_stride, n);
     }
 #endif

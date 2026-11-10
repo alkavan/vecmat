@@ -44,8 +44,7 @@ TEST_CASE(cpu_features_test, "[cpu]") {
         if (forced && forced[0] != '\0' && strcmp(forced, "avx512") != 0)
             REQUIRE(strcmp(vm_cpu_name(selected), forced) == 0);
         else {
-            if ((compiled & VM_CPU_AVX512F) && (runtime & VM_CPU_AVX512F) &&
-                (runtime & VM_CPU_FMA))
+            if ((compiled & VM_CPU_AVX512F) && (runtime & VM_CPU_AVX512F))
                 REQUIRE(selected == VM_CPU_AVX512F);
             if ((compiled & VM_CPU_SVE2) && (runtime & VM_CPU_SVE2))
                 REQUIRE(selected == VM_CPU_SVE2);
@@ -77,15 +76,85 @@ TEST_CASE(cpu_fma_bit_is_consistent, "[cpu]") {
     REQUIRE(strcmp(vm_cpu_name(VM_CPU_FMA), "fma") == 0);
     REQUIRE(strcmp(vm_cpu_name(VM_CPU_AVX2 | VM_CPU_FMA), "avx2") == 0);
 
-    /* Without a force or a backend, an FMA tier implies the FMA bit. */
+    /* Without a force or a backend, a tier implies its whole level; only
+     * AVX2 adds FMA (AVX-512F implies it). */
     const char *forced = getenv("VECMAT_FORCE_ISA");
     if (selected != VM_CPU_BACKEND && !(forced && forced[0] != '\0')) {
-        if (selected == VM_CPU_AVX2 || selected == VM_CPU_AVX512F)
-            REQUIRE((runtime & VM_CPU_FMA) != 0);
-        if ((compiled & VM_CPU_AVX2) && (runtime & VM_CPU_AVX2) &&
-            (runtime & VM_CPU_FMA) == 0)
-            REQUIRE(selected != VM_CPU_AVX2 && selected != VM_CPU_AVX512F);
+        if (selected == VM_CPU_AVX2)
+            REQUIRE(vm_cpu_has(VM_LEVEL_AVX2));
+        if (selected == VM_CPU_AVX512F)
+            REQUIRE(vm_cpu_has(VM_LEVEL_AVX512));
+        if ((compiled & VM_CPU_AVX2) && vm_cpu_has(VM_CPU_AVX2) && !vm_cpu_has(VM_CPU_FMA))
+            REQUIRE(selected != VM_CPU_AVX2);
     }
+}
+
+TEST_CASE(cpu_has_needs_every_bit, "[cpu]") {
+    const vm_cpu_features_t runtime = vm_cpu_runtime_features();
+
+    REQUIRE(vm_cpu_has(VM_CPU_SCALAR));
+    REQUIRE(vm_cpu_has(0));
+    REQUIRE(vm_cpu_has(runtime));
+    REQUIRE(vm_cpu_has(VM_LEVEL_AVX2) ==
+            ((runtime & VM_CPU_AVX2) != 0 && (runtime & VM_CPU_FMA) != 0));
+    REQUIRE(vm_cpu_has(VM_LEVEL_AVX512) == ((runtime & VM_CPU_AVX512F) != 0));
+    /* One missing bit fails the whole set. */
+    REQUIRE(!vm_cpu_has(VM_CPU_SCALAR | VM_CPU_BACKEND));
+}
+
+TEST_CASE(cpu_bits_sit_in_family_ranges, "[cpu]") {
+    const vm_cpu_features_t families[4] = {
+        VM_CPU_GENERIC_MASK, VM_CPU_X86_MASK, VM_CPU_ARM_MASK, VM_CPU_RISCV_MASK
+    };
+    vm_cpu_features_t all = 0;
+    for (int i = 0; i < 4; ++i) {
+        for (int j = i + 1; j < 4; ++j)
+            REQUIRE((families[i] & families[j]) == 0);
+        all |= families[i];
+    }
+    /* The families cover bits 0..30; bit 31 is unused (int enum limit). */
+    REQUIRE(all == 0x7FFFFFFFu);
+
+    const vm_cpu_features_t generic = VM_CPU_SCALAR | VM_CPU_BACKEND;
+    const vm_cpu_features_t x86 = VM_CPU_AVX | VM_CPU_AVX2 | VM_CPU_AVX512F | VM_CPU_FMA;
+    const vm_cpu_features_t arm = VM_CPU_NEON | VM_CPU_SVE | VM_CPU_SVE2;
+    REQUIRE((generic & ~VM_CPU_GENERIC_MASK) == 0);
+    REQUIRE((x86 & ~VM_CPU_X86_MASK) == 0);
+    REQUIRE((arm & ~VM_CPU_ARM_MASK) == 0);
+    /* Every level stays within one family. */
+    REQUIRE((VM_LEVEL_AVX2 & ~VM_CPU_X86_MASK) == 0);
+    REQUIRE((VM_LEVEL_AVX512 & ~VM_CPU_X86_MASK) == 0);
+    REQUIRE((VM_LEVEL_SVE2 & ~VM_CPU_ARM_MASK) == 0);
+    /* Probed masks never use bit 31 or a bit outside the defined set. */
+    const vm_cpu_features_t defined = generic | x86 | arm;
+    REQUIRE((vm_cpu_runtime_features() & ~defined) == 0);
+    REQUIRE((vm_cpu_compiled_features() & ~defined) == 0);
+    REQUIRE((defined & 0x80000000u) == 0);
+}
+
+TEST_CASE(cpu_ladder_matches_if_chain, "[cpu]") {
+    vm_cpu_init();
+    const char *forced = getenv("VECMAT_FORCE_ISA");
+    const vm_cpu_features_t selected = vm_cpu_selected_features();
+    if (selected == VM_CPU_BACKEND || (forced && forced[0] != '\0'))
+        return;
+
+    /* The pre-table picker, spelled out. */
+    const vm_cpu_features_t have = vm_cpu_compiled_features() & vm_cpu_runtime_features();
+    vm_cpu_features_t expect = VM_CPU_SCALAR;
+    if (have & VM_CPU_SVE2)
+        expect = VM_CPU_SVE2;
+    else if (have & VM_CPU_SVE)
+        expect = VM_CPU_SVE;
+    else if (have & VM_CPU_NEON)
+        expect = VM_CPU_NEON;
+    else if (have & VM_CPU_AVX512F)
+        expect = VM_CPU_AVX512F;
+    else if ((have & VM_CPU_AVX2) && (have & VM_CPU_FMA))
+        expect = VM_CPU_AVX2;
+    else if (have & VM_CPU_AVX)
+        expect = VM_CPU_AVX;
+    REQUIRE(selected == expect);
 }
 
 TEST_CASE(cpu_dispatched_vec4_add_matches_scalar_shape, "[cpu][vector4]") {

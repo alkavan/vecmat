@@ -14,9 +14,9 @@
 #pragma GCC optimize("fp-contract=off")
 #endif
 
-/* The AVX2 kernels need only AVX2, not VM_CPU_FMA: their TU is built with
- * -mfma but disables contraction and uses no fma intrinsics, so it emits no
- * FMA instructions. Gate on VM_CPU_FMA too if that ever changes. */
+/* The AVX2 kernels check plain VM_CPU_AVX2, not VM_LEVEL_AVX2: their TU is
+ * built with -mfma but disables contraction and uses no fma intrinsics, so
+ * it emits no FMA instructions. Use VM_LEVEL_AVX2 if that ever changes. */
 #if defined(VECMAT_ENABLE_AVX2)
 void vm_soa3_dot_avx2(vm_float_t *res, vm_csoa3 a, vm_csoa3 b, int n);
 void vm_soa3_cross_avx2(vm_soa3 res, vm_csoa3 a, vm_csoa3 b, int n);
@@ -45,13 +45,13 @@ void vm_soa3_dot(vm_float_t *res, const vm_csoa3 a, const vm_csoa3 b, const int 
         return;
     }
 #if defined(VECMAT_ENABLE_AVX2)
-    if ((vm_cpu_runtime_features() & VM_CPU_AVX2) != 0) {
+    if (vm_cpu_has(VM_CPU_AVX2)) {
         vm_soa3_dot_avx2(res, a, b, n);
         return;
     }
 #endif
 #if defined(VECMAT_ENABLE_NEON)
-    if ((vm_cpu_runtime_features() & VM_CPU_NEON) != 0) {
+    if (vm_cpu_has(VM_LEVEL_NEON)) {
         vm_soa3_dot_neon(res, a, b, n);
         return;
     }
@@ -70,13 +70,13 @@ void vm_soa3_cross(const vm_soa3 res, const vm_csoa3 a, const vm_csoa3 b, const 
         return;
     }
 #if defined(VECMAT_ENABLE_AVX2)
-    if ((vm_cpu_runtime_features() & VM_CPU_AVX2) != 0) {
+    if (vm_cpu_has(VM_CPU_AVX2)) {
         vm_soa3_cross_avx2(res, a, b, n);
         return;
     }
 #endif
 #if defined(VECMAT_ENABLE_NEON)
-    if ((vm_cpu_runtime_features() & VM_CPU_NEON) != 0) {
+    if (vm_cpu_has(VM_LEVEL_NEON)) {
         vm_soa3_cross_neon(res, a, b, n);
         return;
     }
@@ -100,13 +100,13 @@ void vm_soa3_length_squared(vm_float_t *res, const vm_csoa3 a, const int n)
         return;
     }
 #if defined(VECMAT_ENABLE_AVX2)
-    if ((vm_cpu_runtime_features() & VM_CPU_AVX2) != 0) {
+    if (vm_cpu_has(VM_CPU_AVX2)) {
         vm_soa3_length_squared_avx2(res, a, n);
         return;
     }
 #endif
 #if defined(VECMAT_ENABLE_NEON)
-    if ((vm_cpu_runtime_features() & VM_CPU_NEON) != 0) {
+    if (vm_cpu_has(VM_LEVEL_NEON)) {
         vm_soa3_length_squared_neon(res, a, n);
         return;
     }
@@ -125,13 +125,13 @@ void vm_soa3_distance_squared(vm_float_t *res, const vm_csoa3 a, const vm_csoa3 
         return;
     }
 #if defined(VECMAT_ENABLE_AVX2)
-    if ((vm_cpu_runtime_features() & VM_CPU_AVX2) != 0) {
+    if (vm_cpu_has(VM_CPU_AVX2)) {
         vm_soa3_distance_squared_avx2(res, a, b, n);
         return;
     }
 #endif
 #if defined(VECMAT_ENABLE_NEON)
-    if ((vm_cpu_runtime_features() & VM_CPU_NEON) != 0) {
+    if (vm_cpu_has(VM_LEVEL_NEON)) {
         vm_soa3_distance_squared_neon(res, a, b, n);
         return;
     }

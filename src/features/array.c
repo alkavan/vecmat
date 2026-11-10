@@ -49,13 +49,13 @@ void vm_array_add(vm_float_t *res, const vm_float_t *a, const vm_float_t *b, con
         return;
     }
 #if defined(VECMAT_ENABLE_AVX2)
-    if ((vm_cpu_runtime_features() & (VM_CPU_AVX2 | VM_CPU_FMA)) == (VM_CPU_AVX2 | VM_CPU_FMA)) {
+    if (vm_cpu_has(VM_LEVEL_AVX2)) {
         vm_array_add_avx2(res, a, b, n);
         return;
     }
 #endif
 #if defined(VECMAT_ENABLE_NEON)
-    if ((vm_cpu_runtime_features() & VM_CPU_NEON) != 0) {
+    if (vm_cpu_has(VM_LEVEL_NEON)) {
         vm_array_add_neon(res, a, b, n);
         return;
     }
@@ -71,13 +71,13 @@ void vm_array_sub(vm_float_t *res, const vm_float_t *a, const vm_float_t *b, con
         return;
     }
 #if defined(VECMAT_ENABLE_AVX2)
-    if ((vm_cpu_runtime_features() & (VM_CPU_AVX2 | VM_CPU_FMA)) == (VM_CPU_AVX2 | VM_CPU_FMA)) {
+    if (vm_cpu_has(VM_LEVEL_AVX2)) {
         vm_array_sub_avx2(res, a, b, n);
         return;
     }
 #endif
 #if defined(VECMAT_ENABLE_NEON)
-    if ((vm_cpu_runtime_features() & VM_CPU_NEON) != 0) {
+    if (vm_cpu_has(VM_LEVEL_NEON)) {
         vm_array_sub_neon(res, a, b, n);
         return;
     }
@@ -93,13 +93,13 @@ void vm_array_mul(vm_float_t *res, const vm_float_t *a, const vm_float_t *b, con
         return;
     }
 #if defined(VECMAT_ENABLE_AVX2)
-    if ((vm_cpu_runtime_features() & (VM_CPU_AVX2 | VM_CPU_FMA)) == (VM_CPU_AVX2 | VM_CPU_FMA)) {
+    if (vm_cpu_has(VM_LEVEL_AVX2)) {
         vm_array_mul_avx2(res, a, b, n);
         return;
     }
 #endif
 #if defined(VECMAT_ENABLE_NEON)
-    if ((vm_cpu_runtime_features() & VM_CPU_NEON) != 0) {
+    if (vm_cpu_has(VM_LEVEL_NEON)) {
         vm_array_mul_neon(res, a, b, n);
         return;
     }
@@ -115,13 +115,13 @@ void vm_array_div(vm_float_t *res, const vm_float_t *a, const vm_float_t *b, con
         return;
     }
 #if defined(VECMAT_ENABLE_AVX2)
-    if ((vm_cpu_runtime_features() & (VM_CPU_AVX2 | VM_CPU_FMA)) == (VM_CPU_AVX2 | VM_CPU_FMA)) {
+    if (vm_cpu_has(VM_LEVEL_AVX2)) {
         vm_array_div_avx2(res, a, b, n);
         return;
     }
 #endif
 #if defined(VECMAT_ENABLE_NEON)
-    if ((vm_cpu_runtime_features() & VM_CPU_NEON) != 0) {
+    if (vm_cpu_has(VM_LEVEL_NEON)) {
         vm_array_div_neon(res, a, b, n);
         return;
     }
@@ -138,13 +138,13 @@ void vm_array_fma(vm_float_t *res, const vm_float_t *a, const vm_float_t *b,
         return;
     }
 #if defined(VECMAT_ENABLE_AVX2)
-    if ((vm_cpu_runtime_features() & (VM_CPU_AVX2 | VM_CPU_FMA)) == (VM_CPU_AVX2 | VM_CPU_FMA)) {
+    if (vm_cpu_has(VM_LEVEL_AVX2)) {
         vm_array_fma_avx2(res, a, b, c, n);
         return;
     }
 #endif
 #if defined(VECMAT_ENABLE_NEON)
-    if ((vm_cpu_runtime_features() & VM_CPU_NEON) != 0) {
+    if (vm_cpu_has(VM_LEVEL_NEON)) {
         vm_array_fma_neon(res, a, b, c, n);
         return;
     }
@@ -160,13 +160,13 @@ void vm_axpy(vm_float_t *y, const vm_float_t alpha, const vm_float_t *x, const i
         return;
     }
 #if defined(VECMAT_ENABLE_AVX2)
-    if ((vm_cpu_runtime_features() & (VM_CPU_AVX2 | VM_CPU_FMA)) == (VM_CPU_AVX2 | VM_CPU_FMA)) {
+    if (vm_cpu_has(VM_LEVEL_AVX2)) {
         vm_axpy_avx2(y, alpha, x, n);
         return;
     }
 #endif
 #if defined(VECMAT_ENABLE_NEON)
-    if ((vm_cpu_runtime_features() & VM_CPU_NEON) != 0) {
+    if (vm_cpu_has(VM_LEVEL_NEON)) {
         vm_axpy_neon(y, alpha, x, n);
         return;
     }
@@ -183,13 +183,13 @@ void vm_rsqrt_array(vm_float_t *res, const vm_float_t *x, const int n)
         return;
     }
 #if defined(VECMAT_ENABLE_AVX2)
-    if ((vm_cpu_runtime_features() & (VM_CPU_AVX2 | VM_CPU_FMA)) == (VM_CPU_AVX2 | VM_CPU_FMA)) {
+    if (vm_cpu_has(VM_LEVEL_AVX2)) {
         vm_rsqrt_array_avx2(res, x, n);
         return;
     }
 #endif
 #if defined(VECMAT_ENABLE_NEON)
-    if ((vm_cpu_runtime_features() & VM_CPU_NEON) != 0) {
+    if (vm_cpu_has(VM_LEVEL_NEON)) {
         vm_rsqrt_array_neon(res, x, n);
         return;
     }

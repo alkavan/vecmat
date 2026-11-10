@@ -106,6 +106,51 @@ module header. `VECMAT_MODULE_TEST_HOOKS` runs after the test targets exist
 and may add the public include dir. Do not define a module macro in the
 test mains.
 
+## Dispatch model
+
+**Bits are probed facts.** `vm_cpu_runtime_features()` sets one flat bit
+per CPU capability (`VM_CPU_AVX2`, `VM_CPU_FMA`, `VM_CPU_NEON`, ...).
+**Levels are what a kernel file was compiled to need.** `VM_LEVEL_AVX2` is
+`VM_CPU_AVX2 | VM_CPU_FMA`; the others, `VM_LEVEL_AVX512` included, are
+one bit. A direct-call kernel runs only when `vm_cpu_has(level)` sees every
+bit. A file built with `-mfma` must gate on a level that includes FMA,
+except AVX-512, where FMA is implied (every AVX-512F CPU has FMA3; a
+hypervisor that hides it is unsupported). The `vm_soa3_*` AVX2 file is also
+exempt because it disables contraction and emits no FMA, so it checks plain
+`VM_CPU_AVX2`.
+
+**Bits sit in per-family ranges** of the 32-bit `vm_cpu_features_t`. The
+values are C11 enum constants, so they stay within bits 0..30; bit 31 is
+unused. Placeholders are commented in `cpu.h` and not probed yet.
+`VM_CPU_ARM_FP16`, `VM_CPU_ARM_BF16`, and `VM_CPU_I8MM` are defined but
+not probed in core. Vendor modules own the probes for the widths they
+implement (and may test finer bits). The bits stay clear in
+`vm_cpu_runtime_features()`. They are features, not tiers.
+
+| Bits   | Family  | Mask                  | Defined                          | Reserved placeholders                                        |
+|--------|---------|-----------------------|----------------------------------|--------------------------------------------------------------|
+| 0..3   | generic | `VM_CPU_GENERIC_MASK` | SCALAR 0, BACKEND 1              | GPU 2 (marker only, never a tier)                            |
+| 4..15  | x86     | `VM_CPU_X86_MASK`     | AVX 4, AVX2 5, AVX512F 6, FMA 7  | F16C 8, AVX512BW 9, AVX512VL 10, AVX10_2 11, AMX 12           |
+| 16..23 | ARM     | `VM_CPU_ARM_MASK`     | NEON 16, SVE 17, SVE2 18, ARM_FP16 21, ARM_BF16 22, I8MM 23 | SME 19, SME2 20 |
+| 24..30 | RISC-V  | `VM_CPU_RISCV_MASK`   | none                             | RVV 24, ZVFH 25, ZVBB 26                                     |
+
+AVX10.1 is the AVX-512 set, so its probe will set `VM_CPU_AVX512F`; only
+AVX10.2 gets a bit. AMX is a feature, not a tier, and Linux needs the
+`arch_prctl` opt-in before tile use. 0.4.4 renumbered every bit: compare
+masks with the `VM_CPU_*` names, never stored numbers, and rebuild modules
+against the new header.
+
+**Tiers come from one ladder.** `vm_cpu_selected_features()` walks a table
+of {level, tier} rows in priority order (SVE2, SVE, NEON, AVX-512F, AVX2,
+AVX); the first level fully present wins, else scalar. Without FMA,
+AVX2 falls to AVX. **Backends** are code that targets a level,
+plus an optional microarchitecture match in their own register hook; a
+registered backend still wins. A richer backend descriptor may come later.
+
+**RISC-V V** will be one new bit (`VM_CPU_RVV`, bit 24) and one `VM_LEVEL_RVV` row
+in the ladder. **GPUs** will be a separate device API, never a CPU feature
+bit or a `vm_backend_ops` table.
+
 ## Backend registration
 
 The base library keeps this surface for backends:

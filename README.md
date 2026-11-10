@@ -93,6 +93,9 @@ included in the headers.
 - `vm_compiled_float_bits()` reports which float widths are in the linked 
   library. `vm_abi_mismatch()` is non-zero when this translation unit's width is
   not one of them.
+- 0.4.4 renumbers the `VM_CPU_*` feature bits into per-family ranges (see
+  [Dispatch model](doc/modules.md#dispatch-model)). Rebuild modules and any
+  code that stored a mask as a number.
 
 ### Math types
 - Float vectors: 2D, 3D, 4D (`vector2` / `vector3` / `vector4`).
@@ -114,7 +117,7 @@ keep the by-value function as the body. Their `_ptr` names are header adapters:
 same result, inputs passed by pointer, not exported kernels.
 
 **Selection order:**
-`registered backends (by priority) → SVE2 → SVE → NEON → AVX-512F (+FMA) → AVX2 (+FMA) → AVX → scalar`
+`registered backends (by priority) → SVE2 → SVE → NEON → AVX-512F → AVX2 (+FMA) → AVX → scalar`
 
 `vm_backend_register()` installs a complete `_ptr` table (`vm_backend_ops`).
 Call it before the first `vm_cpu_init()`. The same pointer is idempotent; a
@@ -146,11 +149,14 @@ idempotent. Concurrent first-use of dispatched kernels is safe.
 **x86 floor is AVX.** Pre-AVX x86 runs scalar kernels. There is no SSE
 backend, and none will be added for completeness.
 
-**AVX2 and AVX-512F also need FMA.** Their kernels are built with `-mfma`,
-so each tier is picked only when `vm_cpu_runtime_features()` also has
-`VM_CPU_FMA` (CPUID.1:ECX bit 12 plus the OS YMM state AVX needs). A CPU or
-VM that hides FMA falls to the next tier: AVX for the dispatched set, scalar
-for the direct-call kernels (array, batch3, eos, sph). The `vm_soa3_*` AVX2
+**AVX2 also needs FMA.** Its kernels are built with `-mfma`, so the tier
+is picked only when `vm_cpu_runtime_features()` also has `VM_CPU_FMA`
+(CPUID.1:ECX bit 12 plus the OS YMM state AVX needs). A CPU or VM that
+hides FMA falls to the next tier: AVX for the dispatched set, scalar for
+the direct-call kernels (array, batch3, eos, sph). AVX-512F kernels are
+also built with `-mfma`, but every AVX-512F CPU has FMA3, so that tier
+checks only `VM_CPU_AVX512F`; a hypervisor that masks FMA while exposing
+AVX-512F is unsupported. The `vm_soa3_*` AVX2
 kernels emit no FMA and need only AVX2. `VM_CPU_FMA` is a feature bit, not a
 tier: `vm_cpu_selected_features()` never returns it and `VECMAT_FORCE_ISA`
 has no `fma` value. A forced `avx2` or `avx512f` binds that tier without
@@ -239,7 +245,7 @@ if(NOT TARGET vecmat::vecmat)
     include(FetchContent)
     FetchContent_Declare(vecmat
         GIT_REPOSITORY https://github.com/alkavan/vecmat.git
-        GIT_TAG v0.4.4
+        GIT_TAG v0.4.5
     )
     FetchContent_MakeAvailable(vecmat)
 endif()

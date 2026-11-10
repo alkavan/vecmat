@@ -383,6 +383,24 @@ vm_cpu_features_t vm_cpu_runtime_features(void)
 }
 
 /**
+ * @brief Tiers in priority order: the first level fully present wins.
+ *
+ * AVX2 needs FMA (its files are built with -mfma); without it it falls to
+ * the next row. AVX-512F is also built with -mfma but implies FMA. RISC-V V will add a VM_LEVEL_RVV row.
+ */
+static const struct {
+    vm_cpu_features_t level;
+    vm_cpu_features_t tier;
+} cpu_ladder[] = {
+    {.level = VM_LEVEL_SVE2,   .tier = VM_CPU_SVE2 },
+    {.level = VM_LEVEL_SVE,    .tier = VM_CPU_SVE },
+    {.level = VM_LEVEL_NEON,   .tier = VM_CPU_NEON },
+    {.level = VM_LEVEL_AVX512, .tier = VM_CPU_AVX512F },
+    {.level = VM_LEVEL_AVX2,   .tier = VM_CPU_AVX2 },
+    {.level = VM_LEVEL_AVX,    .tier = VM_CPU_AVX },
+};
+
+/**
  * @brief Highest-priority ISA that is both compiled and present.
  *
  * @return Single selected feature bit (or scalar).
@@ -407,20 +425,10 @@ vm_cpu_features_t vm_cpu_selected_features(void)
         if (forced != 0 && (forced & compiled) == forced)
             return forced;
 
-        if (have & VM_CPU_SVE2)
-            return VM_CPU_SVE2;
-        if (have & VM_CPU_SVE)
-            return VM_CPU_SVE;
-        if (have & VM_CPU_NEON)
-            return VM_CPU_NEON;
-        /* The AVX-512F and AVX2 tiers are built with -mfma: without FMA
-         * they fall to the next tier down, ending at AVX or scalar. */
-        if ((have & VM_CPU_AVX512F) && (have & VM_CPU_FMA))
-            return VM_CPU_AVX512F;
-        if ((have & VM_CPU_AVX2) && (have & VM_CPU_FMA))
-            return VM_CPU_AVX2;
-        if (have & VM_CPU_AVX)
-            return VM_CPU_AVX;
+        for (size_t i = 0; i < sizeof cpu_ladder / sizeof cpu_ladder[0]; ++i) {
+            if ((have & cpu_ladder[i].level) == cpu_ladder[i].level)
+                return cpu_ladder[i].tier;
+        }
         return VM_CPU_SCALAR;
     }
 }
