@@ -315,4 +315,38 @@ VEC_API vm_float_t bounce_ease_in(vm_float_t f);
  */
 VEC_API vm_float_t bounce_ease_in_out(vm_float_t f);
 
+
+// Hermite interpolation (smoothstep family)
+
+
+/**
+ * @brief Smooth Hermite interpolation (cubic).
+ *
+ * Returns 0 when x <= edge0, 1 when x >= edge1, and the cubic Hermite
+ * polynomial 3t^2 - 2t^3 in between, where t is the clamped normalized
+ * position. Matches GLSL / HLSL smoothstep. First derivative is zero at
+ * both edges.
+ *
+ * @param edge0 Lower edge.
+ * @param edge1 Upper edge.
+ * @param x Value to interpolate.
+ * @return Interpolated value in [0, 1].
+ */
+VEC_API vm_float_t smoothstep(vm_float_t edge0, vm_float_t edge1, vm_float_t x);
+
+/**
+ * @brief Smoother Hermite interpolation (quintic).
+ *
+ * Returns 0 when x <= edge0, 1 when x >= edge1, and the quintic Hermite
+ * polynomial 6t^5 - 15t^4 + 10t^3 in between. First and second derivatives
+ * are zero at both edges (Perlin's improved fade). Preferred for noise
+ * and bump mapping.
+ *
+ * @param edge0 Lower edge.
+ * @param edge1 Upper edge.
+ * @param x Value to interpolate.
+ * @return Interpolated value in [0, 1].
+ */
+VEC_API vm_float_t smootherstep(vm_float_t edge0, vm_float_t edge1, vm_float_t x);
+
 #endif //VECMAT_EASING_H

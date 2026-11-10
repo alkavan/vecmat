@@ -462,6 +462,8 @@
 #define bounce_ease_out bounce_ease_out64
 #define bounce_ease_in bounce_ease_in64
 #define bounce_ease_in_out bounce_ease_in_out64
+#define smoothstep smoothstep64
+#define smootherstep smootherstep64
 #define vm_gemm vm_gemm64
 #define vm_gemm_ref vm_gemm_ref64
 #define vm_gemm_batch vm_gemm_batch64
@@ -1518,6 +1520,8 @@
 #define bounce_ease_out bounce_ease_out32
 #define bounce_ease_in bounce_ease_in32
 #define bounce_ease_in_out bounce_ease_in_out32
+#define smoothstep smoothstep32
+#define smootherstep smootherstep32
 #define vm_gemm vm_gemm32
 #define vm_gemm_ref vm_gemm_ref32
 #define vm_gemm_batch vm_gemm_batch32

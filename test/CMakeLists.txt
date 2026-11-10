@@ -24,6 +24,7 @@ add_executable(vecmat_tests
         test_matrix_int_ptr.c
         test_quaternion_ptr.c
         test_common_usage.c
+        test_easing.c
         test_cpu.c
         test_extended.c
         test_physics.c

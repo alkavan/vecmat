@@ -412,3 +412,36 @@ vm_float_t bounce_ease_in_out(const vm_float_t f)
 {
     return f < 0.5 ? (1 - bounce_ease_out(1 - 2 * f)) / 2 : (1 + bounce_ease_out(2 * f - 1)) / 2;
 }
+
+/**
+ * @brief Smooth Hermite interpolation (cubic).
+ *
+ * Returns 0 when x <= edge0, 1 when x >= edge1, and the cubic Hermite
+ * polynomial 3t^2 - 2t^3 in between. First derivative is zero at both edges.
+ */
+vm_float_t smoothstep(const vm_float_t edge0, const vm_float_t edge1, const vm_float_t x)
+{
+    if (edge0 == edge1) {
+        return x < edge0 ? 0.0f : 1.0f;
+    }
+    vm_float_t t = (x - edge0) / (edge1 - edge0);
+    t = VECMAT_FMAX(0.0f, VECMAT_FMIN(1.0f, t));
+    return t * t * (3.0f - 2.0f * t);
+}
+
+/**
+ * @brief Smoother Hermite interpolation (quintic).
+ *
+ * Returns 0 when x <= edge0, 1 when x >= edge1, and the quintic Hermite
+ * polynomial 6t^5 - 15t^4 + 10t^3 in between. First and second derivatives
+ * are zero at both edges.
+ */
+vm_float_t smootherstep(const vm_float_t edge0, const vm_float_t edge1, const vm_float_t x)
+{
+    if (edge0 == edge1) {
+        return x < edge0 ? 0.0f : 1.0f;
+    }
+    vm_float_t t = (x - edge0) / (edge1 - edge0);
+    t = VECMAT_FMAX(0.0f, VECMAT_FMIN(1.0f, t));
+    return t * t * t * (t * (t * 6.0f - 15.0f) + 10.0f);
+}
