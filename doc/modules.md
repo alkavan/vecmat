@@ -122,22 +122,23 @@ exempt because it disables contraction and emits no FMA, so it checks plain
 **Bits sit in per-family ranges** of the 32-bit `vm_cpu_features_t`. The
 values are C11 enum constants, so they stay within bits 0..30; bit 31 is
 unused. Placeholders are commented in `cpu.h` and not probed yet.
-`VM_CPU_F16C`, `VM_CPU_AVX512BW`, `VM_CPU_AVX512VL`, `VM_CPU_ARM_FP16`,
-`VM_CPU_ARM_BF16`, and `VM_CPU_I8MM` are features, not tiers.
+`VM_CPU_F16C`, `VM_CPU_AVX512BW`, `VM_CPU_AVX512VL`, `VM_CPU_AVX512BF16`,
+`VM_CPU_ARM_FP16`, `VM_CPU_ARM_BF16`, and `VM_CPU_I8MM` are features, not tiers.
 
 | Bits   | Family  | Mask                  | Defined                                          | Reserved placeholders                              |
 |--------|---------|-----------------------|--------------------------------------------------|----------------------------------------------------|
 | 0..3   | generic | `VM_CPU_GENERIC_MASK` | SCALAR 0, BACKEND 1                              | bits 2, 3 reserved                                 |
-| 4..15  | x86     | `VM_CPU_X86_MASK`     | AVX 4, AVX2 5, AVX512F 6, FMA 7, F16C 8, AVX512BW 9, AVX512VL 10 | AVX10_2 11, AMX 12, ACE 13 |
+| 4..15  | x86     | `VM_CPU_X86_MASK`     | AVX 4, AVX2 5, AVX512F 6, FMA 10, F16C 11, AVX512BW 12, AVX512VL 13, AVX512BF16 14 | AVX10 7, AMX 8, ACE 9 |
 | 16..23 | ARM     | `VM_CPU_ARM_MASK`     | NEON 16, SVE 17, SVE2 18, ARM_FP16 21, ARM_BF16 22, I8MM 23 | SME 19, SME2 20                                    |
 | 24..30 | RISC-V  | `VM_CPU_RISCV_MASK`   | none                                             | RVV 24, ZVFH 25, ZVBB 26                           |
 
-AVX10.1 is the AVX-512 set, so its probe will set `VM_CPU_AVX512F`; only
-AVX10.2 gets a bit. AMX is a feature, not a tier, and Linux needs the
+AVX10.1 is the AVX-512 set, so its probe will set `VM_CPU_AVX512F`;
+`VM_CPU_AVX10` is for everything beyond that baseline (AVX10.2 and later).
+AMX is a feature, not a tier, and Linux needs the
 `arch_prctl` opt-in before tile use. ACE (AI Compute Extensions, v1) is the
 future standard matrix acceleration (outer-product tiles under a new AMX
 palette, AVX10 inputs, OCP MX formats with block scaling); a bit is reserved
-for it. 0.4.5 renumbered every bit: compare masks with the `VM_CPU_*` names,
+for it. 0.4.6 groups core sets (AVX10, AMX, ACE) under AVX-512F and puts specific features after them: compare masks with the `VM_CPU_*` names,
 never stored numbers, and rebuild modules against the new header.
 
 **Tiers come from one ladder.** `vm_cpu_selected_features()` walks a table

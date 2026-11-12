@@ -257,6 +257,21 @@ static int cpu_probe_avx512vl(void)
         return 0;
     return (ebx & (1u << 31)) != 0; /* AVX512VL */
 }
+
+/**
+ * @brief Probes AVX-512 BF16 (requires usable AVX-512F state).
+ *
+ * @return Non-zero if AVX-512 BF16 is usable.
+ */
+static int cpu_probe_avx512bf16(void)
+{
+    unsigned eax = 0, ebx = 0, ecx = 0, edx = 0;
+    if (!cpu_probe_avx512f())
+        return 0;
+    if (!cpuid(7, 1, &eax, &ebx, &ecx, &edx))
+        return 0;
+    return (eax & (1u << 5)) != 0; /* AVX512_BF16 */
+}
 #endif /* VECMAT_ARCH_X86 */
 
 static vm_cpu_features_t force_isa(void)
@@ -459,6 +474,8 @@ vm_cpu_features_t vm_cpu_runtime_features(void)
         f |= VM_CPU_AVX512BW;
     if (cpu_probe_avx512vl())
         f |= VM_CPU_AVX512VL;
+    if (cpu_probe_avx512bf16())
+        f |= VM_CPU_AVX512BF16;
 #endif
     if (cpu_probe_neon())
         f |= VM_CPU_NEON;

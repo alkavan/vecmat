@@ -39,42 +39,50 @@ enum {
     VM_CPU_AVX     = 1u << 4,
     VM_CPU_AVX2    = 1u << 5,
     VM_CPU_AVX512F = 1u << 6,
+    /* Core sets under AVX-512F. Specific features follow. */
+    // VM_CPU_AVX10    = 1u << 7,  /* AVX10 features beyond AVX-512F. AVX10.1
+    //                                is the AVX-512 set, so the probe folds
+    //                                AVX10.1 into VM_CPU_AVX512F; this bit is
+    //                                for 10.2 and later revisions. */
+    // VM_CPU_AMX      = 1u << 8,  /* tile + BF16 + INT8 for now. A feature,
+    //                                not a tier; Linux also needs the
+    //                                arch_prctl(ARCH_REQ_XCOMP_PERM) opt-in. */
+    // VM_CPU_ACE      = 1u << 9,  /* ACE v1 (AI Compute Extensions): outer-product
+    //                                matrix tiles (new AMX palette), AVX10 inputs,
+    //                                OCP MX formats + block scale. Future v2 TBD.
+    //                                Feature, not a tier. Not probed in core. */
     /**
      * x86 FMA3 (`vfmadd*`) with usable YMM state. Not a tier of its own:
      * the AVX2 and AVX-512F tiers are built with `-mfma`. AVX2 is selected
      * only when this bit is also present; AVX-512F implies it. Never
      * returned by `vm_cpu_selected_features()`.
      */
-    VM_CPU_FMA     = 1u << 7,
+    VM_CPU_FMA     = 1u << 10,
     /**
      * x86 F16C (FP16 conversion, `vcvtph2ps` / `vcvtps2ph`). A feature, not a
      * tier. Probed; the intel/fp16 vendor module uses it for an 8-wide
      * convert + f32 FMA GEMM.
      */
-    VM_CPU_F16C     = 1u << 8,
+    VM_CPU_F16C     = 1u << 11,
     /**
-     * x86 AVX-512BW (byte/word integer). A feature, not a tier. Probed.
+     * x86 AVX-512BW (byte/word integer). A feature, not a tier.
      * Vendor modules (intel/fp16, intel/bf16) compile kernels with
      * `-mavx512bw` and emit BW instructions (masked 16-bit loads, etc.).
      */
-    VM_CPU_AVX512BW = 1u << 9,
+    VM_CPU_AVX512BW = 1u << 12,
     /**
      * x86 AVX-512VL (vector length: 128/256-bit AVX-512 ops). A feature, not
-     * a tier. Probed. Vendor modules compile with `-mavx512vl` for masked
+     * a tier. Vendor modules compile with `-mavx512vl` for masked
      * 256-bit sequences alongside AVX-512 FP16/BF16.
      */
-    VM_CPU_AVX512VL = 1u << 10,
-    // VM_CPU_AVX10_2  = 1u << 11, /* AVX10.2 additions. AVX10.1 is the AVX-512
-    //                                set, so the probe folds AVX10 >= 1 into
-    //                                VM_CPU_AVX512F; only 10.2 needs a bit. */
-    // VM_CPU_AMX      = 1u << 12, /* tile + BF16 + INT8 for now. A feature,
-    //                                not a tier; Linux also needs the
-    //                                arch_prctl(ARCH_REQ_XCOMP_PERM) opt-in. */
-    // VM_CPU_ACE      = 1u << 13, /* ACE v1 (AI Compute Extensions): outer-product
-    //                                matrix tiles (new AMX palette), AVX10 inputs,
-    //                                OCP MX formats + block scale. Future v2 TBD.
-    //                                Feature, not a tier. Not probed in core. */
-    /* Bits 14..15 reserved. */
+    VM_CPU_AVX512VL = 1u << 13,
+    /**
+     * x86 AVX-512 BF16 (CPUID.7.1:EAX[5]). A feature, not a tier.
+     * Shared: Intel (Cooper Lake+) and AMD (Zen 4+) both report this bit.
+     * The intel/bf16 vendor module uses it for a BF16 GEMM.
+     */
+    VM_CPU_AVX512BF16 = 1u << 14,
+    /* Bit 15 reserved. */
 
     /* ARM, bits 16..23. */
     VM_CPU_NEON    = 1u << 16,
@@ -84,18 +92,18 @@ enum {
     // VM_CPU_SME2     = 1u << 20, /* streaming mode has its own vector length,
     //                                so SME gets its own tier, apart from SVE. */
     /**
-     * AArch64 vector FP16 (HWCAP_ASIMDHP). A feature, not a tier. Probed.
+     * AArch64 vector FP16 (HWCAP_ASIMDHP). A feature, not a tier.
      * The arm/fp16 vendor module uses it for convert + FMLAL GEMM.
      */
     VM_CPU_ARM_FP16 = 1u << 21,
     /**
-     * AArch64 bfloat16 (HWCAP2_BF16). A feature, not a tier. Probed.
+     * AArch64 bfloat16 (HWCAP2_BF16). A feature, not a tier.
      * The arm/bf16 vendor module uses it for a BFDOT GEMM.
      */
     VM_CPU_ARM_BF16 = 1u << 22,
     /**
      * AArch64 integer 8-bit matrix multiply (HWCAP2_I8MM). A feature, not
-     * a tier. Probed. No consumer yet.
+     * a tier. Probed, no consumer yet.
      */
     VM_CPU_I8MM     = 1u << 23,
 
