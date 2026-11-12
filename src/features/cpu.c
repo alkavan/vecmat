@@ -57,6 +57,15 @@ const vm_backend *vm_backend_best64(void);
 #ifndef HWCAP2_SVE2
 #define HWCAP2_SVE2 (1u << 1)
 #endif
+#ifndef HWCAP_ASIMDHP
+#define HWCAP_ASIMDHP (1u << 10)
+#endif
+#ifndef HWCAP2_BF16
+#define HWCAP2_BF16 (1u << 14)
+#endif
+#ifndef HWCAP2_I8MM
+#define HWCAP2_I8MM (1u << 13)
+#endif
 #endif
 
 static vm_cpu_features_t runtime_cache;
@@ -345,6 +354,48 @@ static int cpu_probe_sve2(void)
 }
 
 /**
+ * @brief Probes AArch64 vector FP16 (HWCAP_ASIMDHP).
+ *
+ * @return Non-zero if Advanced SIMD half-precision is usable.
+ */
+static int cpu_probe_arm_fp16(void)
+{
+#if defined(VECMAT_ARCH_AARCH64) && defined(__linux__)
+    return (getauxval(AT_HWCAP) & HWCAP_ASIMDHP) != 0;
+#else
+    return 0;
+#endif
+}
+
+/**
+ * @brief Probes AArch64 BF16 (HWCAP2_BF16).
+ *
+ * @return Non-zero if BF16 is usable.
+ */
+static int cpu_probe_arm_bf16(void)
+{
+#if defined(VECMAT_ARCH_AARCH64) && defined(__linux__)
+    return (getauxval(AT_HWCAP2) & HWCAP2_BF16) != 0;
+#else
+    return 0;
+#endif
+}
+
+/**
+ * @brief Probes AArch64 I8MM (HWCAP2_I8MM).
+ *
+ * @return Non-zero if integer 8-bit matrix multiply is usable.
+ */
+static int cpu_probe_i8mm(void)
+{
+#if defined(VECMAT_ARCH_AARCH64) && defined(__linux__)
+    return (getauxval(AT_HWCAP2) & HWCAP2_I8MM) != 0;
+#else
+    return 0;
+#endif
+}
+
+/**
  * @brief ISA bits compiled into this binary.
  *
  * @return Feature mask of enabled backends.
@@ -415,6 +466,12 @@ vm_cpu_features_t vm_cpu_runtime_features(void)
         f |= VM_CPU_SVE;
     if (cpu_probe_sve2())
         f |= VM_CPU_SVE2;
+    if (cpu_probe_arm_fp16())
+        f |= VM_CPU_ARM_FP16;
+    if (cpu_probe_arm_bf16())
+        f |= VM_CPU_ARM_BF16;
+    if (cpu_probe_i8mm())
+        f |= VM_CPU_I8MM;
 
 #if !defined(__STDC_NO_ATOMICS__)
     while (atomic_flag_test_and_set_explicit(&runtime_lock, memory_order_acquire)) {

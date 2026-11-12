@@ -84,18 +84,18 @@ enum {
     // VM_CPU_SME2     = 1u << 20, /* streaming mode has its own vector length,
     //                                so SME gets its own tier, apart from SVE. */
     /**
-     * AArch64 IEEE binary16 arithmetic (HWCAP_FPHP). A feature, not a tier.
-     * The scalar FP16 path does not consult it; a vendor module may.
+     * AArch64 vector FP16 (HWCAP_ASIMDHP). A feature, not a tier. Probed.
+     * The arm/fp16 vendor module uses it for convert + FMLAL GEMM.
      */
     VM_CPU_ARM_FP16 = 1u << 21,
     /**
-     * AArch64 bfloat16 (HWCAP2_BF16). A feature, not a tier. The scalar
-     * BF16 path does not consult it; a vendor module may.
+     * AArch64 bfloat16 (HWCAP2_BF16). A feature, not a tier. Probed.
+     * The arm/bf16 vendor module uses it for a BFDOT GEMM.
      */
     VM_CPU_ARM_BF16 = 1u << 22,
     /**
      * AArch64 integer 8-bit matrix multiply (HWCAP2_I8MM). A feature, not
-     * a tier. No consumer yet.
+     * a tier. Probed. No consumer yet.
      */
     VM_CPU_I8MM     = 1u << 23,
 
