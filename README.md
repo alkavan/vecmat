@@ -93,7 +93,7 @@ included in the headers.
 - `vm_compiled_float_bits()` reports which float widths are in the linked 
   library. `vm_abi_mismatch()` is non-zero when this translation unit's width is
   not one of them.
-- 0.4.4 renumbers the `VM_CPU_*` feature bits into per-family ranges (see
+- 0.4.5 renumbers the `VM_CPU_*` feature bits into per-family ranges (see
   [Dispatch model](doc/modules.md#dispatch-model)). Rebuild modules and any
   code that stored a mask as a number.
 

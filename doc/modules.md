@@ -127,16 +127,16 @@ not probed in core. Vendor modules own the probes for the widths they
 implement (and may test finer bits). The bits stay clear in
 `vm_cpu_runtime_features()`. They are features, not tiers.
 
-| Bits   | Family  | Mask                  | Defined                          | Reserved placeholders                                        |
-|--------|---------|-----------------------|----------------------------------|--------------------------------------------------------------|
-| 0..3   | generic | `VM_CPU_GENERIC_MASK` | SCALAR 0, BACKEND 1              | GPU 2 (marker only, never a tier)                            |
-| 4..15  | x86     | `VM_CPU_X86_MASK`     | AVX 4, AVX2 5, AVX512F 6, FMA 7  | F16C 8, AVX512BW 9, AVX512VL 10, AVX10_2 11, AMX 12           |
-| 16..23 | ARM     | `VM_CPU_ARM_MASK`     | NEON 16, SVE 17, SVE2 18, ARM_FP16 21, ARM_BF16 22, I8MM 23 | SME 19, SME2 20 |
-| 24..30 | RISC-V  | `VM_CPU_RISCV_MASK`   | none                             | RVV 24, ZVFH 25, ZVBB 26                                     |
+| Bits   | Family  | Mask                  | Defined                                          | Reserved placeholders                              |
+|--------|---------|-----------------------|--------------------------------------------------|----------------------------------------------------|
+| 0..3   | generic | `VM_CPU_GENERIC_MASK` | SCALAR 0, BACKEND 1                              | bits 2, 3 reserved                                 |
+| 4..15  | x86     | `VM_CPU_X86_MASK`     | AVX 4, AVX2 5, AVX512F 6, FMA 7                  | F16C 8, AVX512BW 9, AVX512VL 10, AVX10_2 11, AMX 12 |
+| 16..23 | ARM     | `VM_CPU_ARM_MASK`     | NEON 16, SVE 17, SVE2 18, ARM_FP16 21, ARM_BF16 22, I8MM 23 | SME 19, SME2 20                                    |
+| 24..30 | RISC-V  | `VM_CPU_RISCV_MASK`   | none                                             | RVV 24, ZVFH 25, ZVBB 26                           |
 
 AVX10.1 is the AVX-512 set, so its probe will set `VM_CPU_AVX512F`; only
 AVX10.2 gets a bit. AMX is a feature, not a tier, and Linux needs the
-`arch_prctl` opt-in before tile use. 0.4.4 renumbered every bit: compare
+`arch_prctl` opt-in before tile use. 0.4.5 renumbered every bit: compare
 masks with the `VM_CPU_*` names, never stored numbers, and rebuild modules
 against the new header.
 
