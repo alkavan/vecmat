@@ -116,7 +116,8 @@ TEST_CASE(cpu_bits_sit_in_family_ranges, "[cpu]") {
     REQUIRE(all == 0x7FFFFFFFu);
 
     const vm_cpu_features_t generic = VM_CPU_SCALAR | VM_CPU_BACKEND;
-    const vm_cpu_features_t x86 = VM_CPU_AVX | VM_CPU_AVX2 | VM_CPU_AVX512F | VM_CPU_FMA;
+    const vm_cpu_features_t x86 = VM_CPU_AVX | VM_CPU_AVX2 | VM_CPU_AVX512F | VM_CPU_FMA
+                                | VM_CPU_F16C | VM_CPU_AVX512BW | VM_CPU_AVX512VL;
     const vm_cpu_features_t arm = VM_CPU_NEON | VM_CPU_SVE | VM_CPU_SVE2;
     REQUIRE((generic & ~VM_CPU_GENERIC_MASK) == 0);
     REQUIRE((x86 & ~VM_CPU_X86_MASK) == 0);

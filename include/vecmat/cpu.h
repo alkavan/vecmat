@@ -46,16 +46,35 @@ enum {
      * returned by `vm_cpu_selected_features()`.
      */
     VM_CPU_FMA     = 1u << 7,
-    // VM_CPU_F16C     = 1u << 8,
-    // VM_CPU_AVX512BW = 1u << 9,
-    // VM_CPU_AVX512VL = 1u << 10,
+    /**
+     * x86 F16C (FP16 conversion, `vcvtph2ps` / `vcvtps2ph`). A feature, not a
+     * tier. Probed; the intel/fp16 vendor module uses it for an 8-wide
+     * convert + f32 FMA GEMM.
+     */
+    VM_CPU_F16C     = 1u << 8,
+    /**
+     * x86 AVX-512BW (byte/word integer). A feature, not a tier. Probed.
+     * Vendor modules (intel/fp16, intel/bf16) compile kernels with
+     * `-mavx512bw` and emit BW instructions (masked 16-bit loads, etc.).
+     */
+    VM_CPU_AVX512BW = 1u << 9,
+    /**
+     * x86 AVX-512VL (vector length: 128/256-bit AVX-512 ops). A feature, not
+     * a tier. Probed. Vendor modules compile with `-mavx512vl` for masked
+     * 256-bit sequences alongside AVX-512 FP16/BF16.
+     */
+    VM_CPU_AVX512VL = 1u << 10,
     // VM_CPU_AVX10_2  = 1u << 11, /* AVX10.2 additions. AVX10.1 is the AVX-512
     //                                set, so the probe folds AVX10 >= 1 into
     //                                VM_CPU_AVX512F; only 10.2 needs a bit. */
     // VM_CPU_AMX      = 1u << 12, /* tile + BF16 + INT8 for now. A feature,
     //                                not a tier; Linux also needs the
     //                                arch_prctl(ARCH_REQ_XCOMP_PERM) opt-in. */
-    /* Bits 13..15 reserved. */
+    // VM_CPU_ACE      = 1u << 13, /* ACE v1 (AI Compute Extensions): outer-product
+    //                                matrix tiles (new AMX palette), AVX10 inputs,
+    //                                OCP MX formats + block scale. Future v2 TBD.
+    //                                Feature, not a tier. Not probed in core. */
+    /* Bits 14..15 reserved. */
 
     /* ARM, bits 16..23. */
     VM_CPU_NEON    = 1u << 16,
