@@ -12,12 +12,20 @@ machine learning, physics, and science.
 
 ### Advance Physics Features
 
-- **Continuum strain measures** — Right Cauchy-Green, Green-Lagrange, Almansi, and
-  logarithmic strain from the stretch or the deformation gradient.
+- **Continuum strain measures** — Right Cauchy-Green, Green-Lagrange, Almansi,
+  and logarithmic strain from the stretch or the deformation gradient.
 - **Local equations of state** — ideal gas, stiffened gas, Mie-Grüneisen on a linear
   Hugoniot, and Jones-Wilkins-Lee, with sound speed from the same derivative.
 - **One-cell hydro primitives** — Newtonian viscous stress, von Neumann-Richtmyer
   artificial viscosity, Rusanov face flux, and a CFL time-step limit.
+- **SPH** — cubic and Wendland kernels, linked-cell neighbors, artificial
+  viscosity, and a fused pressure-plus-viscosity force.
+- **Radiation** — Planck spectrum, angular quadrature, ray transport, and
+  Rosseland diffusion.
+- **Geometry and tensors** — closest point on a triangle, barycentric
+  coordinates, triangle AABB, and Voigt-6 symmetric-tensor algebra.
+- **Array and SoA helpers** — element-wise divide and rsqrt, reductions, 
+  orthorhombic periodics, and structure-of-arrays geometry.
 
 ## Philosophy
 

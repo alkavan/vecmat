@@ -133,13 +133,12 @@ unused. Placeholders are commented in `cpu.h` and not probed yet.
 | 24..30 | RISC-V  | `VM_CPU_RISCV_MASK`   | none                                             | RVV 24, ZVFH 25, ZVBB 26                           |
 
 AVX10.1 is the AVX-512 set, so its probe will set `VM_CPU_AVX512F`;
-`VM_CPU_AVX10` is for everything beyond that baseline (AVX10.2 and later).
-AMX is a feature, not a tier, and Linux needs the
-`arch_prctl` opt-in before tile use. ACE (AI Compute Extensions, v1) is the
-future standard matrix acceleration (outer-product tiles under a new AMX
-palette, AVX10 inputs, OCP MX formats with block scaling); a bit is reserved
-for it. 0.4.6 groups core sets (AVX10, AMX, ACE) under AVX-512F and puts specific features after them: compare masks with the `VM_CPU_*` names,
-never stored numbers, and rebuild modules against the new header.
+`VM_CPU_AVX10_2` is for everything beyond that baseline (AVX10.2 and later).
+AMX is a feature, not a tier, and Linux needs the `arch_prctl` opt-in before
+tile use. ACE (AI Compute Extensions, v1) is the future standard matrix
+acceleration (outer-product tiles under a new AMX palette, AVX10 inputs, OCP MX
+formats with block scaling); a bit is reserved for it. Compare masks with the
+`VM_CPU_*` names, never stored numbers.
 
 **Tiers come from one ladder.** `vm_cpu_selected_features()` walks a table
 of {level, tier} rows in priority order (SVE2, SVE, NEON, AVX-512F, AVX2,
