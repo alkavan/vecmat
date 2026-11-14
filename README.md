@@ -110,7 +110,8 @@ included in the headers.
 - Integer vectors: same sizes (`vector2i` / `vector3i` / `vector4i`).
 - Float and integer matrices: 2×2, 3×3, 4×4.
 - Quaternions for rotation.
-- Easing functions for animation-style interpolation.
+- Easing functions for animation-style interpolation (`vm_smoothstep`, `vm_quadratic_ease_in`,
+  and the rest of `easing.h`). The unsuffixed names are deprecated wrappers for this release.
 - One-segment curves: quadratic and cubic Bézier, Hermite, and Catmull-Rom (`curve.h`).
 - Clip-space presets for OpenGL (`RH_NO`), Vulkan (`RH_ZO`) and Direct3D (`LH_ZO`).
 
@@ -178,10 +179,11 @@ every platform, `avx` and `avx2` on x86-64, and `neon` on AArch64.
 `avx512f` runs only when the host advertises it; otherwise that job is
 compile-tested. `VECMAT_FORCE_ISA` does not make an uncompiled ISA selectable.
 
-**SVE and SVE2 kernels:** SVE and SVE2 f64 `vec4` / `mat4` kernels cover four doubles in `svcntd()` chunks,
-so a 128-bit core takes two passes and a 256-bit core takes one. f64 `quat_mul`
-uses the scalar formula: `svtbl` needs all four lanes in one register. MSVC has
-no SVE intrinsics, so those kernels are off on MSVC for both widths.
+**SVE and SVE2 kernels:** SVE and SVE2 f64 `vec4` / `mat4` kernels cover four
+doubles in `svcntd()` chunks, so a 128-bit core takes two passes and a 256-bit
+core takes one. f64 `quat_mul` uses the scalar formula: `svtbl` needs all four
+lanes in one register. MSVC has no SVE intrinsics, so those kernels are off on
+MSVC for both widths.
 
 **MSVC ARM64 jobs compile and run tests.** `VECMAT_FORCE_ISA`
 (`scalar`, `avx`, `avx2`, `avx512f`, `neon`, `sve`, `sve2`) overrides the

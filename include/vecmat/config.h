@@ -29,6 +29,24 @@
     #define VEC_API
 #endif
 
+/**
+ * @brief Mark a public function as deprecated.
+ *
+ * `msg` names the replacement, for example `"use vm_smoothstep"`.
+ * Empty while this library is compiled (`VECMAT_BUILDING`), so a wrapper
+ * definition does not warn. Empty when the compiler has no deprecation
+ * attribute.
+ */
+#if defined(VECMAT_BUILDING)
+#  define VM_DEPRECATED(msg)
+#elif defined(_MSC_VER)
+#  define VM_DEPRECATED(msg) __declspec(deprecated(msg))
+#elif defined(__GNUC__) || defined(__clang__)
+#  define VM_DEPRECATED(msg) __attribute__((deprecated(msg)))
+#else
+#  define VM_DEPRECATED(msg)
+#endif
+
 /*******************************************************************************
  * Mathematical constants
  ******************************************************************************/

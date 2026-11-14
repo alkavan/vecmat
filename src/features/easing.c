@@ -14,7 +14,7 @@
  * @param period Oscillation period.
  * @return Combined exponential-sine value.
  */
-vm_float_t elastic_oscillation(
+vm_float_t vm_elastic_oscillation(
     const vm_float_t f,
     const vm_float_t exp_mult,
     const vm_float_t sin_mult,
@@ -31,7 +31,7 @@ vm_float_t elastic_oscillation(
  * @param n Polynomial degree.
  * @return Eased value.
  */
-vm_float_t poly_ease_in(const vm_float_t f, const vm_float_t n)
+vm_float_t vm_poly_ease_in(const vm_float_t f, const vm_float_t n)
 {
     return VECMAT_POW(f, n);
 }
@@ -43,7 +43,7 @@ vm_float_t poly_ease_in(const vm_float_t f, const vm_float_t n)
  * @param n Polynomial degree.
  * @return Eased value.
  */
-vm_float_t poly_ease_out(const vm_float_t f, const vm_float_t n)
+vm_float_t vm_poly_ease_out(const vm_float_t f, const vm_float_t n)
 {
     return 1 - VECMAT_POW(1 - f, n);
 }
@@ -55,7 +55,7 @@ vm_float_t poly_ease_out(const vm_float_t f, const vm_float_t n)
  * @param n Polynomial degree.
  * @return Eased value.
  */
-vm_float_t poly_ease_in_out(const vm_float_t f, const vm_float_t n)
+vm_float_t vm_poly_ease_in_out(const vm_float_t f, const vm_float_t n)
 {
     return f < 0.5 ? VECMAT_POW(2 * f, n) / 2 : 1 - VECMAT_POW(2 - 2 * f, n) / 2;
 }
@@ -66,9 +66,9 @@ vm_float_t poly_ease_in_out(const vm_float_t f, const vm_float_t n)
  * @param f Normalized time in [0, 1].
  * @return Eased value.
  */
-vm_float_t quadratic_ease_out(const vm_float_t f)
+vm_float_t vm_quadratic_ease_out(const vm_float_t f)
 {
-    return poly_ease_out(f, 2);
+    return vm_poly_ease_out(f, 2);
 }
 
 /**
@@ -77,9 +77,9 @@ vm_float_t quadratic_ease_out(const vm_float_t f)
  * @param f Normalized time in [0, 1].
  * @return Eased value.
  */
-vm_float_t quadratic_ease_in(const vm_float_t f)
+vm_float_t vm_quadratic_ease_in(const vm_float_t f)
 {
-    return poly_ease_in(f, 2);
+    return vm_poly_ease_in(f, 2);
 }
 
 /**
@@ -88,9 +88,9 @@ vm_float_t quadratic_ease_in(const vm_float_t f)
  * @param f Normalized time in [0, 1].
  * @return Eased value.
  */
-vm_float_t quadratic_ease_in_out(const vm_float_t f)
+vm_float_t vm_quadratic_ease_in_out(const vm_float_t f)
 {
-    return poly_ease_in_out(f, 2);
+    return vm_poly_ease_in_out(f, 2);
 }
 
 /**
@@ -99,9 +99,9 @@ vm_float_t quadratic_ease_in_out(const vm_float_t f)
  * @param f Normalized time in [0, 1].
  * @return Eased value.
  */
-vm_float_t cubic_ease_out(const vm_float_t f)
+vm_float_t vm_cubic_ease_out(const vm_float_t f)
 {
-    return poly_ease_out(f, 3);
+    return vm_poly_ease_out(f, 3);
 }
 
 /**
@@ -110,9 +110,9 @@ vm_float_t cubic_ease_out(const vm_float_t f)
  * @param f Normalized time in [0, 1].
  * @return Eased value.
  */
-vm_float_t cubic_ease_in(const vm_float_t f)
+vm_float_t vm_cubic_ease_in(const vm_float_t f)
 {
-    return poly_ease_in(f, 3);
+    return vm_poly_ease_in(f, 3);
 }
 
 /**
@@ -121,9 +121,9 @@ vm_float_t cubic_ease_in(const vm_float_t f)
  * @param f Normalized time in [0, 1].
  * @return Eased value.
  */
-vm_float_t cubic_ease_in_out(const vm_float_t f)
+vm_float_t vm_cubic_ease_in_out(const vm_float_t f)
 {
-    return poly_ease_in_out(f, 3);
+    return vm_poly_ease_in_out(f, 3);
 }
 
 /**
@@ -132,9 +132,9 @@ vm_float_t cubic_ease_in_out(const vm_float_t f)
  * @param f Normalized time in [0, 1].
  * @return Eased value.
  */
-vm_float_t quartic_ease_out(const vm_float_t f)
+vm_float_t vm_quartic_ease_out(const vm_float_t f)
 {
-    return poly_ease_out(f, 4);
+    return vm_poly_ease_out(f, 4);
 }
 
 /**
@@ -143,9 +143,9 @@ vm_float_t quartic_ease_out(const vm_float_t f)
  * @param f Normalized time in [0, 1].
  * @return Eased value.
  */
-vm_float_t quartic_ease_in(const vm_float_t f)
+vm_float_t vm_quartic_ease_in(const vm_float_t f)
 {
-    return poly_ease_in(f, 4);
+    return vm_poly_ease_in(f, 4);
 }
 
 /**
@@ -154,9 +154,9 @@ vm_float_t quartic_ease_in(const vm_float_t f)
  * @param f Normalized time in [0, 1].
  * @return Eased value.
  */
-vm_float_t quartic_ease_in_out(const vm_float_t f)
+vm_float_t vm_quartic_ease_in_out(const vm_float_t f)
 {
-    return poly_ease_in_out(f, 4);
+    return vm_poly_ease_in_out(f, 4);
 }
 
 /**
@@ -165,9 +165,9 @@ vm_float_t quartic_ease_in_out(const vm_float_t f)
  * @param f Normalized time in [0, 1].
  * @return Eased value.
  */
-vm_float_t quintic_ease_out(const vm_float_t f)
+vm_float_t vm_quintic_ease_out(const vm_float_t f)
 {
-    return poly_ease_out(f, 5);
+    return vm_poly_ease_out(f, 5);
 }
 
 /**
@@ -176,9 +176,9 @@ vm_float_t quintic_ease_out(const vm_float_t f)
  * @param f Normalized time in [0, 1].
  * @return Eased value.
  */
-vm_float_t quintic_ease_in(const vm_float_t f)
+vm_float_t vm_quintic_ease_in(const vm_float_t f)
 {
-    return poly_ease_in(f, 5);
+    return vm_poly_ease_in(f, 5);
 }
 
 /**
@@ -187,9 +187,9 @@ vm_float_t quintic_ease_in(const vm_float_t f)
  * @param f Normalized time in [0, 1].
  * @return Eased value.
  */
-vm_float_t quintic_ease_in_out(const vm_float_t f)
+vm_float_t vm_quintic_ease_in_out(const vm_float_t f)
 {
-    return poly_ease_in_out(f, 5);
+    return vm_poly_ease_in_out(f, 5);
 }
 
 /**
@@ -198,7 +198,7 @@ vm_float_t quintic_ease_in_out(const vm_float_t f)
  * @param f Normalized time in [0, 1].
  * @return Eased value.
  */
-vm_float_t sine_ease_out(const vm_float_t f)
+vm_float_t vm_sine_ease_out(const vm_float_t f)
 {
     return VECMAT_SIN(f * M_PI / 2);
 }
@@ -209,7 +209,7 @@ vm_float_t sine_ease_out(const vm_float_t f)
  * @param f Normalized time in [0, 1].
  * @return Eased value.
  */
-vm_float_t sine_ease_in(const vm_float_t f)
+vm_float_t vm_sine_ease_in(const vm_float_t f)
 {
     return 1 - VECMAT_COS(f * M_PI / 2);
 }
@@ -220,7 +220,7 @@ vm_float_t sine_ease_in(const vm_float_t f)
  * @param f Normalized time in [0, 1].
  * @return Eased value.
  */
-vm_float_t sine_ease_in_out(const vm_float_t f)
+vm_float_t vm_sine_ease_in_out(const vm_float_t f)
 {
     return -(VECMAT_COS(M_PI * f) - 1) / 2;
 }
@@ -231,7 +231,7 @@ vm_float_t sine_ease_in_out(const vm_float_t f)
  * @param f Normalized time in [0, 1].
  * @return Eased value.
  */
-vm_float_t circular_ease_out(const vm_float_t f)
+vm_float_t vm_circular_ease_out(const vm_float_t f)
 {
     return VECMAT_SQRT(1 - (1 - f) * (1 - f));
 }
@@ -242,7 +242,7 @@ vm_float_t circular_ease_out(const vm_float_t f)
  * @param f Normalized time in [0, 1].
  * @return Eased value.
  */
-vm_float_t circular_ease_in(const vm_float_t f)
+vm_float_t vm_circular_ease_in(const vm_float_t f)
 {
     return 1.f - VECMAT_SQRT(1 - f * f);
 }
@@ -253,7 +253,7 @@ vm_float_t circular_ease_in(const vm_float_t f)
  * @param f Normalized time in [0, 1].
  * @return Eased value.
  */
-vm_float_t circular_ease_in_out(const vm_float_t f)
+vm_float_t vm_circular_ease_in_out(const vm_float_t f)
 {
     return f < 0.5f ? (1.0f - VECMAT_SQRT(1.0f - 4.0f * f * f)) / 2.0f :
         (VECMAT_SQRT(1.0f - (-2.0f * f + 2.0f) * (-2.0f * f + 2.0f)) + 1.0f) / 2.0f;
@@ -265,7 +265,7 @@ vm_float_t circular_ease_in_out(const vm_float_t f)
  * @param f Normalized time in [0, 1].
  * @return Eased value.
  */
-vm_float_t exponential_ease_out(const vm_float_t f)
+vm_float_t vm_exponential_ease_out(const vm_float_t f)
 {
     return 1 - VECMAT_POW(2, -10 * f);
 }
@@ -276,7 +276,7 @@ vm_float_t exponential_ease_out(const vm_float_t f)
  * @param f Normalized time in [0, 1].
  * @return Eased value.
  */
-vm_float_t exponential_ease_in(const vm_float_t f)
+vm_float_t vm_exponential_ease_in(const vm_float_t f)
 {
     return VECMAT_POW(2, 10 * (f - 1));
 }
@@ -287,7 +287,7 @@ vm_float_t exponential_ease_in(const vm_float_t f)
  * @param f Normalized time in [0, 1].
  * @return Eased value.
  */
-vm_float_t exponential_ease_in_out(const vm_float_t f)
+vm_float_t vm_exponential_ease_in_out(const vm_float_t f)
 {
     return f == 0.0f ? 0.f : f == 1.f ? 1.f :
         f < 0.5f ? VECMAT_POW(2, 20 * f - 10) / 2.0f : (2 - VECMAT_POW(2, -20 * f + 10)) / 2.0f;
@@ -299,10 +299,10 @@ vm_float_t exponential_ease_in_out(const vm_float_t f)
  * @param f Normalized time in [0, 1].
  * @return Eased value.
  */
-vm_float_t elastic_ease_out(const vm_float_t f)
+vm_float_t vm_elastic_ease_out(const vm_float_t f)
 {
     return f == 0.0f ? 0.f : f == 1.0f ? 1.f :
-        elastic_oscillation(f, -10, 10, 0.75f, 3.f) + 1;
+        vm_elastic_oscillation(f, -10, 10, 0.75f, 3.f) + 1;
 }
 
 /**
@@ -311,10 +311,10 @@ vm_float_t elastic_ease_out(const vm_float_t f)
  * @param f Normalized time in [0, 1].
  * @return Eased value.
  */
-vm_float_t elastic_ease_in(const vm_float_t f)
+vm_float_t vm_elastic_ease_in(const vm_float_t f)
 {
     return f == 0.0f ? 0.f : f == 1.0f ? 1.f :
-        -elastic_oscillation(f, 10, 10, 10.75f, 3.f);
+        -vm_elastic_oscillation(f, 10, 10, 10.75f, 3.f);
 }
 
 /**
@@ -323,12 +323,12 @@ vm_float_t elastic_ease_in(const vm_float_t f)
  * @param f Normalized time in [0, 1].
  * @return Eased value.
  */
-vm_float_t elastic_ease_in_out(const vm_float_t f)
+vm_float_t vm_elastic_ease_in_out(const vm_float_t f)
 {
     return f == 0.0f ? 0.f :
         f == 1.0f ? 1.f : f < 0.5f ?
-            -elastic_oscillation(f, 20, 20, 11.125f, 4.5f) / 2.f :
-            elastic_oscillation(f, -20, 20, 11.125f, 4.5f) / 2.f + 1.f;
+            -vm_elastic_oscillation(f, 20, 20, 11.125f, 4.5f) / 2.f :
+            vm_elastic_oscillation(f, -20, 20, 11.125f, 4.5f) / 2.f + 1.f;
 }
 
 /**
@@ -337,7 +337,7 @@ vm_float_t elastic_ease_in_out(const vm_float_t f)
  * @param f Normalized time in [0, 1].
  * @return Eased value.
  */
-vm_float_t back_ease_out(const vm_float_t f)
+vm_float_t vm_back_ease_out(const vm_float_t f)
 {
     return 1.f + 1.70158f * VECMAT_POW(f - 1, 3) + 1.70158f * VECMAT_POW(f - 1.f, 2.f);
 }
@@ -348,7 +348,7 @@ vm_float_t back_ease_out(const vm_float_t f)
  * @param f Normalized time in [0, 1].
  * @return Eased value.
  */
-vm_float_t back_ease_in(const vm_float_t f)
+vm_float_t vm_back_ease_in(const vm_float_t f)
 {
     return 1.70158f * f * f * f - 1.70158f * f * f;
 }
@@ -359,7 +359,7 @@ vm_float_t back_ease_in(const vm_float_t f)
  * @param f Normalized time in [0, 1].
  * @return Eased value.
  */
-vm_float_t back_ease_in_out(const vm_float_t f)
+vm_float_t vm_back_ease_in_out(const vm_float_t f)
 {
     return f < 0.5f ? (VECMAT_POW(2 * f, 2) * ((2.5949095f + 1.0f)
         * 2.0f * f - 2.5949095f)) / 2.0f :
@@ -373,7 +373,7 @@ vm_float_t back_ease_in_out(const vm_float_t f)
  * @param f Normalized time in [0, 1].
  * @return Eased value.
  */
-vm_float_t bounce_ease_out(const vm_float_t f)
+vm_float_t vm_bounce_ease_out(const vm_float_t f)
 {
     if (f < 1.0f / 2.75f) return 7.5625f * f * f;
 
@@ -397,9 +397,9 @@ vm_float_t bounce_ease_out(const vm_float_t f)
  * @param f Normalized time in [0, 1].
  * @return Eased value.
  */
-vm_float_t bounce_ease_in(const vm_float_t f)
+vm_float_t vm_bounce_ease_in(const vm_float_t f)
 {
-    return 1 - bounce_ease_out(1 - f);
+    return 1 - vm_bounce_ease_out(1 - f);
 }
 
 /**
@@ -408,9 +408,9 @@ vm_float_t bounce_ease_in(const vm_float_t f)
  * @param f Normalized time in [0, 1].
  * @return Eased value.
  */
-vm_float_t bounce_ease_in_out(const vm_float_t f)
+vm_float_t vm_bounce_ease_in_out(const vm_float_t f)
 {
-    return f < 0.5 ? (1 - bounce_ease_out(1 - 2 * f)) / 2 : (1 + bounce_ease_out(2 * f - 1)) / 2;
+    return f < 0.5 ? (1 - vm_bounce_ease_out(1 - 2 * f)) / 2 : (1 + vm_bounce_ease_out(2 * f - 1)) / 2;
 }
 
 /**
@@ -419,7 +419,7 @@ vm_float_t bounce_ease_in_out(const vm_float_t f)
  * Returns 0 when x <= edge0, 1 when x >= edge1, and the cubic Hermite
  * polynomial 3t^2 - 2t^3 in between. First derivative is zero at both edges.
  */
-vm_float_t smoothstep(const vm_float_t edge0, const vm_float_t edge1, const vm_float_t x)
+vm_float_t vm_smoothstep(const vm_float_t edge0, const vm_float_t edge1, const vm_float_t x)
 {
     if (edge0 == edge1) {
         return x < edge0 ? 0.0f : 1.0f;
@@ -436,7 +436,7 @@ vm_float_t smoothstep(const vm_float_t edge0, const vm_float_t edge1, const vm_f
  * polynomial 6t^5 - 15t^4 + 10t^3 in between. First and second derivatives
  * are zero at both edges.
  */
-vm_float_t smootherstep(const vm_float_t edge0, const vm_float_t edge1, const vm_float_t x)
+vm_float_t vm_smootherstep(const vm_float_t edge0, const vm_float_t edge1, const vm_float_t x)
 {
     if (edge0 == edge1) {
         return x < edge0 ? 0.0f : 1.0f;
@@ -444,4 +444,190 @@ vm_float_t smootherstep(const vm_float_t edge0, const vm_float_t edge1, const vm
     vm_float_t t = (x - edge0) / (edge1 - edge0);
     t = VECMAT_FMAX(0.0f, VECMAT_FMIN(1.0f, t));
     return t * t * t * (t * (t * 6.0f - 15.0f) + 10.0f);
+}
+
+/* Deprecated wrappers. One 0.5 release. */
+
+vm_float_t elastic_oscillation(const vm_float_t f,
+    const vm_float_t exp_mult,
+    const vm_float_t sin_mult,
+    const vm_float_t sin_offset,
+    const vm_float_t period)
+{
+    return vm_elastic_oscillation(f, exp_mult, sin_mult, sin_offset, period);
+}
+
+vm_float_t poly_ease_in(const vm_float_t f, const vm_float_t n)
+{
+    return vm_poly_ease_in(f, n);
+}
+
+vm_float_t poly_ease_out(const vm_float_t f, const vm_float_t n)
+{
+    return vm_poly_ease_out(f, n);
+}
+
+vm_float_t poly_ease_in_out(const vm_float_t f, const vm_float_t n)
+{
+    return vm_poly_ease_in_out(f, n);
+}
+
+vm_float_t quadratic_ease_out(const vm_float_t f)
+{
+    return vm_quadratic_ease_out(f);
+}
+
+vm_float_t quadratic_ease_in(const vm_float_t f)
+{
+    return vm_quadratic_ease_in(f);
+}
+
+vm_float_t quadratic_ease_in_out(const vm_float_t f)
+{
+    return vm_quadratic_ease_in_out(f);
+}
+
+vm_float_t cubic_ease_out(const vm_float_t f)
+{
+    return vm_cubic_ease_out(f);
+}
+
+vm_float_t cubic_ease_in(const vm_float_t f)
+{
+    return vm_cubic_ease_in(f);
+}
+
+vm_float_t cubic_ease_in_out(const vm_float_t f)
+{
+    return vm_cubic_ease_in_out(f);
+}
+
+vm_float_t quartic_ease_out(const vm_float_t f)
+{
+    return vm_quartic_ease_out(f);
+}
+
+vm_float_t quartic_ease_in(const vm_float_t f)
+{
+    return vm_quartic_ease_in(f);
+}
+
+vm_float_t quartic_ease_in_out(const vm_float_t f)
+{
+    return vm_quartic_ease_in_out(f);
+}
+
+vm_float_t quintic_ease_out(const vm_float_t f)
+{
+    return vm_quintic_ease_out(f);
+}
+
+vm_float_t quintic_ease_in(const vm_float_t f)
+{
+    return vm_quintic_ease_in(f);
+}
+
+vm_float_t quintic_ease_in_out(const vm_float_t f)
+{
+    return vm_quintic_ease_in_out(f);
+}
+
+vm_float_t sine_ease_out(const vm_float_t f)
+{
+    return vm_sine_ease_out(f);
+}
+
+vm_float_t sine_ease_in(const vm_float_t f)
+{
+    return vm_sine_ease_in(f);
+}
+
+vm_float_t sine_ease_in_out(const vm_float_t f)
+{
+    return vm_sine_ease_in_out(f);
+}
+
+vm_float_t circular_ease_out(const vm_float_t f)
+{
+    return vm_circular_ease_out(f);
+}
+
+vm_float_t circular_ease_in(const vm_float_t f)
+{
+    return vm_circular_ease_in(f);
+}
+
+vm_float_t circular_ease_in_out(const vm_float_t f)
+{
+    return vm_circular_ease_in_out(f);
+}
+
+vm_float_t exponential_ease_out(const vm_float_t f)
+{
+    return vm_exponential_ease_out(f);
+}
+
+vm_float_t exponential_ease_in(const vm_float_t f)
+{
+    return vm_exponential_ease_in(f);
+}
+
+vm_float_t exponential_ease_in_out(const vm_float_t f)
+{
+    return vm_exponential_ease_in_out(f);
+}
+
+vm_float_t elastic_ease_out(const vm_float_t f)
+{
+    return vm_elastic_ease_out(f);
+}
+
+vm_float_t elastic_ease_in(const vm_float_t f)
+{
+    return vm_elastic_ease_in(f);
+}
+
+vm_float_t elastic_ease_in_out(const vm_float_t f)
+{
+    return vm_elastic_ease_in_out(f);
+}
+
+vm_float_t back_ease_out(const vm_float_t f)
+{
+    return vm_back_ease_out(f);
+}
+
+vm_float_t back_ease_in(const vm_float_t f)
+{
+    return vm_back_ease_in(f);
+}
+
+vm_float_t back_ease_in_out(const vm_float_t f)
+{
+    return vm_back_ease_in_out(f);
+}
+
+vm_float_t bounce_ease_out(const vm_float_t f)
+{
+    return vm_bounce_ease_out(f);
+}
+
+vm_float_t bounce_ease_in(const vm_float_t f)
+{
+    return vm_bounce_ease_in(f);
+}
+
+vm_float_t bounce_ease_in_out(const vm_float_t f)
+{
+    return vm_bounce_ease_in_out(f);
+}
+
+vm_float_t smoothstep(const vm_float_t edge0, const vm_float_t edge1, const vm_float_t x)
+{
+    return vm_smoothstep(edge0, edge1, x);
+}
+
+vm_float_t smootherstep(const vm_float_t edge0, const vm_float_t edge1, const vm_float_t x)
+{
+    return vm_smootherstep(edge0, edge1, x);
 }

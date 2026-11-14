@@ -311,8 +311,8 @@ add_library(vecmat::vecmat_static ALIAS vecmat_static)
 # Non-namespaced alias
 add_library(vecmat ALIAS vecmat_shared)
 
-target_compile_definitions(vecmat_shared PRIVATE _USE_MATH_DEFINES VEC_BUILD_SHARED)
-target_compile_definitions(vecmat_static PRIVATE _USE_MATH_DEFINES)
+target_compile_definitions(vecmat_shared PRIVATE _USE_MATH_DEFINES VEC_BUILD_SHARED VECMAT_BUILDING)
+target_compile_definitions(vecmat_static PRIVATE _USE_MATH_DEFINES VECMAT_BUILDING)
 
 if(NOT MSVC)
     target_compile_options(vecmat_shared PRIVATE -fno-strict-aliasing)
@@ -373,6 +373,7 @@ function(vecmat_add_float_objects name bits extra_private_defs)
             ${CMAKE_CURRENT_SOURCE_DIR}/src)
     target_compile_definitions(${name} PRIVATE
             VECMAT_ABI_BITS=${bits}
+            VECMAT_BUILDING
             _USE_MATH_DEFINES
             ${extra_private_defs})
     if(VECMAT_BUILD_ABI_32)
