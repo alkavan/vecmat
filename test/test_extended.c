@@ -915,3 +915,82 @@ TEST_CASE(vm_syev_residual, "[spectral]") {
     vm_mat_free(&A2);
     vm_mat_free(&V);
 }
+
+TEST_CASE(vm_gemv_alpha_beta_trans_alias, "[spectral]") {
+    vm_mat A = vm_mat_alloc(2, 3);
+    vm_mat_set(&A, 0, 0, VM_F(1.0));
+    vm_mat_set(&A, 0, 1, VM_F(2.0));
+    vm_mat_set(&A, 0, 2, VM_F(3.0));
+    vm_mat_set(&A, 1, 0, VM_F(4.0));
+    vm_mat_set(&A, 1, 1, VM_F(5.0));
+    vm_mat_set(&A, 1, 2, VM_F(6.0));
+
+    const vm_float_t x[3] = { VM_F(1.0), VM_F(0.0), VM_F(1.0) };
+    vm_float_t y[2];
+    memset(y, 0x7f, sizeof(y));
+    vm_gemv(y, VM_F(2.0), &A, x, VM_F(0.0), false);
+    REQUIRE(VECMAT_EQ(y[0], VM_F(8.0), EPSILON));
+    REQUIRE(VECMAT_EQ(y[1], VM_F(20.0), EPSILON));
+
+    vm_float_t yb[2] = { VM_F(1.0), VM_F(1.0) };
+    vm_gemv(yb, VM_F(1.0), &A, x, VM_F(2.0), false);
+    REQUIRE(VECMAT_EQ(yb[0], VM_F(6.0), EPSILON));
+    REQUIRE(VECMAT_EQ(yb[1], VM_F(12.0), EPSILON));
+
+    const vm_float_t xt[2] = { VM_F(1.0), VM_F(1.0) };
+    vm_float_t yt[3];
+    vm_gemv(yt, VM_F(1.0), &A, xt, VM_F(0.0), true);
+    REQUIRE(VECMAT_EQ(yt[0], VM_F(5.0), EPSILON));
+    REQUIRE(VECMAT_EQ(yt[1], VM_F(7.0), EPSILON));
+    REQUIRE(VECMAT_EQ(yt[2], VM_F(9.0), EPSILON));
+
+    vm_mat S = vm_mat_alloc(2, 2);
+    vm_mat_set(&S, 0, 0, VM_F(1.0));
+    vm_mat_set(&S, 0, 1, VM_F(2.0));
+    vm_mat_set(&S, 1, 0, VM_F(3.0));
+    vm_mat_set(&S, 1, 1, VM_F(4.0));
+    vm_float_t alias[2] = { VM_F(1.0), VM_F(1.0) };
+    vm_gemv(alias, VM_F(1.0), &S, alias, VM_F(0.0), false);
+    REQUIRE(VECMAT_EQ(alias[0], VM_F(3.0), EPSILON));
+    REQUIRE(VECMAT_EQ(alias[1], VM_F(7.0), EPSILON));
+
+    vm_float_t kept = VM_F(42.0);
+    vm_mat empty = { 0 };
+    vm_gemv(&kept, VM_F(1.0), &empty, x, VM_F(0.0), false);
+    REQUIRE(VECMAT_EQ(kept, VM_F(42.0), EPSILON));
+
+    vm_float_t z[2] = { VM_F(9.0), VM_F(8.0) };
+    vm_gemv(z, VM_F(0.0), &A, NULL, VM_F(0.0), false);
+    REQUIRE(VECMAT_EQ(z[0], VM_F(0.0), EPSILON));
+    REQUIRE(VECMAT_EQ(z[1], VM_F(0.0), EPSILON));
+
+    vm_mat_free(&A);
+    vm_mat_free(&S);
+}
+
+TEST_CASE(vm_ger_outer_and_alpha_zero, "[spectral]") {
+    vm_mat A = vm_mat_alloc(2, 2);
+    const vm_float_t x[2] = { VM_F(1.0), VM_F(2.0) };
+    const vm_float_t y[2] = { VM_F(3.0), VM_F(4.0) };
+    vm_ger(&A, VM_F(1.0), x, y);
+    REQUIRE(VECMAT_EQ(vm_mat_get(&A, 0, 0), VM_F(3.0), EPSILON));
+    REQUIRE(VECMAT_EQ(vm_mat_get(&A, 1, 0), VM_F(6.0), EPSILON));
+    REQUIRE(VECMAT_EQ(vm_mat_get(&A, 0, 1), VM_F(4.0), EPSILON));
+    REQUIRE(VECMAT_EQ(vm_mat_get(&A, 1, 1), VM_F(8.0), EPSILON));
+
+    const vm_float_t poisoned[2] = { NAN, NAN };
+    vm_ger(&A, VM_F(0.0), poisoned, poisoned);
+    REQUIRE(VECMAT_EQ(vm_mat_get(&A, 0, 0), VM_F(3.0), EPSILON));
+    REQUIRE(VECMAT_EQ(vm_mat_get(&A, 1, 1), VM_F(8.0), EPSILON));
+
+    vm_mat B = vm_mat_alloc(2, 2);
+    vm_float_t v[2] = { VM_F(1.0), VM_F(2.0) };
+    vm_ger(&B, VM_F(1.0), v, v);
+    REQUIRE(VECMAT_EQ(vm_mat_get(&B, 0, 0), VM_F(1.0), EPSILON));
+    REQUIRE(VECMAT_EQ(vm_mat_get(&B, 1, 0), VM_F(2.0), EPSILON));
+    REQUIRE(VECMAT_EQ(vm_mat_get(&B, 0, 1), VM_F(2.0), EPSILON));
+    REQUIRE(VECMAT_EQ(vm_mat_get(&B, 1, 1), VM_F(4.0), EPSILON));
+
+    vm_mat_free(&A);
+    vm_mat_free(&B);
+}

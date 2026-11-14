@@ -116,6 +116,8 @@ TEST_CASE(array_empty_and_specials, "[array]") {
     vm_array_div(NULL, NULL, NULL, 0);
     vm_array_fma(NULL, NULL, NULL, NULL, -4);
     vm_axpy(NULL, VM_F(1.0), NULL, 0);
+    REQUIRE(vm_nrm2(NULL, 0) == VM_F(0.0));
+    REQUIRE(vm_asum(NULL, -1) == VM_F(0.0));
 
     const vm_float_t a[2] = { INFINITY, INFINITY };
     const vm_float_t b[2] = { VM_F(-1.0), -INFINITY };
@@ -123,6 +125,22 @@ TEST_CASE(array_empty_and_specials, "[array]") {
     vm_array_add(r, a, b, 2);
     REQUIRE(isinf(r[0]) && !signbit(r[0]));
     REQUIRE(isnan(r[1]));
+}
+
+TEST_CASE(array_nrm2_asum, "[array]") {
+    const vm_float_t v[3] = { VM_F(3.0), VM_F(-4.0), VM_F(0.0) };
+    REQUIRE(VECMAT_EQ(vm_nrm2(v, 3), VM_F(5.0), EPSILON * VM_F(8.0)));
+    REQUIRE(VECMAT_EQ(vm_asum(v, 3), VM_F(7.0), EPSILON));
+
+    const vm_float_t big[2] = { VM_F(1e20), VM_F(-1e20) };
+    const vm_float_t expect = VM_F(1e20) * VECMAT_SQRT(VM_F(2.0));
+    REQUIRE(VECMAT_EQ(vm_nrm2(big, 2), expect, expect * EPSILON * VM_F(8.0)));
+    REQUIRE(isfinite(vm_nrm2(big, 2)));
+
+    const vm_float_t special[2] = { VM_F(1.0), NAN };
+    REQUIRE(isnan(vm_nrm2(special, 2)));
+    const vm_float_t infv[2] = { VM_F(1.0), -INFINITY };
+    REQUIRE(isinf(vm_nrm2(infv, 2)) && !signbit(vm_nrm2(infv, 2)));
 }
 
 TEST_CASE(array_suffix_matches_unsuffixed, "[array]") {

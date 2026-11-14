@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include <stdlib.h>
+#include <string.h>
 #include <vecmat.h>
 
 void vm_matvec(vm_float_t *y, const vm_mat *A, const vm_float_t *x)
@@ -18,6 +19,82 @@ void vm_matvec(vm_float_t *y, const vm_mat *A, const vm_float_t *x)
             s += vm_mat_get(A, i, j) * x[j];
         }
         y[i] = s;
+    }
+}
+
+void vm_gemv(vm_float_t *y, const vm_float_t alpha, const vm_mat *A, const vm_float_t *x,
+             const vm_float_t beta, const bool trans)
+{
+    if (!y || !A || !A->data || A->rows <= 0 || A->cols <= 0) {
+        return;
+    }
+    if (alpha != VM_F(0.0) && !x) {
+        return;
+    }
+
+    const int m = A->rows;
+    const int n = A->cols;
+    const int xlen = trans ? m : n;
+    const int ylen = trans ? n : m;
+
+    const vm_float_t *x_use = x;
+    vm_float_t *scratch = NULL;
+    if (alpha != VM_F(0.0) && y == x) {
+        scratch = (vm_float_t *)malloc((size_t)xlen * sizeof(vm_float_t));
+        if (!scratch) {
+            return;
+        }
+        memcpy(scratch, x, (size_t)xlen * sizeof(vm_float_t));
+        x_use = scratch;
+    }
+
+    if (beta == VM_F(0.0)) {
+        for (int i = 0; i < ylen; ++i) {
+            y[i] = VM_F(0.0);
+        }
+    } else if (beta != VM_F(1.0)) {
+        for (int i = 0; i < ylen; ++i) {
+            y[i] *= beta;
+        }
+    }
+
+    if (alpha != VM_F(0.0)) {
+        if (!trans) {
+            for (int i = 0; i < m; ++i) {
+                vm_float_t sum = VM_F(0.0);
+                for (int j = 0; j < n; ++j) {
+                    sum += vm_mat_get(A, i, j) * x_use[j];
+                }
+                y[i] += alpha * sum;
+            }
+        } else {
+            for (int j = 0; j < n; ++j) {
+                vm_float_t sum = VM_F(0.0);
+                for (int i = 0; i < m; ++i) {
+                    sum += vm_mat_get(A, i, j) * x_use[i];
+                }
+                y[j] += alpha * sum;
+            }
+        }
+    }
+
+    free(scratch);
+}
+
+void vm_ger(vm_mat *A, const vm_float_t alpha, const vm_float_t *x, const vm_float_t *y)
+{
+    if (!A || !A->data || A->rows <= 0 || A->cols <= 0 || alpha == VM_F(0.0)) {
+        return;
+    }
+    if (!x || !y) {
+        return;
+    }
+
+    for (int j = 0; j < A->cols; ++j) {
+        const vm_float_t scaled = alpha * y[j];
+        for (int i = 0; i < A->rows; ++i) {
+            vm_mat_set(A, i, j, vm_mat_get(A, i, j) + x[i] * scaled);
+        }
     }
 }
 

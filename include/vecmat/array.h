@@ -103,6 +103,29 @@ VEC_API void vm_array_fma(vm_float_t *res, const vm_float_t *a,
 VEC_API void vm_axpy(vm_float_t *y, vm_float_t alpha, const vm_float_t *x, int n);
 
 /**
+ * @brief Euclidean norm of `x`, scaled so a finite result does not overflow early.
+ *
+ * `n <= 0` or a null `x` returns `+0` and does not read. A NaN in `x`
+ * returns a NaN. An infinity returns `+inf`. No allocation.
+ *
+ * @param x Input; length `n`.
+ * @param n Element count.
+ * @return `sqrt(sum x[i]^2)`, or `+0` when `n <= 0`.
+ */
+VEC_API vm_float_t vm_nrm2(const vm_float_t *x, int n);
+
+/**
+ * @brief Sum of absolute values, Neumaier compensated.
+ *
+ * `n <= 0` or a null `x` returns `+0` and does not read. No allocation.
+ *
+ * @param x Input; length `n`.
+ * @param n Element count.
+ * @return Compensated `sum |x[i]|`, or `+0` when `n <= 0`.
+ */
+VEC_API vm_float_t vm_asum(const vm_float_t *x, int n);
+
+/**
  * @brief `res[i] = 1 / sqrt(x[i])`.
  *
  * Strict reciprocal square root. The SIMD path uses hardware `sqrt` then

@@ -505,6 +505,8 @@
 #define mat3_mul_vec3 mat3_mul_vec364
 #define mat3_sym_eigen mat3_sym_eigen64
 #define vm_matvec vm_matvec64
+#define vm_gemv vm_gemv64
+#define vm_ger vm_ger64
 #define vm_symv vm_symv64
 #define vm_syev vm_syev64
 #define vm_laplacian vm_laplacian64
@@ -625,6 +627,8 @@
 #define vm_array_div vm_array_div64
 #define vm_array_fma vm_array_fma64
 #define vm_axpy vm_axpy64
+#define vm_nrm2 vm_nrm264
+#define vm_asum vm_asum64
 #define vm_array_add_avx2 vm_array_add64_avx2
 #define vm_array_sub_avx2 vm_array_sub64_avx2
 #define vm_array_mul_avx2 vm_array_mul64_avx2
@@ -1578,6 +1582,8 @@
 #define mat3_mul_vec3 mat3_mul_vec332
 #define mat3_sym_eigen mat3_sym_eigen32
 #define vm_matvec vm_matvec32
+#define vm_gemv vm_gemv32
+#define vm_ger vm_ger32
 #define vm_symv vm_symv32
 #define vm_syev vm_syev32
 #define vm_laplacian vm_laplacian32
@@ -1698,6 +1704,8 @@
 #define vm_array_div vm_array_div32
 #define vm_array_fma vm_array_fma32
 #define vm_axpy vm_axpy32
+#define vm_nrm2 vm_nrm232
+#define vm_asum vm_asum32
 #define vm_array_add_avx2 vm_array_add32_avx2
 #define vm_array_sub_avx2 vm_array_sub32_avx2
 #define vm_array_mul_avx2 vm_array_mul32_avx2

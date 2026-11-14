@@ -7,7 +7,7 @@
 
 /**
  * @file
- * @brief Dense spectral primitives: matvec, symmetric eigensolve, graph Laplacian.
+ * @brief Dense spectral primitives: matvec, gemv, ger, symmetric eigensolve, graph Laplacian.
  * @ingroup vecmat_extras
  */
 
@@ -24,6 +24,43 @@
  * @param x Input vector.
  */
 VEC_API void vm_matvec(vm_float_t *y, const vm_mat *A, const vm_float_t *x);
+
+/**
+ * @brief `y = alpha * op(A) * x + beta * y`.
+ *
+ * `A` is column-major. `trans` false uses `A` (`x` length `cols`, `y` length
+ * `rows`). `trans` true uses `Aᵀ` (`x` length `rows`, `y` length `cols`).
+ * A null pointer, or a matrix with a non-positive dimension, does not read
+ * or write. `beta == 0` does not read `y`, so a NaN already in `y` is
+ * replaced. `alpha == 0` does not read `x`. `y` may exactly alias `x` when
+ * the buffer is long enough for both lengths; a partial overlap is caller
+ * error. The exact-alias case allocates one temporary and frees it.
+ * Allocation failure leaves `y` unchanged. `vm_matvec` stays the
+ * no-transpose, `alpha = 1`, `beta = 0` path.
+ *
+ * @param y Output. Length is `rows`, or `cols` when `trans` is true.
+ * @param alpha Scale on `op(A) x`.
+ * @param A Matrix. Not modified.
+ * @param x Input. May exactly alias `y`.
+ * @param beta Scale on the incoming `y`. Zero skips the read.
+ * @param trans True to apply `Aᵀ`.
+ */
+VEC_API void vm_gemv(vm_float_t *y, vm_float_t alpha, const vm_mat *A, const vm_float_t *x,
+                     vm_float_t beta, bool trans);
+
+/**
+ * @brief Rank-1 update `A += alpha * x * yᵀ`.
+ *
+ * `x` has length `A->rows` and `y` has length `A->cols`. `x` may exactly
+ * alias `y`. `A` must not overlap either vector. No allocation. `alpha == 0`
+ * or an empty matrix does not read `x` or `y` and does not write `A`.
+ *
+ * @param A Matrix updated in place.
+ * @param alpha Scale on the outer product.
+ * @param x Left vector, length `rows`.
+ * @param y Right vector, length `cols`.
+ */
+VEC_API void vm_ger(vm_mat *A, vm_float_t alpha, const vm_float_t *x, const vm_float_t *y);
 
 /**
  * @brief Symmetric matrix-vector product.

@@ -177,6 +177,76 @@ void vm_axpy(vm_float_t *y, const vm_float_t alpha, const vm_float_t *x, const i
     }
 }
 
+static vm_float_t asum_step(const vm_float_t sum, vm_float_t *comp, const vm_float_t x)
+{
+    volatile vm_float_t t = sum + x;
+    if (VECMAT_FABS(sum) >= VECMAT_FABS(x)) {
+        const volatile vm_float_t lost = sum - t;
+        *comp += lost + x;
+    } else {
+        const volatile vm_float_t lost = x - t;
+        *comp += lost + sum;
+    }
+    return t;
+}
+
+vm_float_t vm_nrm2(const vm_float_t *x, const int n)
+{
+    if (n <= 0 || !x) {
+        return VM_F(0.0);
+    }
+
+    vm_float_t scale = VM_F(0.0);
+    vm_float_t ssq = VM_F(1.0);
+    bool saw_nan = false;
+    bool saw_inf = false;
+    for (int i = 0; i < n; ++i) {
+        const vm_float_t xi = x[i];
+        if (isnan(xi)) {
+            saw_nan = true;
+            continue;
+        }
+        if (isinf(xi)) {
+            saw_inf = true;
+            continue;
+        }
+        const vm_float_t absxi = VECMAT_FABS(xi);
+        if (absxi == VM_F(0.0)) {
+            continue;
+        }
+        if (scale < absxi) {
+            const vm_float_t ratio = scale / absxi;
+            ssq = VM_F(1.0) + ssq * ratio * ratio;
+            scale = absxi;
+        } else {
+            const vm_float_t ratio = absxi / scale;
+            ssq += ratio * ratio;
+        }
+    }
+    if (saw_nan) {
+        return array_nan();
+    }
+    if (saw_inf) {
+        return INFINITY;
+    }
+    return scale * VECMAT_SQRT(ssq);
+}
+
+vm_float_t vm_asum(const vm_float_t *x, const int n)
+{
+    if (n <= 0 || !x) {
+        return VM_F(0.0);
+    }
+
+    vm_float_t sum = VM_F(0.0);
+    vm_float_t comp = VM_F(0.0);
+    for (int i = 0; i < n; ++i) {
+        sum = asum_step(sum, &comp, VECMAT_FABS(x[i]));
+    }
+    volatile vm_float_t total = sum + comp;
+    return total;
+}
+
 void vm_rsqrt_array(vm_float_t *res, const vm_float_t *x, const int n)
 {
     if (n <= 0 || !res || !x) {
