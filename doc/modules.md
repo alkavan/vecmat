@@ -132,24 +132,31 @@ unused. Placeholders are commented in `cpu.h` and not probed yet.
 | 16..23 | ARM     | `VM_CPU_ARM_MASK`     | NEON 16, SVE 17, SVE2 18, ARM_FP16 21, ARM_BF16 22, I8MM 23 | SME 19, SME2 20                                    |
 | 24..30 | RISC-V  | `VM_CPU_RISCV_MASK`   | none                                             | RVV 24, ZVFH 25, ZVBB 26                           |
 
-AVX10.1 is the AVX-512 set, so its probe will set `VM_CPU_AVX512F`;
+**AVX10.1** is the **AVX-512** set, so its probe will set `VM_CPU_AVX512F`;
 `VM_CPU_AVX10_2` is for everything beyond that baseline (AVX10.2 and later).
-AMX is a feature, not a tier, and Linux needs the `arch_prctl` opt-in before
-tile use. ACE (AI Compute Extensions, v1) is the future standard matrix
-acceleration (outer-product tiles under a new AMX palette, AVX10 inputs, OCP MX
-formats with block scaling); a bit is reserved for it. Compare masks with the
-`VM_CPU_*` names, never stored numbers.
+
+**AMX** is a feature, not a tier, and Linux needs the `arch_prctl` opt-in before
+tile use.
+
+**ACE (AI Compute Extensions, v1)** is the future standard matrix acceleration
+(outer-product tiles under a new AMX palette, AVX10 inputs, OCP MX formats with
+block scaling); a bit is reserved for it. Compare masks with the `VM_CPU_*`
+names, never stored numbers.
 
 **Tiers come from one ladder.** `vm_cpu_selected_features()` walks a table
 of {level, tier} rows in priority order (SVE2, SVE, NEON, AVX-512F, AVX2,
 AVX); the first level fully present wins, else scalar. Without FMA,
-AVX2 falls to AVX. **Backends** are code that targets a level,
-plus an optional microarchitecture match in their own register hook; a
-registered backend still wins. A richer backend descriptor may come later.
+AVX2 falls to AVX.
 
-**RISC-V V** will be one new bit (`VM_CPU_RVV`, bit 24) and one `VM_LEVEL_RVV` row
-in the ladder. **GPUs** will be a separate device API, never a CPU feature
-bit or a `vm_backend_ops` table.
+**Backends** are code that targets a level, plus an optional microarchitecture
+match in their own register hook; a registered backend still wins. A richer
+backend descriptor may come later.
+
+**RISC-V Vector (RVV)** will be one new bit (`VM_CPU_RVV`, bit 24) and one
+`VM_LEVEL_RVV` row in the ladder.
+
+**GPUs**, **NPUs**, **Accelerators** will be a separate device API, never a CPU
+feature bit or a `vm_backend_ops` table.
 
 ## Backend registration
 
