@@ -47,6 +47,7 @@
 #include "vecmat/mat.h"
 #include "vecmat/quat.h"
 #include "vecmat/easing.h"
+#include "vecmat/curve.h"
 #include "vecmat/clip.h"
 #include "vecmat/gemm.h"
 #include "vecmat/dense.h"

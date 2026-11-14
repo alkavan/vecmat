@@ -111,6 +111,7 @@ included in the headers.
 - Float and integer matrices: 2×2, 3×3, 4×4.
 - Quaternions for rotation.
 - Easing functions for animation-style interpolation.
+- One-segment curves: quadratic and cubic Bézier, Hermite, and Catmull-Rom (`curve.h`).
 - Clip-space presets for OpenGL (`RH_NO`), Vulkan (`RH_ZO`) and Direct3D (`LH_ZO`).
 
 ### Two ways to call everything

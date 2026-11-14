@@ -262,6 +262,7 @@ set(VECMAT_FLOAT_SOURCES
         src/matrix4i_ptr.c
         src/features/dense.c
         src/features/easing.c
+        src/features/curve.c
         src/features/gemm.c
         src/features/physics.c
         src/features/sparse.c
