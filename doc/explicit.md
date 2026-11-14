@@ -37,7 +37,13 @@ Closest point and gap predicates. Degenerate input returns `ok = false`.
 - `vm_geom3_point_triangle_gap` is signed
 - `vm_geom3_edge_edge` includes the parallel case
 - `vm_geom3_aabb_triangle` and `vm_geom3_aabb_overlap`
+- `vm_geom3_aabb_contains`, `vm_geom3_aabb_union`, `vm_geom3_aabb_expand`
 - `vm_geom3_cell_index` maps a point into an existing grid
+- `vm_geom3_point_plane` is the signed distance to `dot(n, x) = offset`
+- `vm_geom3_closest_segment` clamps to a segment
+- `vm_geom3_ray_triangle`, `vm_geom3_ray_aabb`, `vm_geom3_ray_sphere`, `vm_geom3_ray_plane`
+- `vm_geom3_sphere_sphere` is a solid-ball overlap
+- `vm_geom3_plane_plane` is the intersection line; parallel planes are not a line
 
 ## Batch
 
