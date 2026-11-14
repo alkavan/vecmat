@@ -214,11 +214,17 @@ vm_cpu_set_note("backend my-backend part=...");
 return vm_backend_register(&backend);
 ```
 
+### Floats interfaces and ABI
+
 Float symbols are width-suffixed. Internal functions that both object libs
 define need the same treatment.
 
-Benchmarks keep the selected/compiled/runtime/precision line. They print
-`vm_cpu_note()` on the next line only when a backend set one.
+A vendor float entry point uses `VECMAT_SYMBOL`. It pastes `32` or `64`
+with the same rule as `include/vecmat/abi.h`: `VECMAT_ABI_BITS` when the
+library object sets it, otherwise `VECMAT_USE_F64`, otherwise `32`.
+
+When ABI 32 is also built, the f64 object libraries define `VECMAT_ABI_REPLICA`
+so integer vendor sources can skip their unsuffixed symbols.
 
 ### The `cortex-a5x` module
 

@@ -385,6 +385,11 @@ function(vecmat_add_float_objects name bits extra_private_defs)
     if(bits EQUAL 64)
         target_compile_definitions(${name} PRIVATE VECMAT_USE_F64)
     endif()
+    # f64 objects are the replica when f32 is also built. Integer vendor
+    # sources use this to emit their unsuffixed symbols only once.
+    if(bits EQUAL 64 AND VECMAT_BUILD_ABI_32)
+        target_compile_definitions(${name} PRIVATE VECMAT_ABI_REPLICA)
+    endif()
     # Integer vectors are compiled in these object libs. The public int-width
     # define has to match, or an int16 consumer calls an int32 body.
     if(_vecmat_int_defs)

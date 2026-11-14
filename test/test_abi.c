@@ -17,6 +17,22 @@ TEST_CASE(abi_float_bits_contain_this_tu, "[abi]") {
 #endif
 }
 
+static int vecmat_symbol_probe32(void) { return 32; }
+static int vecmat_symbol_probe64(void) { return 64; }
+
+typedef char vecmat_symbol_width32[32];
+typedef char vecmat_symbol_width64[64];
+
+#define vecmat_symbol_probe VECMAT_SYMBOL(vecmat_symbol_probe)
+#define vecmat_symbol_width VECMAT_SYMBOL(vecmat_symbol_width)
+
+_Static_assert(sizeof(vecmat_symbol_width) == VECMAT_ABI_SUFFIX,
+               "VECMAT_SYMBOL pasted the wrong suffix");
+
+TEST_CASE(abi_symbol_macro_pastes_suffix, "[abi]") {
+    REQUIRE(vecmat_symbol_probe() == VECMAT_ABI_SUFFIX);
+}
+
 TEST_CASE(abi_suffixed_add_matches_unsuffixed, "[abi]") {
     const vector2 a = {.x = VM_F(1.0), .y = VM_F(2.0)};
     const vector2 b = {.x = VM_F(3.0), .y = VM_F(4.0)};

@@ -34,6 +34,15 @@
 #  define VECMAT_ABI_SUFFIX 32
 #endif
 
+/* Paste 32 or 64 onto a vendor float symbol. The two helpers exist so the
+ * suffix macro expands before token pasting. Callers use VECMAT_SYMBOL only.
+ *   #define vm_laplacian_from_bits VECMAT_SYMBOL(vm_laplacian_from_bits)
+ * Integer symbols stay unsuffixed; do not pass those names here.
+ * The core aliases below stay written out. */
+#define VECMAT_SYMBOL_PASTE(name, suffix) name##suffix
+#define VECMAT_SYMBOL_EXPAND(name, suffix) VECMAT_SYMBOL_PASTE(name, suffix)
+#define VECMAT_SYMBOL(name) VECMAT_SYMBOL_EXPAND(name, VECMAT_ABI_SUFFIX)
+
 #if VECMAT_ABI_SUFFIX == 64
 #define vec2i_from vec2i_from64
 #define vec2i_from_floored vec2i_from_floored64
