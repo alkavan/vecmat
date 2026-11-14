@@ -457,3 +457,10 @@ vector3 vec3_window_to_world_clip(const vector3 window, const matrix4 model,
     vec3_window_to_world_clip_ptr(&res, &window, &model, &projection, &viewport, clip);
     return res;
 }
+
+vm_frustum mat4_frustum_planes(const matrix4 clip_from_world, const vm_clip_t clip, const bool normalize)
+{
+    vm_frustum out;
+    mat4_frustum_planes_ptr(&out, &clip_from_world, clip, normalize);
+    return out;
+}

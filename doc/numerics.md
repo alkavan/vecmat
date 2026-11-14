@@ -174,6 +174,16 @@ Geometric `vec3_project` (onto a direction) is unchanged:
 - `vec3_world_to_window` / `vec3_window_to_world`
 - `vec3_world_to_window_clip` / `vec3_window_to_world_clip`
 
+**Frustum planes** — six planes of an existing `projection * view` matrix.
+Inside each plane is `ax + by + cz + d >= 0`. Order is left, right, bottom,
+top, near, far. Pass the same `vm_clip_t` the projection was built with
+(`*_NO` keeps near at `z = -w`, `*_ZO` keeps near at `z = 0`). `normalize`
+makes `(a, b, c)` a unit normal.
+
+- `mat4_frustum_planes` / `mat4_frustum_planes_ptr`
+- `vm_frustum_contains` — point test, boundary counts as inside
+- `vm_frustum_aabb` — `VM_FRUSTUM_INSIDE`, `VM_FRUSTUM_CROSSING`, or `VM_FRUSTUM_OUTSIDE`
+
 **Affine inverse and normal matrices** — skip the 4×4 adjugate when the
 transform is `[A t; 0 1]`:
 

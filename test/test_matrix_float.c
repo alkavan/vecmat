@@ -463,3 +463,77 @@ TEST_CASE(mat4_perspective_infinite_test, "[matrix4]") {
     REQUIRE(VECMAT_EQ(m.m33, -1.0f, EPSILON));     // For infinite far plane, m33 should be -1
     REQUIRE(VECMAT_EQ(m.m34, -2.0f * n, EPSILON)); // Adjusted for infinite far
 }
+
+static vm_float_t frustum_plane_len(const vector4 plane)
+{
+    return VECMAT_SQRT(plane.x * plane.x + plane.y * plane.y + plane.z * plane.z);
+}
+
+TEST_CASE(mat4_frustum_ortho_planes, "[matrix4]") {
+    const matrix4 ortho = mat4_ortho_clip(VM_F(-1.0), VM_F(1.0), VM_F(-1.0), VM_F(1.0),
+                                          VM_F(0.0), VM_F(1.0), VM_CLIP_RH_NO);
+    vm_frustum extracted;
+    mat4_frustum_planes_ptr(&extracted, &ortho, VM_CLIP_RH_NO, false);
+    const vm_frustum by_value = mat4_frustum_planes(ortho, VM_CLIP_RH_NO, false);
+    REQUIRE(VECMAT_EQ(extracted.planes[VM_FRUSTUM_LEFT].x, VM_F(1.0), EPSILON));
+    REQUIRE(VECMAT_EQ(extracted.planes[VM_FRUSTUM_LEFT].w, VM_F(1.0), EPSILON));
+    REQUIRE(VECMAT_EQ(extracted.planes[VM_FRUSTUM_RIGHT].x, VM_F(-1.0), EPSILON));
+    REQUIRE(VECMAT_EQ(extracted.planes[VM_FRUSTUM_RIGHT].w, VM_F(1.0), EPSILON));
+    REQUIRE(VECMAT_EQ(extracted.planes[VM_FRUSTUM_BOTTOM].y, VM_F(1.0), EPSILON));
+    REQUIRE(VECMAT_EQ(extracted.planes[VM_FRUSTUM_TOP].y, VM_F(-1.0), EPSILON));
+    REQUIRE(VECMAT_EQ(extracted.planes[VM_FRUSTUM_NEAR].z, VM_F(-2.0), EPSILON));
+    REQUIRE(VECMAT_EQ(extracted.planes[VM_FRUSTUM_FAR].z, VM_F(2.0), EPSILON));
+    REQUIRE(VECMAT_EQ(extracted.planes[VM_FRUSTUM_FAR].w, VM_F(2.0), EPSILON));
+    REQUIRE(VECMAT_EQ(by_value.planes[VM_FRUSTUM_NEAR].z, extracted.planes[VM_FRUSTUM_NEAR].z, EPSILON));
+
+    const vm_frustum unit = mat4_frustum_planes(ortho, VM_CLIP_RH_NO, true);
+    REQUIRE(VECMAT_EQ(frustum_plane_len(unit.planes[VM_FRUSTUM_NEAR]), VM_F(1.0), EPSILON * VM_F(8.0)));
+    REQUIRE(VECMAT_EQ(unit.planes[VM_FRUSTUM_NEAR].z, VM_F(-1.0), EPSILON * VM_F(8.0)));
+
+    const vector3 inside = vec3(VM_F(0.0), VM_F(0.0), VM_F(-0.5));
+    const vector3 on_right = vec3(VM_F(1.0), VM_F(0.0), VM_F(-0.5));
+    const vector3 behind = vec3(VM_F(0.0), VM_F(0.0), VM_F(0.5));
+    const vector3 past_far = vec3(VM_F(0.0), VM_F(0.0), VM_F(-2.0));
+    REQUIRE(vm_frustum_contains(&unit, inside));
+    REQUIRE(vm_frustum_contains(&unit, on_right));
+    REQUIRE(!vm_frustum_contains(&unit, behind));
+    REQUIRE(!vm_frustum_contains(&unit, past_far));
+
+    const vector3 box_min = vec3(VM_F(-0.5), VM_F(-0.5), VM_F(-0.8));
+    const vector3 box_max = vec3(VM_F(0.5), VM_F(0.5), VM_F(-0.2));
+    REQUIRE(vm_frustum_aabb(&unit, box_min, box_max) == VM_FRUSTUM_INSIDE);
+    REQUIRE(vm_frustum_aabb(&unit, vec3(VM_F(-0.5), VM_F(-0.5), VM_F(-1.5)),
+                            vec3(VM_F(0.5), VM_F(0.5), VM_F(-0.5))) == VM_FRUSTUM_CROSSING);
+    REQUIRE(vm_frustum_aabb(&unit, vec3(VM_F(2.0), VM_F(2.0), VM_F(2.0)),
+                            vec3(VM_F(3.0), VM_F(3.0), VM_F(3.0))) == VM_FRUSTUM_OUTSIDE);
+    REQUIRE(vm_frustum_aabb(&unit, vec3(VM_F(1.0), VM_F(0.0), VM_F(0.0)),
+                            vec3(VM_F(0.0), VM_F(1.0), VM_F(1.0))) == VM_FRUSTUM_OUTSIDE);
+    REQUIRE(!vm_frustum_contains(NULL, inside));
+    REQUIRE(vm_frustum_aabb(NULL, box_min, box_max) == VM_FRUSTUM_OUTSIDE);
+    mat4_frustum_planes_ptr(NULL, &ortho, VM_CLIP_RH_NO, false);
+}
+
+TEST_CASE(mat4_frustum_perspective_clip, "[matrix4]") {
+    const vector3 eye = vec3(VM_F(0.0), VM_F(0.0), VM_F(5.0));
+    const vector3 at = vec3(VM_F(0.0), VM_F(0.0), VM_F(0.0));
+    const vector3 up = vec3(VM_F(0.0), VM_F(1.0), VM_F(0.0));
+    const matrix4 view = mat4_look_at_rh(eye, at, up);
+    const vm_clip_t clips[2] = { VM_CLIP_RH_NO, VM_CLIP_RH_ZO };
+    for (int i = 0; i < 2; ++i) {
+        const matrix4 proj = (clips[i] == VM_CLIP_RH_NO)
+            ? mat4_perspective_rh_no(VM_DEG(90.0), VM_F(1.0), VM_F(1.0), VM_F(50.0))
+            : mat4_perspective_rh_zo(VM_DEG(90.0), VM_F(1.0), VM_F(1.0), VM_F(50.0));
+        const matrix4 vp = mat4_mul(proj, view);
+        const vm_frustum frustum = mat4_frustum_planes(vp, clips[i], true);
+        REQUIRE(VECMAT_EQ(frustum_plane_len(frustum.planes[VM_FRUSTUM_NEAR]), VM_F(1.0), EPSILON * VM_F(16.0)));
+        REQUIRE(vm_frustum_contains(&frustum, at));
+        REQUIRE(vm_frustum_contains(&frustum, vec3(VM_F(0.0), VM_F(0.0), VM_F(4.0))));
+        REQUIRE(vm_frustum_contains(&frustum, vec3(VM_F(0.0), VM_F(4.0), VM_F(0.0))));
+        REQUIRE(!vm_frustum_contains(&frustum, vec3(VM_F(0.0), VM_F(0.0), VM_F(4.5))));
+        REQUIRE(!vm_frustum_contains(&frustum, vec3(VM_F(0.0), VM_F(0.0), VM_F(6.0))));
+        REQUIRE(!vm_frustum_contains(&frustum, vec3(VM_F(0.0), VM_F(6.0), VM_F(0.0))));
+        REQUIRE(!vm_frustum_contains(&frustum, vec3(VM_F(0.0), VM_F(0.0), VM_F(-80.0))));
+        REQUIRE(vm_frustum_aabb(&frustum, vec3(VM_F(-0.2), VM_F(-0.2), VM_F(-0.2)),
+                                vec3(VM_F(0.2), VM_F(0.2), VM_F(0.2))) == VM_FRUSTUM_INSIDE);
+    }
+}

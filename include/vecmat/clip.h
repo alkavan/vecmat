@@ -7,7 +7,8 @@
 
 /**
  * @file
- * @brief Clip-space projections, look-at / look-from, viewport, and world ↔ window helpers.
+ * @brief Clip-space projections, look-at / look-from, viewport, frustum planes,
+ *        and world to/from window helpers.
  * @ingroup vecmat_core
  */
 
@@ -948,5 +949,73 @@ VEC_API void vec3_world_to_window_clip_ptr(vector3 *res, const vector3 *world, c
  */
 VEC_API void vec3_window_to_world_clip_ptr(vector3 *res, const vector3 *window, const matrix4 *model,
                                            const matrix4 *projection, const vector4 *viewport, vm_clip_t clip);
+
+/**
+ * @brief Which side of a frustum an AABB occupies.
+ */
+typedef enum {
+    VM_FRUSTUM_OUTSIDE = 0,  /**< The box is strictly outside at least one plane. */
+    VM_FRUSTUM_CROSSING = 1, /**< The box meets the frustum but is not fully inside. */
+    VM_FRUSTUM_INSIDE = 2    /**< The box is inside every plane, boundary included. */
+} vm_frustum_overlap;
+
+/**
+ * @brief Six clip planes, inside the halfspace `ax + by + cz + d >= 0`.
+ *
+ * Order is left, right, bottom, top, near, far.
+ */
+typedef struct {
+    vector4 planes[6];
+} vm_frustum;
+
+/** Plane index in `vm_frustum.planes`. */
+enum {
+    VM_FRUSTUM_LEFT = 0,
+    VM_FRUSTUM_RIGHT = 1,
+    VM_FRUSTUM_BOTTOM = 2,
+    VM_FRUSTUM_TOP = 3,
+    VM_FRUSTUM_NEAR = 4,
+    VM_FRUSTUM_FAR = 5
+};
+
+/**
+ * @brief Extract the six frustum planes of a column-major clip-from-world matrix.
+ *
+ * `clip_from_world` is `projection * view`. `clip` selects the near plane:
+ * `*_NO` uses `z` in `[-w, w]`, `*_ZO` uses `z` in `[0, w]`. When `normalize`
+ * is true, each plane's `(x, y, z)` is scaled to unit length when that
+ * length is nonzero, so `d` is a signed distance.
+ *
+ * @param clip_from_world Clip-from-world matrix.
+ * @param clip Clip convention the matrix was built with.
+ * @param normalize Unit-length plane normals when the normal is nonzero.
+ * @return The six planes.
+ */
+VEC_API vm_frustum mat4_frustum_planes(matrix4 clip_from_world, vm_clip_t clip, bool normalize);
+
+/**
+ * @brief Extract frustum planes into `out`.
+ *
+ * A null `out` is ignored. A null matrix writes six zero planes.
+ *
+ * @see mat4_frustum_planes
+ */
+VEC_API void mat4_frustum_planes_ptr(vm_frustum *out, const matrix4 *clip_from_world,
+                                     vm_clip_t clip, bool normalize);
+
+/**
+ * @brief True when `point` is inside every frustum plane, boundary included.
+ *
+ * A null frustum returns false.
+ */
+VEC_API bool vm_frustum_contains(const vm_frustum *frustum, vector3 point);
+
+/**
+ * @brief Classify a closed AABB against the frustum.
+ *
+ * An inverted box (`b_min` greater than `b_max` on any axis) is outside.
+ * A null frustum is outside.
+ */
+VEC_API vm_frustum_overlap vm_frustum_aabb(const vm_frustum *frustum, vector3 b_min, vector3 b_max);
 
 #endif //VECMAT_CLIP_H

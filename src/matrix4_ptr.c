@@ -746,3 +746,129 @@ void vec3_window_to_world_ptr(vector3 *res, const vector3 *window, const matrix4
 {
     vec3_window_to_world_clip_ptr(res, window, model, projection, viewport, VM_CLIP_RH_NO);
 }
+
+static vector4 frustum_row(const matrix4 *m, const int row)
+{
+    vector4 r;
+    switch (row) {
+    case 0:
+        r.x = m->m11;
+        r.y = m->m12;
+        r.z = m->m13;
+        r.w = m->m14;
+        break;
+    case 1:
+        r.x = m->m21;
+        r.y = m->m22;
+        r.z = m->m23;
+        r.w = m->m24;
+        break;
+    case 2:
+        r.x = m->m31;
+        r.y = m->m32;
+        r.z = m->m33;
+        r.w = m->m34;
+        break;
+    default:
+        r.x = m->m41;
+        r.y = m->m42;
+        r.z = m->m43;
+        r.w = m->m44;
+        break;
+    }
+    return r;
+}
+
+static void frustum_normalize(vector4 *plane)
+{
+    const vm_float_t len2 = plane->x * plane->x + plane->y * plane->y + plane->z * plane->z;
+    if (len2 <= VECMAT_EPSILON) {
+        return;
+    }
+    const vm_float_t inv = VM_F(1.0) / VECMAT_SQRT(len2);
+    plane->x *= inv;
+    plane->y *= inv;
+    plane->z *= inv;
+    plane->w *= inv;
+}
+
+static vm_float_t frustum_dot(const vector4 plane, const vector3 point)
+{
+    return plane.x * point.x + plane.y * point.y + plane.z * point.z + plane.w;
+}
+
+void mat4_frustum_planes_ptr(vm_frustum *out, const matrix4 *clip_from_world,
+                             const vm_clip_t clip, const bool normalize)
+{
+    if (!out) {
+        return;
+    }
+    if (!clip_from_world) {
+        memset(out, 0, sizeof(*out));
+        return;
+    }
+
+    const vector4 r0 = frustum_row(clip_from_world, 0);
+    const vector4 r1 = frustum_row(clip_from_world, 1);
+    const vector4 r2 = frustum_row(clip_from_world, 2);
+    const vector4 r3 = frustum_row(clip_from_world, 3);
+
+    out->planes[VM_FRUSTUM_LEFT] = vec4_add(r3, r0);
+    out->planes[VM_FRUSTUM_RIGHT] = vec4_sub(r3, r0);
+    out->planes[VM_FRUSTUM_BOTTOM] = vec4_add(r3, r1);
+    out->planes[VM_FRUSTUM_TOP] = vec4_sub(r3, r1);
+    if (clip_is_zo(clip)) {
+        out->planes[VM_FRUSTUM_NEAR] = r2;
+        out->planes[VM_FRUSTUM_FAR] = vec4_sub(r3, r2);
+    } else {
+        out->planes[VM_FRUSTUM_NEAR] = vec4_add(r3, r2);
+        out->planes[VM_FRUSTUM_FAR] = vec4_sub(r3, r2);
+    }
+
+    if (normalize) {
+        for (int i = 0; i < 6; ++i) {
+            frustum_normalize(&out->planes[i]);
+        }
+    }
+}
+
+bool vm_frustum_contains(const vm_frustum *frustum, const vector3 point)
+{
+    if (!frustum) {
+        return false;
+    }
+    for (int i = 0; i < 6; ++i) {
+        if (frustum_dot(frustum->planes[i], point) < VM_F(0.0)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+vm_frustum_overlap vm_frustum_aabb(const vm_frustum *frustum, const vector3 b_min, const vector3 b_max)
+{
+    if (!frustum || b_min.x > b_max.x || b_min.y > b_max.y || b_min.z > b_max.z) {
+        return VM_FRUSTUM_OUTSIDE;
+    }
+
+    bool crossing = false;
+    for (int i = 0; i < 6; ++i) {
+        const vector4 plane = frustum->planes[i];
+        vector3 positive;
+        vector3 negative;
+        positive.x = plane.x >= VM_F(0.0) ? b_max.x : b_min.x;
+        negative.x = plane.x >= VM_F(0.0) ? b_min.x : b_max.x;
+        positive.y = plane.y >= VM_F(0.0) ? b_max.y : b_min.y;
+        negative.y = plane.y >= VM_F(0.0) ? b_min.y : b_max.y;
+        positive.z = plane.z >= VM_F(0.0) ? b_max.z : b_min.z;
+        negative.z = plane.z >= VM_F(0.0) ? b_min.z : b_max.z;
+
+        if (frustum_dot(plane, positive) < VM_F(0.0)) {
+            return VM_FRUSTUM_OUTSIDE;
+        }
+        if (frustum_dot(plane, negative) < VM_F(0.0)) {
+            crossing = true;
+        }
+    }
+    return crossing ? VM_FRUSTUM_CROSSING : VM_FRUSTUM_INSIDE;
+}

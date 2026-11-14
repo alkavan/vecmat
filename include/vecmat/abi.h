@@ -412,6 +412,10 @@
 #define vec3_window_to_world_ptr vec3_window_to_world_ptr64
 #define vec3_world_to_window_clip_ptr vec3_world_to_window_clip_ptr64
 #define vec3_window_to_world_clip_ptr vec3_window_to_world_clip_ptr64
+#define mat4_frustum_planes mat4_frustum_planes64
+#define mat4_frustum_planes_ptr mat4_frustum_planes_ptr64
+#define vm_frustum_contains vm_frustum_contains64
+#define vm_frustum_aabb vm_frustum_aabb64
 #define vm_mat_alloc vm_mat_alloc64
 #define vm_mat_free vm_mat_free64
 #define vm_mat_zero vm_mat_zero64
@@ -1481,6 +1485,10 @@
 #define vec3_window_to_world_ptr vec3_window_to_world_ptr32
 #define vec3_world_to_window_clip_ptr vec3_world_to_window_clip_ptr32
 #define vec3_window_to_world_clip_ptr vec3_window_to_world_clip_ptr32
+#define mat4_frustum_planes mat4_frustum_planes32
+#define mat4_frustum_planes_ptr mat4_frustum_planes_ptr32
+#define vm_frustum_contains vm_frustum_contains32
+#define vm_frustum_aabb vm_frustum_aabb32
 #define vm_mat_alloc vm_mat_alloc32
 #define vm_mat_free vm_mat_free32
 #define vm_mat_zero vm_mat_zero32
