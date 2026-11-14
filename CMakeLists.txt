@@ -234,6 +234,7 @@ set(VECMAT_COMMON_SOURCES
         src/matrix2i_ptr.c
         src/matrix3i_ptr.c
         src/features/cpu.c
+        src/features/device.c
 )
 
 set(VECMAT_FLOAT_SOURCES

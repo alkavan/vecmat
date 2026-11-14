@@ -114,6 +114,7 @@ INPUT                  = ../include \
                          matrix-usage.md \
                          numerics.md \
                          modules.md \
+                         device.md \
                          fp16.md \
                          bf16.md \
                          explicit.md \

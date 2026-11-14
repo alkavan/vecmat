@@ -155,8 +155,8 @@ backend descriptor may come later.
 **RISC-V Vector (RVV)** will be one new bit (`VM_CPU_RVV`, bit 24) and one
 `VM_LEVEL_RVV` row in the ladder.
 
-**GPUs**, **NPUs**, **Accelerators** will be a separate device API, never a CPU
-feature bit or a `vm_backend_ops` table.
+**GPUs**, **NPUs**, **Accelerators** are using the [device API](device.md),
+never a CPU feature bit or a `vm_backend_ops` table.
 
 ## Backend registration
 
@@ -169,7 +169,7 @@ The base library keeps this surface for backends:
 - `vm_backend_modules_register()` — test and benchmark hook, generated, not a library export
 - `VECMAT_FORCE_ISA` — override the ISA bound for the table-dispatched `_ptr`
   set (vec4, mat4, quat, GEMM ukernel) through `vm_cpu_selected_features()`,
-  when no backend is registered and that ISA is compiled in. By design it does
+  when no backend is registered and that ISA is compiled in. By design, it does
   not reach the direct-call kernels (`vm_array_*`, `vm_axpy`, `vm_rsqrt_array`,
   `vm_soa3_*`, `vm_batch3_*`, `vm_eos_*_n`, and the SIMD `vm_sph_*` kernels):
   they test the raw `vm_cpu_runtime_features()` mask on each call

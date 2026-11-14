@@ -192,6 +192,10 @@ still wins.
 `vm_backend_register()` and can be left out of a build. The docs contain some examples:
 * [Modules](doc/modules.md)
 
+**GPUs, NPUs, and accelerators use the device API.** Device 0 is the CPU.
+NVIDIA, AMD, Intel Arc, and Arm Mali register as vendor modules. They are
+not CPU feature bits. See [Devices](doc/device.md).
+
 **Public modules live in `vecmat-vendors`.** The recommended layout is a
 `vendors/` checkout under this tree (optional submodule). Then
 `-DVECMAT_MODULES=arm/fp16` is enough. If the repository is checked out beside
