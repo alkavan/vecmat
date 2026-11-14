@@ -8,7 +8,8 @@ on:
   push:
     branches:
       - master
-      - 'v*.x'
+      - '*.x'
+      - '*.x-dev'
     tags: ['v*']
   pull_request:
   workflow_dispatch:

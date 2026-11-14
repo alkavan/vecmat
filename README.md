@@ -254,7 +254,7 @@ if(NOT TARGET vecmat::vecmat)
     include(FetchContent)
     FetchContent_Declare(vecmat
         GIT_REPOSITORY https://github.com/alkavan/vecmat.git
-        GIT_TAG v0.4.7
+        GIT_TAG v0.5.0
     )
     FetchContent_MakeAvailable(vecmat)
 endif()
@@ -264,7 +264,7 @@ target_link_libraries(my_app PRIVATE vecmat::vecmat)
 
 ### Installed Package
 ```cmake
-find_package(vecmat 0.4 CONFIG REQUIRED)
+find_package(vecmat 0.5 CONFIG REQUIRED)
 target_link_libraries(my_app PRIVATE vecmat::vecmat)
 ```
 
