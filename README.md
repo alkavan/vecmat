@@ -110,7 +110,7 @@ included in the headers.
 - Integer vectors: same sizes (`vector2i` / `vector3i` / `vector4i`).
 - Float and integer matrices: 2×2, 3×3, 4×4.
 - Quaternions for rotation.
-- Easing functions for animation-style interpolation.
+- Easing functions for animation-style interpolation (`vm_smoothstep`, `vm_quadratic_ease_in`, and the rest of `easing.h`). The unsuffixed names are deprecated wrappers for this release.
 - One-segment curves: quadratic and cubic Bézier, Hermite, and Catmull-Rom (`curve.h`).
 - Clip-space presets for OpenGL (`RH_NO`), Vulkan (`RH_ZO`) and Direct3D (`LH_ZO`).
 
