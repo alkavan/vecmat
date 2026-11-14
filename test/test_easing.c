@@ -5,6 +5,172 @@
 #include <vecmat.h>
 #include "unitest.h"
 
+TEST_CASE(test_poly_ease_powers, "[easing][poly]") {
+    REQUIRE(VECMAT_EQ(vm_poly_ease_in(VM_F(0.0), VM_F(3.0)), VM_F(0.0), EPSILON));
+    REQUIRE(VECMAT_EQ(vm_poly_ease_in(VM_F(1.0), VM_F(3.0)), VM_F(1.0), EPSILON));
+    REQUIRE(VECMAT_EQ(vm_poly_ease_in(VM_F(0.5), VM_F(2.0)), VM_F(0.25), EPSILON));
+    REQUIRE(VECMAT_EQ(vm_poly_ease_in(VM_F(0.5), VM_F(3.0)), VM_F(0.125), EPSILON));
+
+    REQUIRE(VECMAT_EQ(vm_poly_ease_out(VM_F(0.0), VM_F(2.0)), VM_F(0.0), EPSILON));
+    REQUIRE(VECMAT_EQ(vm_poly_ease_out(VM_F(1.0), VM_F(2.0)), VM_F(1.0), EPSILON));
+    REQUIRE(VECMAT_EQ(vm_poly_ease_out(VM_F(0.5), VM_F(2.0)), VM_F(0.75), EPSILON));
+    REQUIRE(VECMAT_EQ(vm_poly_ease_out(VM_F(0.5), VM_F(3.0)), VM_F(0.875), EPSILON));
+
+    /* f < 0.5 uses the ease-in half; f >= 0.5 uses the ease-out half. */
+    REQUIRE(VECMAT_EQ(vm_poly_ease_in_out(VM_F(0.0), VM_F(2.0)), VM_F(0.0), EPSILON));
+    REQUIRE(VECMAT_EQ(vm_poly_ease_in_out(VM_F(0.25), VM_F(2.0)), VM_F(0.125), EPSILON));
+    REQUIRE(VECMAT_EQ(vm_poly_ease_in_out(VM_F(0.5), VM_F(2.0)), VM_F(0.5), EPSILON));
+    REQUIRE(VECMAT_EQ(vm_poly_ease_in_out(VM_F(0.75), VM_F(2.0)), VM_F(0.875), EPSILON));
+    REQUIRE(VECMAT_EQ(vm_poly_ease_in_out(VM_F(1.0), VM_F(2.0)), VM_F(1.0), EPSILON));
+}
+
+TEST_CASE(test_power_ease_matches_degree, "[easing][quadratic][cubic][quartic][quintic]") {
+    for (int i = 0; i < 5; ++i) {
+        const vm_float_t samples[] = { VM_F(0.0), VM_F(0.25), VM_F(0.5), VM_F(0.75), VM_F(1.0) };
+        const vm_float_t f = samples[i];
+        REQUIRE(VECMAT_EQ(vm_quadratic_ease_in(f), vm_poly_ease_in(f, VM_F(2.0)), EPSILON));
+        REQUIRE(VECMAT_EQ(vm_quadratic_ease_out(f), vm_poly_ease_out(f, VM_F(2.0)), EPSILON));
+        REQUIRE(VECMAT_EQ(vm_quadratic_ease_in_out(f), vm_poly_ease_in_out(f, VM_F(2.0)), EPSILON));
+        REQUIRE(VECMAT_EQ(vm_cubic_ease_in(f), vm_poly_ease_in(f, VM_F(3.0)), EPSILON));
+        REQUIRE(VECMAT_EQ(vm_cubic_ease_out(f), vm_poly_ease_out(f, VM_F(3.0)), EPSILON));
+        REQUIRE(VECMAT_EQ(vm_cubic_ease_in_out(f), vm_poly_ease_in_out(f, VM_F(3.0)), EPSILON));
+        REQUIRE(VECMAT_EQ(vm_quartic_ease_in(f), vm_poly_ease_in(f, VM_F(4.0)), EPSILON));
+        REQUIRE(VECMAT_EQ(vm_quartic_ease_out(f), vm_poly_ease_out(f, VM_F(4.0)), EPSILON));
+        REQUIRE(VECMAT_EQ(vm_quartic_ease_in_out(f), vm_poly_ease_in_out(f, VM_F(4.0)), EPSILON));
+        REQUIRE(VECMAT_EQ(vm_quintic_ease_in(f), vm_poly_ease_in(f, VM_F(5.0)), EPSILON));
+        REQUIRE(VECMAT_EQ(vm_quintic_ease_out(f), vm_poly_ease_out(f, VM_F(5.0)), EPSILON));
+        REQUIRE(VECMAT_EQ(vm_quintic_ease_in_out(f), vm_poly_ease_in_out(f, VM_F(5.0)), EPSILON));
+    }
+    /* Ease-in lags ease-out before the midpoint. A swapped pair fails this. */
+    REQUIRE(vm_quadratic_ease_in(VM_F(0.25)) < vm_quadratic_ease_out(VM_F(0.25)));
+    REQUIRE(VECMAT_EQ(vm_quartic_ease_in(VM_F(0.5)), VM_F(0.0625), EPSILON));
+    REQUIRE(VECMAT_EQ(vm_quintic_ease_out(VM_F(0.5)), VM_F(0.96875), EPSILON));
+}
+
+TEST_CASE(test_sine_ease, "[easing][sine]") {
+    REQUIRE(VECMAT_EQ(vm_sine_ease_in(VM_F(0.0)), VM_F(0.0), EPSILON));
+    REQUIRE(VECMAT_EQ(vm_sine_ease_in(VM_F(1.0)), VM_F(1.0), EPSILON));
+    REQUIRE(VECMAT_EQ(vm_sine_ease_out(VM_F(0.0)), VM_F(0.0), EPSILON));
+    REQUIRE(VECMAT_EQ(vm_sine_ease_out(VM_F(1.0)), VM_F(1.0), EPSILON));
+    REQUIRE(VECMAT_EQ(vm_sine_ease_in_out(VM_F(0.0)), VM_F(0.0), EPSILON));
+    REQUIRE(VECMAT_EQ(vm_sine_ease_in_out(VM_F(0.5)), VM_F(0.5), EPSILON));
+    REQUIRE(VECMAT_EQ(vm_sine_ease_in_out(VM_F(1.0)), VM_F(1.0), EPSILON));
+
+    const vm_float_t quarter = VECMAT_SIN(VM_F(0.5) * M_PI / VM_F(2.0));
+    REQUIRE(VECMAT_EQ(vm_sine_ease_out(VM_F(0.5)), quarter, EPSILON * VM_F(8.0)));
+    REQUIRE(VECMAT_EQ(vm_sine_ease_in(VM_F(0.5)), VM_F(1.0) - quarter, EPSILON * VM_F(8.0)));
+    REQUIRE(vm_sine_ease_in(VM_F(0.25)) < vm_sine_ease_out(VM_F(0.25)));
+}
+
+TEST_CASE(test_circular_ease, "[easing][circular]") {
+    REQUIRE(VECMAT_EQ(vm_circular_ease_in(VM_F(0.0)), VM_F(0.0), EPSILON));
+    REQUIRE(VECMAT_EQ(vm_circular_ease_in(VM_F(1.0)), VM_F(1.0), EPSILON));
+    REQUIRE(VECMAT_EQ(vm_circular_ease_out(VM_F(0.0)), VM_F(0.0), EPSILON));
+    REQUIRE(VECMAT_EQ(vm_circular_ease_out(VM_F(1.0)), VM_F(1.0), EPSILON));
+    REQUIRE(VECMAT_EQ(vm_circular_ease_in_out(VM_F(0.0)), VM_F(0.0), EPSILON));
+    REQUIRE(VECMAT_EQ(vm_circular_ease_in_out(VM_F(0.5)), VM_F(0.5), EPSILON));
+    REQUIRE(VECMAT_EQ(vm_circular_ease_in_out(VM_F(1.0)), VM_F(1.0), EPSILON));
+
+    const vm_float_t f = VM_F(0.5);
+    const vm_float_t out = VECMAT_SQRT(VM_F(1.0) - (VM_F(1.0) - f) * (VM_F(1.0) - f));
+    REQUIRE(VECMAT_EQ(vm_circular_ease_out(f), out, EPSILON * VM_F(8.0)));
+    REQUIRE(VECMAT_EQ(vm_circular_ease_in(f), VM_F(1.0) - VECMAT_SQRT(VM_F(1.0) - f * f), EPSILON * VM_F(8.0)));
+    REQUIRE(vm_circular_ease_in(VM_F(0.25)) < vm_circular_ease_out(VM_F(0.25)));
+}
+
+TEST_CASE(test_exponential_ease, "[easing][exponential]") {
+    REQUIRE(VECMAT_EQ(vm_exponential_ease_out(VM_F(0.0)), VM_F(0.0), EPSILON));
+    REQUIRE(VECMAT_EQ(vm_exponential_ease_out(VM_F(0.5)), VM_F(0.96875), EPSILON));
+    REQUIRE(VECMAT_EQ(vm_exponential_ease_out(VM_F(1.0)), VM_F(1.0) - VM_F(1.0) / VM_F(1024.0), EPSILON));
+
+    REQUIRE(VECMAT_EQ(vm_exponential_ease_in(VM_F(0.0)), VM_F(1.0) / VM_F(1024.0), EPSILON));
+    REQUIRE(VECMAT_EQ(vm_exponential_ease_in(VM_F(0.5)), VM_F(0.03125), EPSILON));
+    REQUIRE(VECMAT_EQ(vm_exponential_ease_in(VM_F(1.0)), VM_F(1.0), EPSILON));
+
+    REQUIRE(VECMAT_EQ(vm_exponential_ease_in_out(VM_F(0.0)), VM_F(0.0), EPSILON));
+    REQUIRE(VECMAT_EQ(vm_exponential_ease_in_out(VM_F(0.25)), VM_F(0.015625), EPSILON));
+    REQUIRE(VECMAT_EQ(vm_exponential_ease_in_out(VM_F(0.5)), VM_F(0.5), EPSILON));
+    REQUIRE(VECMAT_EQ(vm_exponential_ease_in_out(VM_F(0.75)), VM_F(0.984375), EPSILON));
+    REQUIRE(VECMAT_EQ(vm_exponential_ease_in_out(VM_F(1.0)), VM_F(1.0), EPSILON));
+}
+
+TEST_CASE(test_elastic_ease, "[easing][elastic]") {
+    const vm_float_t mid = VM_F(0.5);
+    const vm_float_t osc = vm_elastic_oscillation(mid, VM_F(-10.0), VM_F(10.0), VM_F(0.75), VM_F(3.0));
+    const vm_float_t expect = VECMAT_POW(VM_F(2.0), VM_F(-10.0) * mid)
+        * VECMAT_SIN((VM_F(10.0) * mid - VM_F(0.75)) * (VM_F(2.0) * M_PI) / VM_F(3.0));
+    REQUIRE(VECMAT_EQ(osc, expect, EPSILON * VM_F(8.0)));
+
+    REQUIRE(VECMAT_EQ(vm_elastic_ease_in(VM_F(0.0)), VM_F(0.0), EPSILON));
+    REQUIRE(VECMAT_EQ(vm_elastic_ease_in(VM_F(1.0)), VM_F(1.0), EPSILON));
+    REQUIRE(VECMAT_EQ(vm_elastic_ease_out(VM_F(0.0)), VM_F(0.0), EPSILON));
+    REQUIRE(VECMAT_EQ(vm_elastic_ease_out(VM_F(1.0)), VM_F(1.0), EPSILON));
+    REQUIRE(VECMAT_EQ(vm_elastic_ease_in_out(VM_F(0.0)), VM_F(0.0), EPSILON));
+    REQUIRE(VECMAT_EQ(vm_elastic_ease_in_out(VM_F(1.0)), VM_F(1.0), EPSILON));
+
+    REQUIRE(VECMAT_EQ(vm_elastic_ease_out(mid),
+                      vm_elastic_oscillation(mid, VM_F(-10.0), VM_F(10.0), VM_F(0.75), VM_F(3.0)) + VM_F(1.0),
+                      EPSILON));
+    REQUIRE(VECMAT_EQ(vm_elastic_ease_in(mid),
+                      -vm_elastic_oscillation(mid, VM_F(10.0), VM_F(10.0), VM_F(10.75), VM_F(3.0)),
+                      EPSILON));
+    REQUIRE(vm_elastic_ease_in(mid) < VM_F(-10.0));
+    REQUIRE(vm_elastic_ease_out(mid) > VM_F(1.0));
+    REQUIRE(VECMAT_EQ(vm_elastic_ease_in_out(VM_F(0.25)),
+                      -vm_elastic_oscillation(VM_F(0.25), VM_F(20.0), VM_F(20.0),
+                                              VM_F(11.125), VM_F(4.5)) / VM_F(2.0),
+                      EPSILON));
+}
+
+TEST_CASE(test_back_ease, "[easing][back]") {
+    const vm_float_t c = 1.70158f;
+    const vm_float_t s = 2.5949095f;
+    const vm_float_t half = VM_F(0.5);
+    REQUIRE(VECMAT_EQ(vm_back_ease_in(VM_F(0.0)), VM_F(0.0), EPSILON));
+    REQUIRE(VECMAT_EQ(vm_back_ease_in(VM_F(1.0)), VM_F(0.0), EPSILON));
+    REQUIRE(VECMAT_EQ(vm_back_ease_in(half), c * half * half * half - c * half * half, EPSILON * VM_F(8.0)));
+
+    REQUIRE(VECMAT_EQ(vm_back_ease_out(VM_F(0.0)), VM_F(1.0), EPSILON));
+    REQUIRE(VECMAT_EQ(vm_back_ease_out(VM_F(1.0)), VM_F(1.0), EPSILON));
+    REQUIRE(VECMAT_EQ(vm_back_ease_out(half),
+                      VM_F(1.0) + c * (half - VM_F(1.0)) * (half - VM_F(1.0)) * (half - VM_F(1.0))
+                          + c * (half - VM_F(1.0)) * (half - VM_F(1.0)),
+                      EPSILON * VM_F(8.0)));
+
+    REQUIRE(VECMAT_EQ(vm_back_ease_in_out(VM_F(0.0)), VM_F(0.0), EPSILON));
+    REQUIRE(VECMAT_EQ(vm_back_ease_in_out(half), VM_F(0.5), EPSILON * VM_F(8.0)));
+    REQUIRE(VECMAT_EQ(vm_back_ease_in_out(VM_F(1.0)), VM_F(1.0), EPSILON));
+    const vm_float_t q = VM_F(0.25);
+    const vm_float_t over = ((VM_F(2.0) * q) * (VM_F(2.0) * q)
+                             * ((s + VM_F(1.0)) * VM_F(2.0) * q - s)) / VM_F(2.0);
+    REQUIRE(VECMAT_EQ(vm_back_ease_in_out(q), over, EPSILON * VM_F(16.0)));
+    REQUIRE(vm_back_ease_in(half) < VM_F(0.0));
+    REQUIRE(vm_back_ease_out(half) > VM_F(1.0));
+}
+
+TEST_CASE(test_bounce_ease, "[easing][bounce]") {
+    const vm_float_t early = VM_F(0.2);
+    REQUIRE(VECMAT_EQ(vm_bounce_ease_out(VM_F(0.0)), VM_F(0.0), EPSILON));
+    REQUIRE(VECMAT_EQ(vm_bounce_ease_out(early), VM_F(7.5625) * early * early, EPSILON * VM_F(8.0)));
+
+    const vm_float_t end_t = VM_F(1.0) - 2.625f / 2.75f;
+    REQUIRE(VECMAT_EQ(vm_bounce_ease_out(VM_F(1.0)),
+                      VM_F(7.5625) * end_t * end_t + VM_F(0.984375),
+                      EPSILON * VM_F(8.0)));
+
+    /* In is the out curve reversed. The last bounce piece is not exactly 1 in f64. */
+    REQUIRE(VECMAT_EQ(vm_bounce_ease_in(VM_F(0.0)), VM_F(1.0) - vm_bounce_ease_out(VM_F(1.0)), EPSILON));
+    REQUIRE(VECMAT_EQ(vm_bounce_ease_in(VM_F(1.0)), VM_F(1.0), EPSILON));
+    REQUIRE(VECMAT_EQ(vm_bounce_ease_in(early), VM_F(1.0) - vm_bounce_ease_out(VM_F(1.0) - early), EPSILON));
+
+    REQUIRE(VECMAT_EQ(vm_bounce_ease_in_out(VM_F(0.0)),
+                      (VM_F(1.0) - vm_bounce_ease_out(VM_F(1.0))) / VM_F(2.0), EPSILON));
+    REQUIRE(VECMAT_EQ(vm_bounce_ease_in_out(VM_F(0.5)), VM_F(0.5), EPSILON * VM_F(8.0)));
+    REQUIRE(VECMAT_EQ(vm_bounce_ease_in_out(VM_F(1.0)),
+                      (VM_F(1.0) + vm_bounce_ease_out(VM_F(1.0))) / VM_F(2.0), EPSILON));
+    REQUIRE(vm_bounce_ease_out(early) > vm_bounce_ease_in(early));
+}
+
 TEST_CASE(test_smoothstep_edges_and_mid, "[easing][smoothstep]") {
     REQUIRE(VECMAT_EQ(vm_smoothstep(0.0f, 1.0f, 0.0f), 0.0f, EPSILON));
     REQUIRE(VECMAT_EQ(vm_smoothstep(0.0f, 1.0f, 1.0f), 1.0f, EPSILON));
@@ -49,8 +215,8 @@ TEST_CASE(test_smoothstep_equal_edges, "[easing][smoothstep]") {
 #endif
 
 TEST_CASE(test_easing_old_names_match_vm, "[easing]") {
-    const vm_float_t samples[] = { VM_F(0.0), VM_F(0.25), VM_F(0.5), VM_F(1.0) };
     for (int i = 0; i < 4; ++i) {
+        const vm_float_t samples[] = { VM_F(0.0), VM_F(0.25), VM_F(0.5), VM_F(1.0) };
         const vm_float_t f = samples[i];
         REQUIRE(VECMAT_EQ(elastic_oscillation(f, VM_F(-10.0), VM_F(10.0), VM_F(0.75), VM_F(3.0)),
                           vm_elastic_oscillation(f, VM_F(-10.0), VM_F(10.0), VM_F(0.75), VM_F(3.0)), EPSILON));
