@@ -677,6 +677,11 @@ static void gemm_ukernel_scalar_4x4(vm_float_t *acc, const vm_float_t *Ap,
 void vm_gemm_ukernel_avx2_12x8(vm_float_t *acc, const vm_float_t *Ap,
                                const vm_float_t *Bp, int K);
 #endif
+#if defined(VECMAT_ENABLE_AVX512F)
+/* Defined and documented in src/simd/avx512/gemm_16x14.c. */
+void vm_gemm_ukernel_avx512_16x14(vm_float_t *acc, const vm_float_t *Ap,
+                                  const vm_float_t *Bp, int K);
+#endif
 
 enum { VM_GEMM_TILE_SLOTS = 4 };
 
@@ -701,7 +706,7 @@ static int gemm_pin_nr;
  * @brief Find the micro-kernel registered for one tile shape.
  *
  * A user registration wins. Otherwise, the built-ins are 8×8 (the dispatch
- * slot), scalar 4×4, and AVX2 12×8 when that kernel was compiled.
+ * slot), scalar 4×4, AVX2 12×8, and AVX-512 16×14 when that kernel was compiled.
  *
  * @param mr  Tile rows.
  * @param nr  Tile columns.
@@ -733,6 +738,12 @@ static int gemm_tile_lookup(const int mr, const int nr, vm_gemm_ukernel_fn *out)
         return 1;
     }
 #endif
+#if defined(VECMAT_ENABLE_AVX512F)
+    if (mr == 16 && nr == 14) {
+        *out = vm_gemm_ukernel_avx512_16x14;
+        return 1;
+    }
+#endif
 
     return 0;
 }
@@ -758,8 +769,8 @@ static gemm_tile gemm_tile_make(const int mr, const int nr, const vm_gemm_ukerne
  * @brief Tile the next `vm_gemm` call will pack for.
  *
  * A `vm_gemm_tile_select` pin wins. Otherwise a registered backend keeps the
- * dispatched 8×8 kernel. With no backend, AVX2 selects 12×8 when that kernel
- * was compiled. Every other case is 8×8.
+ * dispatched 8×8 kernel. With no backend, AVX-512 selects 16×14 and AVX2
+ * selects 12×8 when that kernel was compiled. Every other case is 8×8.
  *
  * @return The active tile.
  */
@@ -781,6 +792,10 @@ static gemm_tile gemm_tile_now(void)
         return gemm_tile_make(VM_GEMM_MR, VM_GEMM_NR, gemm_ukernel_8x8);
     }
 #endif
+
+    if (vm_cpu_selected_features() == VM_CPU_AVX512F && gemm_tile_lookup(16, 14, &fn)) {
+        return gemm_tile_make(16, 14, fn);
+    }
 
     if (vm_cpu_selected_features() == VM_CPU_AVX2 && gemm_tile_lookup(12, 8, &fn)) {
         return gemm_tile_make(12, 8, fn);

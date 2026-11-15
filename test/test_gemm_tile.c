@@ -120,7 +120,9 @@ TEST_CASE(vm_gemm_tile_avx2_12x8, "[gemm]")
 
     vm_gemm_tile_select(0, 0);
     vm_gemm_tile_shape(&mr, &nr);
-    if (vm_cpu_selected_features() == VM_CPU_AVX2) {
+    if (vm_cpu_selected_features() == VM_CPU_AVX512F) {
+        REQUIRE(mr == 16 && nr == 14);
+    } else if (vm_cpu_selected_features() == VM_CPU_AVX2) {
         REQUIRE(mr == 12 && nr == 8);
     } else {
         REQUIRE(mr == 8 && nr == 8);
@@ -130,6 +132,22 @@ TEST_CASE(vm_gemm_tile_avx2_12x8, "[gemm]")
         REQUIRE(mr == 12 && nr == 8);
         tile_band();
         tile_check(128, 96, 64, VM_F(1.1), VM_F(0.3), false, false, VM_LAYOUT_COL_MAJOR);
+    }
+    vm_gemm_tile_select(0, 0);
+}
+
+TEST_CASE(vm_gemm_tile_avx512_16x14, "[gemm]")
+{
+    int mr = 0, nr = 0;
+
+    vm_gemm_tile_select(0, 0);
+    if (vm_cpu_has(VM_CPU_AVX512F) && vm_gemm_tile_select(16, 14) == 0) {
+        vm_gemm_tile_shape(&mr, &nr);
+        REQUIRE(mr == 16 && nr == 14);
+        tile_band();
+        tile_check(16, 14, 8, VM_F(1.0), VM_F(0.0), false, false, VM_LAYOUT_COL_MAJOR);
+        tile_check(17, 15, 9, VM_F(1.25), VM_F(0.5), true, false, VM_LAYOUT_ROW_MAJOR);
+        tile_check(31, 29, 13, VM_F(-0.5), VM_F(1.0), false, true, VM_LAYOUT_COL_MAJOR);
     }
     vm_gemm_tile_select(0, 0);
 }

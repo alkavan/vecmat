@@ -13,9 +13,10 @@ Row-major and column-major layouts.
 - `vm_im2col` unfolds an NCHW image into a GEMM-ready panel
 
 Packed ukernel, TLS pack workspace `MC=NC=KC=128`, persistent thread
-pool. The default tile is 8×8. AVX2 uses 12×8 when that is the selected ISA
-and no backend is registered. `vm_gemm_tile_select` can force 8×8, the scalar
-4×4 tile, or a registered shape. Cap threads with `vm_gemm_set_threads(n)` or
+pool. The default tile is 8×8. With no backend, AVX-512 uses 16×14 and
+AVX2 uses 12×8 when that is the selected ISA. `vm_gemm_tile_select` can force
+8×8, the scalar 4×4 tile, either built-in wide tile, or a registered shape.
+Cap threads with `vm_gemm_set_threads(n)` or
 `VECMAT_GEMM_THREADS`.
 fp16 and bf16 are optional widths, off by default. See [`doc/fp16.md`](fp16.md)
 and [`doc/bf16.md`](bf16.md). This is not a BLAS.

@@ -458,6 +458,7 @@ function(vecmat_add_float_objects name bits extra_private_defs)
                 src/simd/avx512/vector4_ptr.c
                 src/simd/avx512/matrix4_ptr.c
                 src/simd/avx512/gemm.c
+                src/simd/avx512/gemm_16x14.c
                 src/simd/avx512/sph.c)
         if(MSVC)
             set(_opts /arch:AVX512)
@@ -468,6 +469,7 @@ function(vecmat_add_float_objects name bits extra_private_defs)
                 src/simd/avx512/vector4_ptr.c
                 src/simd/avx512/matrix4_ptr.c
                 src/simd/avx512/gemm.c
+                src/simd/avx512/gemm_16x14.c
                 src/simd/avx512/sph.c
                 TARGET_DIRECTORY ${name}
                 PROPERTIES COMPILE_OPTIONS "${_opts}")

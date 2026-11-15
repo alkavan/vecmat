@@ -350,6 +350,7 @@
 #define vm_gemm_ukernel_fn vm_gemm_ukernel64_fn
 #define vm_gemm_ukernel_ vm_gemm_ukernel64_
 #define vm_gemm_ukernel_avx2_12x8 vm_gemm_ukernel64_avx2_12x8
+#define vm_gemm_ukernel_avx512_16x14 vm_gemm_ukernel64_avx512_16x14
 #define vm_dispatch_init vm_dispatch_init64
 #define vm_backend_best vm_backend_best64
 #define vm_backend_register vm_backend_register64
@@ -1479,6 +1480,7 @@
 #define vm_gemm_ukernel_fn vm_gemm_ukernel32_fn
 #define vm_gemm_ukernel_ vm_gemm_ukernel32_
 #define vm_gemm_ukernel_avx2_12x8 vm_gemm_ukernel32_avx2_12x8
+#define vm_gemm_ukernel_avx512_16x14 vm_gemm_ukernel32_avx512_16x14
 #define vm_dispatch_init vm_dispatch_init32
 #define vm_backend_best vm_backend_best32
 #define vm_backend_register vm_backend_register32

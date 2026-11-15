@@ -200,10 +200,10 @@ VEC_API int vm_gemm_tile_register(int mr, int nr, vm_gemm_ukernel_fn ukernel);
 /**
  * @brief Choose the packed tile for later `vm_gemm` calls in this process.
  *
- * `(0, 0)` restores the automatic choice: 12×8 when the selected ISA is AVX2,
- * that kernel was compiled, and no backend is registered; otherwise 8×8.
+ * `(0, 0)` restores the automatic choice. With no backend, AVX-512 selects
+ * 16×14 and AVX2 selects 12×8 when that kernel was compiled; otherwise 8×8.
  * `(8, 8)` forces the dispatched 8×8 kernel. Any other pair must be built in
- * (scalar 4×4, AVX2 12×8) or registered.
+ * (scalar 4×4, AVX2 12×8, AVX-512 16×14) or registered.
  *
  * @param mr Tile rows. `0` together with `nr == 0` restores the automatic choice.
  * @param nr Tile columns.
