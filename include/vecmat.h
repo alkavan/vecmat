@@ -23,6 +23,15 @@
  */
 
 /**
+ * @defgroup vecmat_device Device path
+ * @brief Device discovery, buffers, in-order queues, and queued ops.
+ *
+ * Device API for running vecmat work on CPU, GPU, NPU, or other accelerators:
+ * register devices, allocate or wrap buffers, submit ops on a queue, and
+ * finish. Includes the backend `vm_device_ops` table for vendor modules.
+ */
+
+/**
  * @defgroup vecmat_extras Numerics extras
  * @brief GEMM, heap `vm_mat`, factorizations, CSR/KSP, integrators.
  */
@@ -43,6 +52,7 @@
 #include "vecmat/types.h"
 #include "vecmat/cpu.h"
 #include "vecmat/backend.h"
+#include "vecmat/device.h"
 #include "vecmat/vec.h"
 #include "vecmat/mat.h"
 #include "vecmat/quat.h"
