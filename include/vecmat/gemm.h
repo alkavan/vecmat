@@ -169,6 +169,58 @@ VEC_API int vm_gemm_threads(void);
 VEC_API void vm_gemm_set_threads(int n);
 
 /**
+ * @brief Micro-kernel for one packed tile: `acc[i + j*mr] += Ap[k*mr+i] * Bp[k*nr+j]`.
+ *
+ * `mr` and `nr` are the tile the kernel was registered with. They are not
+ * arguments: the packer pads to that shape before the call.
+ *
+ * @param acc Accumulator tile, updated in place. Column `j` starts at `j*mr`.
+ * @param Ap  Packed A panel, `mr` values per k, including zero padding.
+ * @param Bp  Packed B panel, `nr` values per k, including zero padding.
+ * @param K   Number of packed inner-dimension steps.
+ */
+typedef void (*vm_gemm_ukernel_fn)(vm_float_t *acc, const vm_float_t *Ap,
+                                   const vm_float_t *Bp, int K);
+
+/**
+ * @brief Register an extra packed GEMM tile.
+ *
+ * The built-in 8×8 kernel stays the `vm_gemm_ukernel` dispatch slot, including
+ * a registered backend, so `(8, 8)` is rejected. The same pair replaces a
+ * previous registration. `ukernel` must outlive the process and must use
+ * that pair's packing.
+ *
+ * @param mr      Tile rows, in `[1, 16]`.
+ * @param nr      Tile columns, in `[1, 16]`.
+ * @param ukernel Micro-kernel for this `mr`×`nr` packing.
+ * @return 0, or -1 when the arguments are unusable or the table is full.
+ */
+VEC_API int vm_gemm_tile_register(int mr, int nr, vm_gemm_ukernel_fn ukernel);
+
+/**
+ * @brief Choose the packed tile for later `vm_gemm` calls in this process.
+ *
+ * `(0, 0)` restores the automatic choice: 12×8 when the selected ISA is AVX2,
+ * that kernel was compiled, and no backend is registered; otherwise 8×8.
+ * `(8, 8)` forces the dispatched 8×8 kernel. Any other pair must be built in
+ * (scalar 4×4, AVX2 12×8) or registered.
+ *
+ * @param mr Tile rows. `0` together with `nr == 0` restores the automatic choice.
+ * @param nr Tile columns.
+ * @return 0, or -1 when that shape is not available. A failed call leaves the
+ *         previous choice in place.
+ */
+VEC_API int vm_gemm_tile_select(int mr, int nr);
+
+/**
+ * @brief Write the tile `vm_gemm` will use now.
+ *
+ * @param mr Out: rows of the packed tile. May be NULL.
+ * @param nr Out: columns of the packed tile. May be NULL.
+ */
+VEC_API void vm_gemm_tile_shape(int *mr, int *nr);
+
+/**
  * @brief NCHW im2col into a GEMM-ready panel.
  *
  * `img` is N×C×H×W packed as `((n*C+c)*H+y)*W+x`. Output has `C*kH*kW` rows

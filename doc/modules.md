@@ -216,6 +216,8 @@ return vm_backend_register(&backend);
 
 ### Floats interfaces and ABI
 
+`vm_gemm_ukernel` is the 8×8 tile. Another shape uses `vm_gemm_tile_register`.
+
 Float symbols are width-suffixed. Internal functions that both object libs
 define need the same treatment.
 

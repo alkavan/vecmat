@@ -7,6 +7,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <vecmat.h>
+
 #include "cpu.h"
 #include "gemm_kernel.h"
 
@@ -80,6 +81,7 @@ int vm_gemm_threads(void)
     if (vm_gemm_thread_limit > 0) {
         return vm_gemm_thread_limit;
     }
+
     if (vm_gemm_env_threads == 0) {
         const char *env = getenv("VECMAT_GEMM_THREADS");
         int parsed = -1; /* -1 = absent / invalid → hardware default */
@@ -93,9 +95,11 @@ int vm_gemm_threads(void)
         }
         vm_gemm_env_threads = parsed;
     }
+
     if (vm_gemm_env_threads > 0) {
         return vm_gemm_env_threads;
     }
+
     return gemm_hw_threads();
 }
 
@@ -122,29 +126,37 @@ static int gemm_pick_threads(const int batch, const int M, const int N, const in
     if (batch <= 1) {
         return 1;
     }
+
     const long long flops = (long long)M * (long long)N * (long long)K * (long long)batch;
     if (flops < (long long)VM_GEMM_THREAD_MIN_FLOPS) {
         return 1;
     }
+
     int t = vm_gemm_threads();
     if (t < 1) {
         t = 1;
     }
+
     if (t > batch) {
         t = batch;
     }
+
     if (t > VM_GEMM_MAX_THREADS) {
         t = VM_GEMM_MAX_THREADS;
     }
+
     if (t > 1 && batch < t * VM_GEMM_THREAD_MIN_PER_WORKER) {
         t = batch / VM_GEMM_THREAD_MIN_PER_WORKER;
     }
+
     while (t > 1 && flops / (long long)t < (long long)(VM_GEMM_THREAD_MIN_FLOPS / 4)) {
         t--;
     }
+
     if (t < 1) {
         t = 1;
     }
+
     return t;
 }
 
@@ -173,7 +185,7 @@ static int vm_gemm_pool_parts;
 static int vm_gemm_pool_finished;
 static unsigned vm_gemm_pool_gen;
 static int vm_gemm_pool_ready;
-static int vm_gemm_pool_nworkers;
+static int vm_gemm_pool_workers;
 
 #if defined(_WIN32) && defined(_MSC_VER)
 static SRWLOCK vm_gemm_pool_lock = SRWLOCK_INIT;
@@ -196,6 +208,7 @@ static DWORD WINAPI gemm_pool_worker_win(LPVOID arg)
         while (vm_gemm_pool_gen == seen) {
             SleepConditionVariableSRW(&vm_gemm_pool_work, &vm_gemm_pool_lock, INFINITE, 0);
         }
+
         seen = vm_gemm_pool_gen;
         const vm_gemm_job job = vm_gemm_pool_jobs[idx];
         const int active = (idx < vm_gemm_pool_parts);
@@ -203,6 +216,7 @@ static DWORD WINAPI gemm_pool_worker_win(LPVOID arg)
         if (active && job.fn) {
             job.fn(job.begin, job.end, job.ctx);
         }
+
         AcquireSRWLockExclusive(&vm_gemm_pool_lock);
         vm_gemm_pool_finished++;
         WakeConditionVariable(&vm_gemm_pool_idle);
@@ -218,6 +232,7 @@ static void gemm_pool_init(void)
     if (vm_gemm_pool_ready) {
         return;
     }
+
     AcquireSRWLockExclusive(&vm_gemm_pool_lock);
     if (!vm_gemm_pool_ready) {
         int started = 0;
@@ -228,7 +243,7 @@ static void gemm_pool_init(void)
                 vm_gemm_pool_handles[started++] = h;
             }
         }
-        vm_gemm_pool_nworkers = started;
+        vm_gemm_pool_workers = started;
         vm_gemm_pool_ready = 1;
     }
     ReleaseSRWLockExclusive(&vm_gemm_pool_lock);
@@ -256,13 +271,16 @@ static void *gemm_pool_worker_pthread(void *arg)
         while (vm_gemm_pool_gen == seen) {
             pthread_cond_wait(&vm_gemm_pool_work, &vm_gemm_pool_lock);
         }
+
         seen = vm_gemm_pool_gen;
         const vm_gemm_job job = vm_gemm_pool_jobs[idx];
         const int active = (idx < vm_gemm_pool_parts);
         pthread_mutex_unlock(&vm_gemm_pool_lock);
+
         if (active && job.fn) {
             job.fn(job.begin, job.end, job.ctx);
         }
+
         pthread_mutex_lock(&vm_gemm_pool_lock);
         vm_gemm_pool_finished++;
         pthread_cond_signal(&vm_gemm_pool_idle);
@@ -278,19 +296,21 @@ static void gemm_pool_init(void)
     if (vm_gemm_pool_ready) {
         return;
     }
+
     pthread_mutex_lock(&vm_gemm_pool_lock);
     if (!vm_gemm_pool_ready) {
-        vm_gemm_pool_nworkers = VM_GEMM_MAX_THREADS - 1;
+        vm_gemm_pool_workers = VM_GEMM_MAX_THREADS - 1;
         int started = 0;
-        for (int i = 0; i < vm_gemm_pool_nworkers; ++i) {
+        for (int i = 0; i < vm_gemm_pool_workers; ++i) {
             if (pthread_create(&vm_gemm_pool_ids[i], NULL, gemm_pool_worker_pthread,
                                (void *)(intptr_t)(i + 1)) == 0) {
                 started++;
             }
         }
-        vm_gemm_pool_nworkers = started;
+        vm_gemm_pool_workers = started;
         vm_gemm_pool_ready = 1;
     }
+
     pthread_mutex_unlock(&vm_gemm_pool_lock);
 }
 
@@ -332,13 +352,13 @@ static void gemm_pool_wait(void)
 {
 #if defined(_WIN32) && defined(_MSC_VER)
     AcquireSRWLockExclusive(&vm_gemm_pool_lock);
-    while (vm_gemm_pool_finished < vm_gemm_pool_nworkers) {
+    while (vm_gemm_pool_finished < vm_gemm_pool_workers) {
         SleepConditionVariableSRW(&vm_gemm_pool_idle, &vm_gemm_pool_lock, INFINITE, 0);
     }
     ReleaseSRWLockExclusive(&vm_gemm_pool_lock);
 #else
     pthread_mutex_lock(&vm_gemm_pool_lock);
-    while (vm_gemm_pool_finished < vm_gemm_pool_nworkers) {
+    while (vm_gemm_pool_finished < vm_gemm_pool_workers) {
         pthread_cond_wait(&vm_gemm_pool_idle, &vm_gemm_pool_lock);
     }
     pthread_mutex_unlock(&vm_gemm_pool_lock);
@@ -366,6 +386,7 @@ static void gemm_parallel_for(const int n, void (*fn)(int begin, int end, void *
     if (n <= 0) {
         return;
     }
+
     if (threads <= 1 || n == 1) {
         fn(0, n, ctx);
         return;
@@ -378,6 +399,7 @@ static void gemm_parallel_for(const int n, void (*fn)(int begin, int end, void *
     if (t > n) {
         t = n;
     }
+
     if (t > VM_GEMM_MAX_THREADS) {
         t = VM_GEMM_MAX_THREADS;
     }
@@ -389,16 +411,19 @@ static void gemm_parallel_for(const int n, void (*fn)(int begin, int end, void *
         if (begin >= n) {
             break;
         }
+
         int end = begin + chunk;
         if (end > n) {
             end = n;
         }
+
         vm_gemm_pool_jobs[parts].begin = begin;
         vm_gemm_pool_jobs[parts].end = end;
         vm_gemm_pool_jobs[parts].fn = fn;
         vm_gemm_pool_jobs[parts].ctx = ctx;
         parts++;
     }
+
     if (parts <= 1) {
         fn(0, n, ctx);
         return;
@@ -407,7 +432,8 @@ static void gemm_parallel_for(const int n, void (*fn)(int begin, int end, void *
     gemm_pool_post(parts);
     fn(vm_gemm_pool_jobs[0].begin, vm_gemm_pool_jobs[0].end, ctx);
     gemm_pool_wait();
-    for (int i = vm_gemm_pool_nworkers + 1; i < parts; ++i) {
+
+    for (int i = vm_gemm_pool_workers + 1; i < parts; ++i) {
         fn(vm_gemm_pool_jobs[i].begin, vm_gemm_pool_jobs[i].end, ctx);
     }
 #endif
@@ -511,6 +537,7 @@ void vm_gemm_ref(vm_float_t *C, const int ldc,
                 }
                 acc *= alpha;
             }
+
             if (beta == VM_F(0.0)) {
                 panel_set_c(C, ldc, i, j, acc, layout);
             } else {
@@ -541,6 +568,7 @@ VECMAT_SCALAR_API void vm_gemm_ukernel_scalar(vm_float_t *acc,
     for (int t = 0; t < VM_GEMM_MR * VM_GEMM_NR; ++t) {
         c[t] = acc[t];
     }
+
     for (int k = 0; k < K; ++k) {
         const vm_float_t *a = Ap + k * VM_GEMM_MR;
         const vm_float_t *b = Bp + k * VM_GEMM_NR;
@@ -552,6 +580,7 @@ VECMAT_SCALAR_API void vm_gemm_ukernel_scalar(vm_float_t *acc,
             }
         }
     }
+
     for (int t = 0; t < VM_GEMM_MR * VM_GEMM_NR; ++t) {
         acc[t] = c[t];
     }
@@ -561,7 +590,7 @@ VECMAT_SCALAR_API void vm_gemm_ukernel_scalar(vm_float_t *acc,
  * @brief Ensure runtime CPU feature detection has run (no-op without dispatch).
  *
  * When built with `VECMAT_RUNTIME_DISPATCH`, calls `vm_cpu_init()` so the
- * selected GEMM micro-kernel is ready. Otherwise does nothing.
+ * selected GEMM micro-kernel is ready. Otherwise, does nothing.
  */
 static void gemm_ensure_dispatch(void)
 {
@@ -571,14 +600,15 @@ static void gemm_ensure_dispatch(void)
 }
 
 /**
- * @brief Invoke the GEMM micro-kernel for a packed MR×NR tile.
+ * @brief Invoke the dispatched 8×8 micro-kernel.
  *
- * With `VECMAT_RUNTIME_DISPATCH`, calls the CPU-selected kernel
- * (`vm_gemm_ukernel_`); otherwise calls `vm_gemm_ukernel_scalar`.
+ * With `VECMAT_RUNTIME_DISPATCH`, calls `vm_gemm_ukernel_`. Otherwise, calls
+ * `vm_gemm_ukernel_scalar`. A selected tile other than 8×8 does not use this
+ * function; it calls that tile's own kernel.
  *
- * @param acc Accumulator tile (MR×NR), updated in place.
- * @param Ap  Packed A micro-panel (MR values per k, MR-padded).
- * @param Bp  Packed B micro-panel (NR values per k, NR-padded).
+ * @param acc Accumulator tile (8×8), updated in place.
+ * @param Ap  Packed A micro-panel, 8 values per k.
+ * @param Bp  Packed B micro-panel, 8 values per k.
  * @param K   Inner-dimension length for this tile.
  */
 static void gemm_ukernel_call(vm_float_t *acc, const vm_float_t *Ap, const vm_float_t *Bp, const int K)
@@ -591,39 +621,274 @@ static void gemm_ukernel_call(vm_float_t *acc, const vm_float_t *Ap, const vm_fl
 }
 
 /**
- * @brief Pack an A panel into contiguous MR-wide micro-panels (zero-padded).
+ * @brief 8×8 micro-kernel through the dispatch slot.
  *
- * Layout is k-major within each MR block so the micro-kernel streams linearly.
+ * Calls `vm_gemm_ukernel_` when runtime dispatch is on, so a registered
+ * backend's kernel is used. Otherwise, calls `vm_gemm_ukernel_scalar`.
+ * This is always the 8×8 packing, not the selected tile.
  *
- * @param Ap     Destination pack buffer.
- * @param A      Source matrix A.
- * @param lda    Leading dimension of A.
- * @param i0     Starting row of the panel in op(A).
- * @param k0     Starting K index of the panel.
- * @param ib     Number of rows to pack.
- * @param kb     Number of K steps to pack.
- * @param transA If true, read A as transposed.
- * @param layout Row-major or column-major storage of A.
+ * @param acc Accumulator tile (8×8), updated in place.
+ * @param Ap  Packed A panel, 8 values per k.
+ * @param Bp  Packed B panel, 8 values per k.
+ * @param K   Inner-dimension length for this tile.
+ */
+static void gemm_ukernel_8x8(vm_float_t *acc, const vm_float_t *Ap, const vm_float_t *Bp, const int K)
+{
+    gemm_ukernel_call(acc, Ap, Bp, K);
+}
+
+/**
+ * @brief Scalar 4×4 packed micro-kernel.
+ *
+ * Same update as `vm_gemm_ukernel_scalar`, with MR = NR = 4.
+ *
+ * @param acc Accumulator tile (4×4), updated in place.
+ * @param Ap  Packed A panel, 4 values per k.
+ * @param Bp  Packed B panel, 4 values per k.
+ * @param K   Number of packed inner-dimension steps.
+ */
+static void gemm_ukernel_scalar_4x4(vm_float_t *acc, const vm_float_t *Ap,
+                                    const vm_float_t *Bp, const int K)
+{
+    vm_float_t c[4 * 4];
+    for (int t = 0; t < 16; ++t) {
+        c[t] = acc[t];
+    }
+
+    for (int k = 0; k < K; ++k) {
+        const vm_float_t *a = Ap + k * 4;
+        const vm_float_t *b = Bp + k * 4;
+        for (int j = 0; j < 4; ++j) {
+            const vm_float_t bj = b[j];
+            vm_float_t *col = c + j * 4;
+            for (int i = 0; i < 4; ++i) {
+                col[i] += a[i] * bj;
+            }
+        }
+    }
+
+    for (int t = 0; t < 16; ++t) {
+        acc[t] = c[t];
+    }
+}
+
+#if defined(VECMAT_ENABLE_AVX2)
+/* Defined and documented in src/simd/avx2/gemm_12x8.c. */
+void vm_gemm_ukernel_avx2_12x8(vm_float_t *acc, const vm_float_t *Ap,
+                               const vm_float_t *Bp, int K);
+#endif
+
+enum { VM_GEMM_TILE_SLOTS = 4 };
+
+typedef struct {
+    int mr;                     /**< Packed rows, including zero padding. */
+    int nr;                     /**< Packed columns, including zero padding. */
+    vm_gemm_ukernel_fn ukernel; /**< Kernel for this `mr`×`nr` packing. */
+} gemm_tile;
+
+typedef struct {
+    int mr;
+    int nr;
+    vm_gemm_ukernel_fn fn;
+} gemm_tile_slot;
+
+static gemm_tile_slot gemm_user_tiles[VM_GEMM_TILE_SLOTS];
+static int gemm_user_tile_n;
+static int gemm_pin_mr;
+static int gemm_pin_nr;
+
+/**
+ * @brief Find the micro-kernel registered for one tile shape.
+ *
+ * A user registration wins. Otherwise, the built-ins are 8×8 (the dispatch
+ * slot), scalar 4×4, and AVX2 12×8 when that kernel was compiled.
+ *
+ * @param mr  Tile rows.
+ * @param nr  Tile columns.
+ * @param out Receives the kernel. Unchanged when the shape is unknown.
+ * @return 1 when `out` was set, otherwise 0.
+ */
+static int gemm_tile_lookup(const int mr, const int nr, vm_gemm_ukernel_fn *out)
+{
+    for (int i = 0; i < gemm_user_tile_n; ++i) {
+        if (gemm_user_tiles[i].mr == mr && gemm_user_tiles[i].nr == nr) {
+            *out = gemm_user_tiles[i].fn;
+            return 1;
+        }
+    }
+
+    if (mr == VM_GEMM_MR && nr == VM_GEMM_NR) {
+        *out = gemm_ukernel_8x8;
+        return 1;
+    }
+
+    if (mr == 4 && nr == 4) {
+        *out = gemm_ukernel_scalar_4x4;
+        return 1;
+    }
+
+#if defined(VECMAT_ENABLE_AVX2)
+    if (mr == 12 && nr == 8) {
+        *out = vm_gemm_ukernel_avx2_12x8;
+        return 1;
+    }
+#endif
+
+    return 0;
+}
+
+/**
+ * @brief Build a tile descriptor.
+ *
+ * @param mr Packed rows.
+ * @param nr Packed columns.
+ * @param fn Micro-kernel for that packing.
+ * @return The descriptor.
+ */
+static gemm_tile gemm_tile_make(const int mr, const int nr, const vm_gemm_ukernel_fn fn)
+{
+    gemm_tile tile;
+    tile.mr = mr;
+    tile.nr = nr;
+    tile.ukernel = fn;
+    return tile;
+}
+
+/**
+ * @brief Tile the next `vm_gemm` call will pack for.
+ *
+ * A `vm_gemm_tile_select` pin wins. Otherwise a registered backend keeps the
+ * dispatched 8×8 kernel. With no backend, AVX2 selects 12×8 when that kernel
+ * was compiled. Every other case is 8×8.
+ *
+ * @return The active tile.
+ */
+static gemm_tile gemm_tile_now(void)
+{
+    vm_gemm_ukernel_fn fn = gemm_ukernel_8x8;
+
+    gemm_ensure_dispatch();
+    if (gemm_pin_mr != 0) {
+        if (gemm_tile_lookup(gemm_pin_mr, gemm_pin_nr, &fn)) {
+            return gemm_tile_make(gemm_pin_mr, gemm_pin_nr, fn);
+        }
+        gemm_pin_mr = 0;
+        gemm_pin_nr = 0;
+    }
+
+#if defined(VECMAT_RUNTIME_DISPATCH)
+    if (vm_backend_best() != NULL) {
+        return gemm_tile_make(VM_GEMM_MR, VM_GEMM_NR, gemm_ukernel_8x8);
+    }
+#endif
+
+    if (vm_cpu_selected_features() == VM_CPU_AVX2 && gemm_tile_lookup(12, 8, &fn)) {
+        return gemm_tile_make(12, 8, fn);
+    }
+
+    return gemm_tile_make(VM_GEMM_MR, VM_GEMM_NR, gemm_ukernel_8x8);
+}
+
+int vm_gemm_tile_register(const int mr, const int nr, const vm_gemm_ukernel_fn ukernel)
+{
+    if (!ukernel || mr < 1 || nr < 1 || mr > VM_GEMM_MR_MAX || nr > VM_GEMM_NR_MAX) {
+        return -1;
+    }
+
+    if (mr == VM_GEMM_MR && nr == VM_GEMM_NR) {
+        return -1;
+    }
+
+    for (int i = 0; i < gemm_user_tile_n; ++i) {
+        if (gemm_user_tiles[i].mr == mr && gemm_user_tiles[i].nr == nr) {
+            gemm_user_tiles[i].fn = ukernel;
+            return 0;
+        }
+    }
+
+    if (gemm_user_tile_n >= VM_GEMM_TILE_SLOTS) {
+        return -1;
+    }
+
+    gemm_user_tiles[gemm_user_tile_n].mr = mr;
+    gemm_user_tiles[gemm_user_tile_n].nr = nr;
+    gemm_user_tiles[gemm_user_tile_n].fn = ukernel;
+    gemm_user_tile_n++;
+
+    return 0;
+}
+
+int vm_gemm_tile_select(const int mr, const int nr)
+{
+    vm_gemm_ukernel_fn fn;
+
+    if (mr == 0 && nr == 0) {
+        gemm_pin_mr = 0;
+        gemm_pin_nr = 0;
+        return 0;
+    }
+
+    if (!gemm_tile_lookup(mr, nr, &fn)) {
+        return -1;
+    }
+    (void)fn;
+
+    gemm_pin_mr = mr;
+    gemm_pin_nr = nr;
+
+    return 0;
+}
+
+void vm_gemm_tile_shape(int *mr, int *nr)
+{
+    const gemm_tile tile = gemm_tile_now();
+
+    if (mr) {
+        *mr = tile.mr;
+    }
+
+    if (nr) {
+        *nr = tile.nr;
+    }
+}
+
+/**
+ * @brief Pack an A panel into contiguous micro-panels (zero-padded).
+ *
+ * Layout is k-major within each `tile_mr` block so the micro-kernel streams
+ * linearly. A short block is padded with zeros out to `tile_mr`.
+ *
+ * @param Ap      Destination pack buffer.
+ * @param A       Source matrix A.
+ * @param lda     Leading dimension of A.
+ * @param i0      Starting row of the panel in op(A).
+ * @param k0      Starting K index of the panel.
+ * @param ib      Number of rows to pack.
+ * @param kb      Number of K steps to pack.
+ * @param transA  If true, read A as transposed.
+ * @param layout  Row-major or column-major storage of A.
+ * @param tile_mr Rows in each packed micro-panel, including zero padding.
  */
 static void gemm_pack_a(vm_float_t *Ap,
                            const vm_float_t *A, const int lda,
                            const int i0, const int k0,
                            const int ib, const int kb,
-                           const bool transA, const vm_layout_t layout)
+                           const bool transA, const vm_layout_t layout,
+                           const int tile_mr)
 {
     /* op(A)(i,k) is contiguous in i for col-major A or row-major A^T. */
     const int contig_i = (!transA && layout != VM_LAYOUT_ROW_MAJOR)
                       || (transA && layout == VM_LAYOUT_ROW_MAJOR);
     if (contig_i) {
-        for (int ir = 0; ir < ib; ir += VM_GEMM_MR) {
-            const int mr = gemm_min(VM_GEMM_MR, ib - ir);
+        for (int ir = 0; ir < ib; ir += tile_mr) {
+            const int mr = gemm_min(tile_mr, ib - ir);
             for (int k = 0; k < kb; ++k) {
                 const vm_float_t *src = A + (i0 + ir) + (k0 + k) * lda;
                 int i = 0;
                 for (; i < mr; ++i) {
                     *Ap++ = src[i];
                 }
-                for (; i < VM_GEMM_MR; ++i) {
+                for (; i < tile_mr; ++i) {
                     *Ap++ = VM_F(0.0);
                 }
             }
@@ -631,14 +896,14 @@ static void gemm_pack_a(vm_float_t *Ap,
         return;
     }
 
-    for (int ir = 0; ir < ib; ir += VM_GEMM_MR) {
-        const int mr = gemm_min(VM_GEMM_MR, ib - ir);
+    for (int ir = 0; ir < ib; ir += tile_mr) {
+        const int mr = gemm_min(tile_mr, ib - ir);
         for (int k = 0; k < kb; ++k) {
             int i = 0;
             for (; i < mr; ++i) {
                 *Ap++ = panel_at(A, lda, i0 + ir + i, k0 + k, transA, layout);
             }
-            for (; i < VM_GEMM_MR; ++i) {
+            for (; i < tile_mr; ++i) {
                 *Ap++ = VM_F(0.0);
             }
         }
@@ -646,53 +911,57 @@ static void gemm_pack_a(vm_float_t *Ap,
 }
 
 /**
- * @brief Pack a B panel into contiguous NR-wide micro-panels (zero-padded).
+ * @brief Pack a B panel into contiguous micro-panels (zero-padded).
  *
- * Layout is k-major within each NR block so the micro-kernel streams linearly.
+ * Layout is k-major within each `tile_nr` block so the micro-kernel streams
+ * linearly. A short block is padded with zeros out to `tile_nr`.
  *
- * @param Bp     Destination pack buffer.
- * @param B      Source matrix B.
- * @param ldb    Leading dimension of B.
- * @param k0     Starting K index of the panel.
- * @param j0     Starting column of the panel in op(B).
- * @param kb     Number of K steps to pack.
- * @param jb     Number of columns to pack.
- * @param transB If true, read B as transposed.
- * @param layout Row-major or column-major storage of B.
+ * @param Bp      Destination pack buffer.
+ * @param B       Source matrix B.
+ * @param ldb     Leading dimension of B.
+ * @param k0      Starting K index of the panel.
+ * @param j0      Starting column of the panel in op(B).
+ * @param kb      Number of K steps to pack.
+ * @param jb      Number of columns to pack.
+ * @param transB  If true, read B as transposed.
+ * @param layout  Row-major or column-major storage of B.
+ * @param tile_nr Columns in each packed micro-panel, including zero padding.
  */
 static void gemm_pack_b(vm_float_t *Bp,
                            const vm_float_t *B, const int ldb,
                            const int k0, const int j0,
                            const int kb, const int jb,
-                           const bool transB, const vm_layout_t layout)
+                           const bool transB, const vm_layout_t layout,
+                           const int tile_nr)
 {
     /* op(B)(k,j) is contiguous in j for row-major B or col-major B^T. */
     const int contig_j = (!transB && layout == VM_LAYOUT_ROW_MAJOR)
                       || (transB && layout != VM_LAYOUT_ROW_MAJOR);
     if (contig_j) {
-        for (int jr = 0; jr < jb; jr += VM_GEMM_NR) {
-            const int nr = gemm_min(VM_GEMM_NR, jb - jr);
+        for (int jr = 0; jr < jb; jr += tile_nr) {
+            const int nr = gemm_min(tile_nr, jb - jr);
             for (int k = 0; k < kb; ++k) {
                 const vm_float_t *src = B + (j0 + jr) + (k0 + k) * ldb;
                 int j = 0;
                 for (; j < nr; ++j) {
                     *Bp++ = src[j];
                 }
-                for (; j < VM_GEMM_NR; ++j) {
+                for (; j < tile_nr; ++j) {
                     *Bp++ = VM_F(0.0);
                 }
             }
         }
         return;
     }
-    for (int jr = 0; jr < jb; jr += VM_GEMM_NR) {
-        const int nr = gemm_min(VM_GEMM_NR, jb - jr);
+
+    for (int jr = 0; jr < jb; jr += tile_nr) {
+        const int nr = gemm_min(tile_nr, jb - jr);
         for (int k = 0; k < kb; ++k) {
             int j = 0;
             for (; j < nr; ++j) {
                 *Bp++ = panel_at(B, ldb, k0 + k, j0 + jr + j, transB, layout);
             }
-            for (; j < VM_GEMM_NR; ++j) {
+            for (; j < tile_nr; ++j) {
                 *Bp++ = VM_F(0.0);
             }
         }
@@ -708,11 +977,13 @@ static void gemm_pack_b(vm_float_t *Bp,
  *
  * @param C      Output matrix.
  * @param ldc    Leading dimension of C.
- * @param acc    MR×NR accumulator from the micro-kernel.
+ * @param acc    Accumulator from the micro-kernel, indexed `i + j*acc_mr`.
  * @param i0     Destination row origin in C.
  * @param j0     Destination column origin in C.
- * @param mr     Active rows in this tile (<= MR).
- * @param nr     Active columns in this tile (<= NR).
+ * @param mr     Active rows to store (`<= acc_mr`).
+ * @param nr     Active columns to store.
+ * @param acc_mr Row stride of `acc`. This is the kernel tile's row count,
+ *               which is larger than `mr` on a padded edge.
  * @param alpha  Scale for the accumulator.
  * @param beta   Scale for existing C (0 skips the read).
  * @param layout Row-major or column-major storage of C.
@@ -723,6 +994,7 @@ static void gemm_store_tile(vm_float_t *C, const int ldc,
                                const vm_float_t *acc,
                                const int i0, const int j0,
                                const int mr, const int nr,
+                               const int acc_mr,
                                const vm_float_t alpha, const vm_float_t beta,
                                const vm_layout_t layout,
                                const int op, const vm_float_t *bias)
@@ -731,8 +1003,9 @@ static void gemm_store_tile(vm_float_t *C, const int ldc,
     for (int j = 0; j < nr; ++j) {
         const vm_float_t bj = (bias && (op & VM_GEMM_OP_BIAS) && last_k)
                             ? bias[j0 + j] : VM_F(0.0);
+
         for (int i = 0; i < mr; ++i) {
-            vm_float_t v = alpha * acc[i + j * VM_GEMM_MR];
+            vm_float_t v = alpha * acc[i + j * acc_mr];
             if (beta == VM_F(0.0)) {
                 v += bj;
             } else {
@@ -840,46 +1113,52 @@ static vm_float_t *gemm_ws_fit(vm_float_t **buf, size_t *cap, const size_t need)
     if (*cap >= need) {
         return *buf;
     }
+
     vm_float_t *n = gemm_alloc_pack(need);
     if (!n) {
         return NULL;
     }
     gemm_free_pack(*buf);
+
     *buf = n;
     *cap = need;
+
     return n;
 }
 
 /**
  * @brief Element count for an A pack covering `ib` rows and `kb` K-steps.
  *
- * @param ib Rows in the A panel.
- * @param kb K-panel width.
- * @return Number of `vm_float_t` elements required (MR-padded).
+ * @param ib      Rows in the A panel.
+ * @param kb      K-panel width.
+ * @param tile_mr Rows per micro-panel, including zero padding.
+ * @return Number of `vm_float_t` elements required (`tile_mr`-padded).
  */
-static size_t gemm_pack_a_elems(const int ib, const int kb)
+static size_t gemm_pack_a_elems(const int ib, const int kb, const int tile_mr)
 {
-    return ((size_t)((ib + VM_GEMM_MR - 1) / VM_GEMM_MR)) * (size_t)kb * VM_GEMM_MR;
+    return ((size_t)((ib + tile_mr - 1) / tile_mr)) * (size_t)kb * (size_t)tile_mr;
 }
 
 /**
  * @brief Element count for a B pack covering `jb` columns and `kb` K-steps.
  *
- * @param jb Columns in the B panel.
- * @param kb K-panel width.
- * @return Number of `vm_float_t` elements required (NR-padded).
+ * @param jb      Columns in the B panel.
+ * @param kb      K-panel width.
+ * @param tile_nr Columns per micro-panel, including zero padding.
+ * @return Number of `vm_float_t` elements required (`tile_nr`-padded).
  */
-static size_t gemm_pack_b_elems(const int jb, const int kb)
+static size_t gemm_pack_b_elems(const int jb, const int kb, const int tile_nr)
 {
-    return ((size_t)((jb + VM_GEMM_NR - 1) / VM_GEMM_NR)) * (size_t)kb * VM_GEMM_NR;
+    return ((size_t)((jb + tile_nr - 1) / tile_nr)) * (size_t)kb * (size_t)tile_nr;
 }
 
 /**
  * @brief Multiply A panels against a pre-packed B panel and store into C.
  *
- * Walks M in MC blocks, packs each A slab, runs the MR×NR micro-kernel, and
- * writes tiles. Epilogue ops run only when `last_k` is set. On thread-local
- * A-pack allocation failure, returns without updating C (no fallback).
+ * Walks M in MC blocks, packs each A slab at `tile.mr`, runs `tile.ukernel`,
+ * and writes tiles. `Bp` must already be packed at `tile.nr`. Epilogue ops
+ * run only when `last_k` is set. On thread-local A-pack allocation failure,
+ * returns without updating C (no fallback).
  *
  * @param C          Output matrix.
  * @param ldc        Leading dimension of C.
@@ -899,6 +1178,7 @@ static size_t gemm_pack_b_elems(const int jb, const int kb)
  * @param last_k     Nonzero if this is the final K panel (enable epilogue).
  * @param op         Epilogue flags applied on last K (`VM_GEMM_OP_*`).
  * @param bias       Optional bias vector for `VM_GEMM_OP_BIAS`.
+ * @param tile       Active packed tile (`mr`, `nr`, and its micro-kernel).
  */
 static void gemm_apply_packed(vm_float_t *C, const int ldc,
                                  const vm_float_t *A, const int lda,
@@ -907,34 +1187,43 @@ static void gemm_apply_packed(vm_float_t *C, const int ldc,
                                  const int ic0, const int jc, const int kc,
                                  const vm_float_t alpha, const vm_float_t beta_panel,
                                  const bool transA, const vm_layout_t layout,
-                                 const int last_k, const int op, const vm_float_t *bias)
+                                 const int last_k, const int op, const vm_float_t *bias,
+                                 const gemm_tile tile)
 {
+    const int tile_n = tile.mr * tile.nr;
+
     if (!A || !Bp) {
         return;
     }
+
     vm_float_t *Ap = gemm_ws_fit(&vm_gemm_tls.Ap, &vm_gemm_tls.cap_a,
-                                    gemm_pack_a_elems(gemm_min(VM_GEMM_MC, M), kb));
+                                 gemm_pack_a_elems(gemm_min(VM_GEMM_MC, M), kb, tile.mr));
+
     if (!Ap) {
         return;
     }
 
     for (int ic = 0; ic < M; ic += VM_GEMM_MC) {
         const int ib = gemm_min(VM_GEMM_MC, M - ic);
-        gemm_pack_a(Ap, A, lda, ic0 + ic, kc, ib, kb, transA, layout);
-        for (int jr = 0; jr < jb; jr += VM_GEMM_NR) {
-            const int nr = gemm_min(VM_GEMM_NR, jb - jr);
-            const vm_float_t *Bp_tile = Bp + (jr / VM_GEMM_NR) * (kb * VM_GEMM_NR);
-            for (int ir = 0; ir < ib; ir += VM_GEMM_MR) {
-                const int mr = gemm_min(VM_GEMM_MR, ib - ir);
-                const vm_float_t *Ap_tile = Ap + (ir / VM_GEMM_MR) * (kb * VM_GEMM_MR);
-                vm_float_t acc[VM_GEMM_MR * VM_GEMM_NR];
-                for (int t = 0; t < VM_GEMM_MR * VM_GEMM_NR; ++t) {
+        gemm_pack_a(Ap, A, lda, ic0 + ic, kc, ib, kb, transA, layout, tile.mr);
+
+        for (int jr = 0; jr < jb; jr += tile.nr) {
+            const int nr = gemm_min(tile.nr, jb - jr);
+
+            const vm_float_t *Bp_tile = Bp + (jr / tile.nr) * (kb * tile.nr);
+            for (int ir = 0; ir < ib; ir += tile.mr) {
+                const int mr = gemm_min(tile.mr, ib - ir);
+                const vm_float_t *Ap_tile = Ap + (ir / tile.mr) * (kb * tile.mr);
+
+                vm_float_t acc[VM_GEMM_MR_MAX * VM_GEMM_NR_MAX];
+                for (int t = 0; t < tile_n; ++t) {
                     acc[t] = VM_F(0.0);
                 }
-                gemm_ukernel_call(acc, Ap_tile, Bp_tile, kb);
+
+                tile.ukernel(acc, Ap_tile, Bp_tile, kb);
                 gemm_store_tile(C, ldc, acc, ic0 + ic + ir, jc + jr,
-                                   mr, nr, alpha, beta_panel, layout,
-                                   last_k ? op : VM_GEMM_OP_NONE, bias);
+                                mr, nr, tile.mr, alpha, beta_panel, layout,
+                                last_k ? op : VM_GEMM_OP_NONE, bias);
             }
         }
     }
@@ -943,9 +1232,10 @@ static void gemm_apply_packed(vm_float_t *C, const int ldc,
 /**
  * @brief Core blocked GEMM with optional bias/ReLU epilogue.
  *
- * Packs B by NC×KC panels, then applies packed A×B tiles. On allocation
- * failure falls back to `vm_gemm_ref` (without epilogue). When the product
- * is empty (alpha==0 / missing inputs / K==0), scales C and still applies op.
+ * Packs B by NC×KC panels, then applies packed A×B tiles. The panel width
+ * is the active tile from `gemm_tile_now()`. On allocation failure falls
+ * back to `vm_gemm_ref` (without epilogue). When the product is empty
+ * (alpha==0 / missing inputs / K==0), scales C and still applies op.
  *
  * @param C      Output matrix (M×N), updated in place.
  * @param ldc    Leading dimension of C.
@@ -995,32 +1285,40 @@ static void gemm_ex_body(vm_float_t *C, const int ldc,
         return;
     }
 
-    /* One MR×NR tile: pack once per K-panel, accumulate, store once. */
-    if (M <= VM_GEMM_MR && N <= VM_GEMM_NR) {
+    const gemm_tile tile = gemm_tile_now();
+    const int tile_n = tile.mr * tile.nr;
+
+    /* One tile: pack once per K-panel, accumulate, store once. */
+    if (M <= tile.mr && N <= tile.nr) {
         vm_float_t *Ap = gemm_ws_fit(&vm_gemm_tls.Ap, &vm_gemm_tls.cap_a,
-                                        gemm_pack_a_elems(M, gemm_min(VM_GEMM_KC, K)));
+                                        gemm_pack_a_elems(M, gemm_min(VM_GEMM_KC, K), tile.mr));
         vm_float_t *Bp = gemm_ws_fit(&vm_gemm_tls.Bp, &vm_gemm_tls.cap_b,
-                                        gemm_pack_b_elems(N, gemm_min(VM_GEMM_KC, K)));
+                                        gemm_pack_b_elems(N, gemm_min(VM_GEMM_KC, K), tile.nr));
+
         if (Ap && Bp) {
-            vm_float_t acc[VM_GEMM_MR * VM_GEMM_NR];
-            for (int t = 0; t < VM_GEMM_MR * VM_GEMM_NR; ++t) {
+            vm_float_t acc[VM_GEMM_MR_MAX * VM_GEMM_NR_MAX];
+            for (int t = 0; t < tile_n; ++t) {
                 acc[t] = VM_F(0.0);
             }
+
             for (int kc = 0; kc < K; kc += VM_GEMM_KC) {
                 const int kb = gemm_min(VM_GEMM_KC, K - kc);
-                gemm_pack_a(Ap, A, lda, 0, kc, M, kb, transA, layout);
-                gemm_pack_b(Bp, B, ldb, kc, 0, kb, N, transB, layout);
-                gemm_ukernel_call(acc, Ap, Bp, kb);
+                gemm_pack_a(Ap, A, lda, 0, kc, M, kb, transA, layout, tile.mr);
+                gemm_pack_b(Bp, B, ldb, kc, 0, kb, N, transB, layout, tile.nr);
+                tile.ukernel(acc, Ap, Bp, kb);
             }
-            gemm_store_tile(C, ldc, acc, 0, 0, M, N, alpha, beta, layout, op, bias);
+
+            gemm_store_tile(C, ldc, acc, 0, 0, M, N, tile.mr, alpha, beta, layout, op, bias);
+
             return;
         }
     }
 
     vm_float_t *Ap = gemm_ws_fit(&vm_gemm_tls.Ap, &vm_gemm_tls.cap_a,
-        gemm_pack_a_elems(gemm_min(VM_GEMM_MC, M),gemm_min(VM_GEMM_KC, K)));
+        gemm_pack_a_elems(gemm_min(VM_GEMM_MC, M), gemm_min(VM_GEMM_KC, K), tile.mr));
+
     vm_float_t *Bp = gemm_ws_fit(&vm_gemm_tls.Bp, &vm_gemm_tls.cap_b,
-        gemm_pack_b_elems(gemm_min(VM_GEMM_NC, N),gemm_min(VM_GEMM_KC, K)));
+        gemm_pack_b_elems(gemm_min(VM_GEMM_NC, N), gemm_min(VM_GEMM_KC, K), tile.nr));
 
     if (!Ap || !Bp) {
         vm_gemm_ref(C, ldc, A, lda, B, ldb, M, N, K, alpha, beta, transA, transB, layout);
@@ -1033,10 +1331,10 @@ static void gemm_ex_body(vm_float_t *C, const int ldc,
             const int kb = gemm_min(VM_GEMM_KC, K - kc);
             const vm_float_t beta_panel = (kc == 0) ? beta : VM_F(1.0);
             const int last_k = (kc + kb >= K);
-            gemm_pack_b(Bp, B, ldb, kc, jc, kb, jb, transB, layout);
+            gemm_pack_b(Bp, B, ldb, kc, jc, kb, jb, transB, layout, tile.nr);
             gemm_apply_packed(C, ldc, A, lda, Bp, M, jb, kb, 0, jc, kc,
                                  alpha, beta_panel, transA, layout,
-                                 last_k, op, bias);
+                                 last_k, op, bias, tile);
         }
     }
 }
@@ -1071,9 +1369,10 @@ void vm_gemm(vm_float_t *C, const int ldc,
  * @brief Batched GEMM with one shared B, packing B once per KC/NC panel.
  *
  * Heap-allocates a B pack for this batch index range. Each KC×NC panel of the
- * shared B is packed once, then applied to every item in `[begin, end)`.
- * Each item still packs its own A via thread-local workspace. On pack
- * allocation failure, falls back to per-item `vm_gemm`.
+ * shared B is packed once at the active tile's column count, then applied to
+ * every item in `[begin, end)`. Each item still packs its own A via
+ * thread-local workspace. On pack allocation failure, falls back to per-item
+ * `vm_gemm`.
  *
  * @param C      Array of `batch` output matrix pointers.
  * @param ldc    Leading dimension shared by every C[p].
@@ -1104,8 +1403,11 @@ static void gemm_batch_shared_b(vm_float_t * const *C, const int ldc,
     if (begin >= end) {
         return;
     }
+
+    const gemm_tile tile = gemm_tile_now();
     const size_t nb = gemm_pack_b_elems(gemm_min(VM_GEMM_NC, N),
-                                          gemm_min(VM_GEMM_KC, K));
+                                        gemm_min(VM_GEMM_KC, K), tile.nr);
+
     vm_float_t *Bp = (vm_float_t *)malloc(nb * sizeof(vm_float_t));
     if (!Bp) {
         for (int p = begin; p < end; ++p) {
@@ -1120,7 +1422,7 @@ static void gemm_batch_shared_b(vm_float_t * const *C, const int ldc,
         for (int kc = 0; kc < K; kc += VM_GEMM_KC) {
             const int kb = gemm_min(VM_GEMM_KC, K - kc);
             const vm_float_t beta_panel = (kc == 0) ? beta : VM_F(1.0);
-            gemm_pack_b(Bp, B, ldb, kc, jc, kb, jb, transB, layout);
+            gemm_pack_b(Bp, B, ldb, kc, jc, kb, jb, transB, layout, tile.nr);
             for (int p = begin; p < end; ++p) {
                 if (!C[p]) {
                     continue;
@@ -1128,7 +1430,7 @@ static void gemm_batch_shared_b(vm_float_t * const *C, const int ldc,
                 gemm_apply_packed(C[p], ldc, A ? A[p] : NULL, lda, Bp,
                                      M, jb, kb, 0, jc, kc,
                                      alpha, beta_panel, transA, layout,
-                                     0, VM_GEMM_OP_NONE, NULL);
+                                     0, VM_GEMM_OP_NONE, NULL, tile);
             }
         }
     }
@@ -1253,9 +1555,11 @@ void vm_gemm_strided_batch(vm_float_t *C, const int ldc, const int strideC,
         free((void *)Bp);
         return;
     }
+
     free(Cp);
     free((void *)Ap);
     free((void *)Bp);
+
     for (int p = 0; p < batch; ++p) {
         const vm_float_t *Api = A ? A + (size_t)p * (size_t)strideA : NULL;
         const vm_float_t *Bpi = B ? B + (size_t)p * (size_t)strideB : NULL;
@@ -1275,6 +1579,7 @@ void vm_im2col(vm_float_t *col, const int ld_col,
     if (!col || !img || n <= 0 || c <= 0 || h <= 0 || w <= 0 || kh <= 0 || kw <= 0) {
         return;
     }
+
     const int sh = stride_h > 0 ? stride_h : 1;
     const int sw = stride_w > 0 ? stride_w : 1;
     const int out_h = (h + 2 * pad_h - kh) / sh + 1;
@@ -1291,6 +1596,7 @@ void vm_im2col(vm_float_t *col, const int ld_col,
         const int tmp = col_j / out_w;
         const int oh = tmp % out_h;
         const int ni = tmp / out_h;
+
         for (int row = 0; row < rows; ++row) {
             const int kx = row % kw;
             const int t2 = row / kw;
@@ -1298,10 +1604,12 @@ void vm_im2col(vm_float_t *col, const int ld_col,
             const int ci = t2 / kh;
             const int ih = oh * sh + ky - pad_h;
             const int iw = ow * sw + kx - pad_w;
+
             vm_float_t v = VM_F(0.0);
             if (ih >= 0 && ih < h && iw >= 0 && iw < w) {
                 v = img[((ni * c + ci) * h + ih) * w + iw];
             }
+
             if (layout == VM_LAYOUT_ROW_MAJOR) {
                 col[row * ld_col + col_j] = v;
             } else {

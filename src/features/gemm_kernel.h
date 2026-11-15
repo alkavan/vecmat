@@ -5,13 +5,16 @@
 #ifndef VECMAT_GEMM_KERNEL_H
 #define VECMAT_GEMM_KERNEL_H
 
-/* Pack / block sizes shared by the driver and ISA micro-kernels. */
+/* Pack / block sizes shared by the driver and ISA micro-kernels.
+ * MR/NR are the default 8×8 tile. A selected tile may be larger, up to the max. */
 enum {
     VM_GEMM_MC = 128,
     VM_GEMM_NC = 128,
     VM_GEMM_KC = 128,
     VM_GEMM_MR = 8,
-    VM_GEMM_NR = 8
+    VM_GEMM_NR = 8,
+    VM_GEMM_MR_MAX = 16,
+    VM_GEMM_NR_MAX = 16
 };
 
 #endif // VECMAT_GEMM_KERNEL_H

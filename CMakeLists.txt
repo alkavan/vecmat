@@ -428,6 +428,7 @@ function(vecmat_add_float_objects name bits extra_private_defs)
                 src/simd/avx2/vector4_ptr.c
                 src/simd/avx2/matrix4_ptr.c
                 src/simd/avx2/gemm.c
+                src/simd/avx2/gemm_12x8.c
                 src/simd/avx2/sph.c
                 src/simd/avx2/batch3.c
                 src/simd/avx2/eos.c
@@ -442,6 +443,7 @@ function(vecmat_add_float_objects name bits extra_private_defs)
                 src/simd/avx2/vector4_ptr.c
                 src/simd/avx2/matrix4_ptr.c
                 src/simd/avx2/gemm.c
+                src/simd/avx2/gemm_12x8.c
                 src/simd/avx2/sph.c
                 src/simd/avx2/batch3.c
                 src/simd/avx2/eos.c
