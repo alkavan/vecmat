@@ -9,7 +9,9 @@
  * width entry points that this library build provides.
  */
 
+#if !defined(__STDC_NO_ATOMICS__)
 #include <stdatomic.h>
+#endif
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -200,14 +202,23 @@ static const vm_device_ops cpu_ops = {
 /* ---- Registry ---------------------------------------------------------- */
 
 /* Slots are written under the lock, then published by the release store of
- * the count, so readers need only an acquire load and no lock. */
+ * the count, so readers need only an acquire load and no lock. Without
+ * C11 atomics the count is a plain int, as in cpu.c. */
 static vm_device devices[VM_DEVICE_MAX] = { { &cpu_ops, NULL } };
+#if !defined(__STDC_NO_ATOMICS__)
 static atomic_int device_count = 1;
 static atomic_flag device_lock = ATOMIC_FLAG_INIT;
+#else
+static int device_count = 1;
+#endif
 
 int vm_device_count(void)
 {
+#if !defined(__STDC_NO_ATOMICS__)
     return atomic_load_explicit(&device_count, memory_order_acquire);
+#else
+    return device_count;
+#endif
 }
 
 vm_device *vm_device_get(const int index)
@@ -240,10 +251,14 @@ int vm_device_register(const vm_device_ops *ops, void *ctx)
     if (!info.name || info.name[0] == '\0')
         return VM_DEVICE_ERR_INVAL;
 
+#if !defined(__STDC_NO_ATOMICS__)
     while (atomic_flag_test_and_set_explicit(&device_lock, memory_order_acquire)) {
         /* spin; registration is rare and short */
     }
     n = atomic_load_explicit(&device_count, memory_order_relaxed);
+#else
+    n = device_count;
+#endif
     for (int i = 0; i < n; ++i) {
         vm_device_info other;
         if (devices[i].ops == ops && devices[i].ctx == ctx)
@@ -260,9 +275,15 @@ int vm_device_register(const vm_device_ops *ops, void *ctx)
     }
     devices[n].ops = ops;
     devices[n].ctx = ctx;
+#if !defined(__STDC_NO_ATOMICS__)
     atomic_store_explicit(&device_count, n + 1, memory_order_release);
+#else
+    device_count = n + 1;
+#endif
 out:
+#if !defined(__STDC_NO_ATOMICS__)
     atomic_flag_clear_explicit(&device_lock, memory_order_release);
+#endif
     return status;
 }
 
