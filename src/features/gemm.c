@@ -1194,6 +1194,8 @@ static size_t gemm_pack_b_elems(const int jb, const int kb, const int tile_nr)
  * @param op         Epilogue flags applied on last K (`VM_GEMM_OP_*`).
  * @param bias       Optional bias vector for `VM_GEMM_OP_BIAS`.
  * @param tile       Active packed tile (`mr`, `nr`, and its micro-kernel).
+ * @param Ap_slabs   Packed A for this whole M, one MC slab after another.
+ *                   NULL packs each slab into the thread-local buffer.
  */
 static void gemm_apply_packed(vm_float_t *C, const int ldc,
                                  const vm_float_t *A, const int lda,
@@ -1203,24 +1205,34 @@ static void gemm_apply_packed(vm_float_t *C, const int ldc,
                                  const vm_float_t alpha, const vm_float_t beta_panel,
                                  const bool transA, const vm_layout_t layout,
                                  const int last_k, const int op, const vm_float_t *bias,
-                                 const gemm_tile tile)
+                                 const gemm_tile tile, const vm_float_t *Ap_slabs)
 {
     const int tile_n = tile.mr * tile.nr;
 
-    if (!A || !Bp) {
+    if ((!A && !Ap_slabs) || !Bp) {
         return;
     }
 
-    vm_float_t *Ap = gemm_ws_fit(&vm_gemm_tls.Ap, &vm_gemm_tls.cap_a,
-                                 gemm_pack_a_elems(gemm_min(VM_GEMM_MC, M), kb, tile.mr));
-
-    if (!Ap) {
-        return;
+    vm_float_t *Ap = NULL;
+    if (!Ap_slabs) {
+        Ap = gemm_ws_fit(&vm_gemm_tls.Ap, &vm_gemm_tls.cap_a,
+                         gemm_pack_a_elems(gemm_min(VM_GEMM_MC, M), kb, tile.mr));
+        if (!Ap) {
+            return;
+        }
     }
 
+    const vm_float_t *slab = Ap_slabs;
     for (int ic = 0; ic < M; ic += VM_GEMM_MC) {
         const int ib = gemm_min(VM_GEMM_MC, M - ic);
-        gemm_pack_a(Ap, A, lda, ic0 + ic, kc, ib, kb, transA, layout, tile.mr);
+        const vm_float_t *Ap_use;
+        if (Ap_slabs) {
+            Ap_use = slab;
+            slab += gemm_pack_a_elems(ib, kb, tile.mr);
+        } else {
+            gemm_pack_a(Ap, A, lda, ic0 + ic, kc, ib, kb, transA, layout, tile.mr);
+            Ap_use = Ap;
+        }
 
         for (int jr = 0; jr < jb; jr += tile.nr) {
             const int nr = gemm_min(tile.nr, jb - jr);
@@ -1228,7 +1240,7 @@ static void gemm_apply_packed(vm_float_t *C, const int ldc,
             const vm_float_t *Bp_tile = Bp + (jr / tile.nr) * (kb * tile.nr);
             for (int ir = 0; ir < ib; ir += tile.mr) {
                 const int mr = gemm_min(tile.mr, ib - ir);
-                const vm_float_t *Ap_tile = Ap + (ir / tile.mr) * (kb * tile.mr);
+                const vm_float_t *Ap_tile = Ap_use + (ir / tile.mr) * (kb * tile.mr);
 
                 vm_float_t acc[VM_GEMM_MR_MAX * VM_GEMM_NR_MAX];
                 for (int t = 0; t < tile_n; ++t) {
@@ -1247,7 +1259,9 @@ static void gemm_apply_packed(vm_float_t *C, const int ldc,
 /**
  * @brief Core blocked GEMM with optional bias/ReLU epilogue.
  *
- * Packs B by NC×KC panels, then applies packed A×B tiles. The panel width
+ * Packs B by NC×KC panels, then applies packed A×B tiles. When N spans more
+ * than one NC panel and one KC slice of packed A fits in `VM_GEMM_PACK_CACHE`,
+ * that slice is packed once and reused across the NC panels. The panel width
  * is the active tile from `gemm_tile_now()`. On allocation failure falls
  * back to `vm_gemm_ref` (without epilogue). When the product is empty
  * (alpha==0 / missing inputs / K==0), scales C and still applies op.
@@ -1340,16 +1354,52 @@ static void gemm_ex_body(vm_float_t *C, const int ldc,
         return;
     }
 
-    for (int jc = 0; jc < N; jc += VM_GEMM_NC) {
-        const int jb = gemm_min(VM_GEMM_NC, N - jc);
+    size_t a_slice = 0;
+    const int kb_span = gemm_min(VM_GEMM_KC, K);
+    for (int ic = 0; ic < M; ic += VM_GEMM_MC) {
+        a_slice += gemm_pack_a_elems(gemm_min(VM_GEMM_MC, M - ic), kb_span, tile.mr);
+    }
+    const int reuse_a = N > VM_GEMM_NC
+        && a_slice * sizeof(vm_float_t) <= (size_t)VM_GEMM_PACK_CACHE;
+
+    /* One KC slice of A is packed once and reused across NC panels when the
+       slice fits in 4 MiB. Larger shapes keep the old loop. */
+    if (reuse_a) {
+        vm_float_t *Ap_all = gemm_ws_fit(&vm_gemm_tls.Ap, &vm_gemm_tls.cap_a, a_slice);
+        if (!Ap_all) {
+            vm_gemm_ref(C, ldc, A, lda, B, ldb, M, N, K, alpha, beta, transA, transB, layout);
+            return;
+        }
         for (int kc = 0; kc < K; kc += VM_GEMM_KC) {
             const int kb = gemm_min(VM_GEMM_KC, K - kc);
             const vm_float_t beta_panel = (kc == 0) ? beta : VM_F(1.0);
             const int last_k = (kc + kb >= K);
-            gemm_pack_b(Bp, B, ldb, kc, jc, kb, jb, transB, layout, tile.nr);
-            gemm_apply_packed(C, ldc, A, lda, Bp, M, jb, kb, 0, jc, kc,
-                                 alpha, beta_panel, transA, layout,
-                                 last_k, op, bias, tile);
+            vm_float_t *cursor = Ap_all;
+            for (int ic = 0; ic < M; ic += VM_GEMM_MC) {
+                const int ib = gemm_min(VM_GEMM_MC, M - ic);
+                gemm_pack_a(cursor, A, lda, ic, kc, ib, kb, transA, layout, tile.mr);
+                cursor += gemm_pack_a_elems(ib, kb, tile.mr);
+            }
+            for (int jc = 0; jc < N; jc += VM_GEMM_NC) {
+                const int jb = gemm_min(VM_GEMM_NC, N - jc);
+                gemm_pack_b(Bp, B, ldb, kc, jc, kb, jb, transB, layout, tile.nr);
+                gemm_apply_packed(C, ldc, A, lda, Bp, M, jb, kb, 0, jc, kc,
+                                     alpha, beta_panel, transA, layout,
+                                     last_k, op, bias, tile, Ap_all);
+            }
+        }
+    } else {
+        for (int jc = 0; jc < N; jc += VM_GEMM_NC) {
+            const int jb = gemm_min(VM_GEMM_NC, N - jc);
+            for (int kc = 0; kc < K; kc += VM_GEMM_KC) {
+                const int kb = gemm_min(VM_GEMM_KC, K - kc);
+                const vm_float_t beta_panel = (kc == 0) ? beta : VM_F(1.0);
+                const int last_k = (kc + kb >= K);
+                gemm_pack_b(Bp, B, ldb, kc, jc, kb, jb, transB, layout, tile.nr);
+                gemm_apply_packed(C, ldc, A, lda, Bp, M, jb, kb, 0, jc, kc,
+                                     alpha, beta_panel, transA, layout,
+                                     last_k, op, bias, tile, NULL);
+            }
         }
     }
 }
@@ -1445,7 +1495,7 @@ static void gemm_batch_shared_b(vm_float_t * const *C, const int ldc,
                 gemm_apply_packed(C[p], ldc, A ? A[p] : NULL, lda, Bp,
                                      M, jb, kb, 0, jc, kc,
                                      alpha, beta_panel, transA, layout,
-                                     0, VM_GEMM_OP_NONE, NULL, tile);
+                                     0, VM_GEMM_OP_NONE, NULL, tile, NULL);
             }
         }
     }

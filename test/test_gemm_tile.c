@@ -80,6 +80,17 @@ static void ukernel_6x2(vm_float_t *acc, const vm_float_t *Ap, const vm_float_t 
     }
 }
 
+TEST_CASE(vm_gemm_pack_reuse_matches_ref, "[gemm]")
+{
+    vm_gemm_tile_select(0, 0);
+    /* N > NC and the KC slice of A fits in VM_GEMM_PACK_CACHE. */
+    tile_check(160, 300, 200, VM_F(1.25), VM_F(0.5), false, false, VM_LAYOUT_ROW_MAJOR);
+    tile_check(160, 300, 200, VM_F(-0.5), VM_F(1.0), true, false, VM_LAYOUT_COL_MAJOR);
+    tile_check(96, 180, 40, VM_F(1.5), VM_F(-0.25), false, true, VM_LAYOUT_ROW_MAJOR);
+    /* Slice is larger than the 4 MiB ceiling, so A is packed per NC panel. */
+    tile_check(8448, 160, 128, VM_F(1.0), VM_F(0.25), false, false, VM_LAYOUT_ROW_MAJOR);
+}
+
 TEST_CASE(vm_gemm_tile_scalar_4x4, "[gemm]")
 {
     int mr = 0, nr = 0;
