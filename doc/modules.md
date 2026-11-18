@@ -7,8 +7,8 @@ That checkout may be a git submodule; it is optional. If the repository is
 checked out elsewhere, pass its path in `VECMAT_MODULES_PATH`. Private
 modules are loaded the same way from their own tree.
 
-The loader accepts three kinds: `backend`, `width`, and `feature`. A missing
-`module.cmake`, or any other kind, is `Unknown Vecmat module`.
+The loader accepts four kinds: `backend`, `width`, `feature`, and `device`.
+A missing `module.cmake`, or any other kind, is `Unknown Vecmat module`.
 
 ## Kinds
 
@@ -17,18 +17,19 @@ The loader accepts three kinds: `backend`, `width`, and `feature`. A missing
 | `backend` | Registers a complete `_ptr` table with `vm_backend_register()`. A schedule.    | `VECMAT_MODULE_HOOKS`, register includes and calls.                                     |
 | `width`   | Overrides a slot on a core width such as fp16. Does not fill `vm_backend_ops`. | That width's lists (`VECMAT_FP16_MODULE_HOOKS`, ...).                                   |
 | `feature` | Domain helpers. Contributes sources and headers. Does not register.            | `VECMAT_MODULE_HOOKS` (sources), optionally test/bench sources. Not the register lists. |
+| `device`  | GPU, NPU, or accelerator. Registers with `vm_device_register()`.              | Its own library. Not `VECMAT_MODULE_HOOKS` or a backend register list.                  |
 
 A backend owns identity, extra HWCAP bits, and the tuned kernels. There is
 no `vm_cpu_part()` in the base library: the backend probes, then registers
 `VM_CPU_BACKEND`. A width module does not register a backend. The core owns
 the storage type; the module only overrides a slot. See `doc/fp16.md`.
+Backend and width headers are standalone `include/vecmat_*.h` files.
 
 A `feature` module contributes sources via `VECMAT_MODULE_HOOKS` (the same
 hook the float object libraries call) and may append
 `VECMAT_MODULE_TEST_SOURCES` / `VECMAT_MODULE_BENCH_SOURCES`. It must not
-append to a backend or width register list. No feature module ships in
-0.3.x; the kind exists so 0.4.x can land domain helpers without another
-loader change.
+append to a backend or width register list. Its public header is
+`include/vecmat/feature/<name>.h`, included as `<vecmat/feature/<name>.h>`.
 
 ## Layout
 
@@ -71,6 +72,47 @@ vendors/arm/fp16
     └── register.c
 ```
 
+A `feature` module:
+
+```
+vendors/alkontek/spectral-graph
+├── doc
+│   └── spectral-graph.md
+├── include
+│   └── vecmat
+│       └── feature
+│           └── spectral_graph.h
+├── module.cmake
+└── src
+    ├── bitset.c
+    ├── laplacian.c
+    └── unrank.c
+```
+
+Callers include that header as `<vecmat/feature/spectral_graph.h>`.
+
+A `device` module is a GPU, NPU, or accelerator. It uses the
+[device API](device.md) (`vm_device_register`). It does not fill
+`vm_backend_ops`, and it must not append `VECMAT_MODULE_HOOKS` or a
+backend register list. It builds its own library.
+
+`nvidia/ga10x`:
+
+```
+vendors/nvidia/ga10x
+├── doc
+│   └── ga10x.md
+├── include
+│   └── vecmat_nvidia_ga10x.h
+├── module.cmake
+└── src
+    ├── ga10x.cu
+    └── register.c
+```
+
+`module.cmake` sets `device` and builds `vecmat_nvidia_ga10x`. The
+module's register function calls `vm_device_register`.
+
 ## Build
 
 Empty `VECMAT_MODULES` is the default. With `vendors/` checked out under
@@ -100,6 +142,12 @@ If the modules are elsewhere, add `-DVECMAT_MODULES_PATH=../vecmat-vendors`.
   Those lists are consumed only by that width's object lib. The module's
   own `module.cmake` errors if that width's switch is off. A width module
   must not append to the backend lists; the loader rejects that.
+- `feature`: `VECMAT_MODULE_HOOKS`, and optionally
+  `VECMAT_MODULE_TEST_HOOKS`, `VECMAT_MODULE_TEST_SOURCES`,
+  `VECMAT_MODULE_BENCH_SOURCES`. Not the backend or width register lists.
+- `device`: its own library, and optionally the test and bench lists.
+  Not `VECMAT_MODULE_HOOKS` and not a backend register list.
+  The loader rejects those lists. Width lists stay with width modules.
 
 Test and bench sources live in the vendor tree. The mains do not include a
 module header. `VECMAT_MODULE_TEST_HOOKS` runs after the test targets exist
@@ -155,8 +203,8 @@ backend descriptor may come later.
 **RISC-V Vector (RVV)** will be one new bit (`VM_CPU_RVV`, bit 24) and one
 `VM_LEVEL_RVV` row in the ladder.
 
-**GPUs**, **NPUs**, **Accelerators** are using the [device API](device.md),
-never a CPU feature bit or a `vm_backend_ops` table.
+**GPUs**, **NPUs**, and **accelerators** use the [device API](device.md)
+(`vm_device_register`), never a CPU feature bit or a `vm_backend_ops` table.
 
 ## Backend registration
 
@@ -245,11 +293,20 @@ the test target defines `VECMAT_USE_F64`.
 
 1. Add `vendors/<vendor>/<name>/` with `module.cmake`, `include/`, `src/`,
    and `doc/<name>.md`.
-2. In `module.cmake`, set `VECMAT_MODULE_KIND` to `backend` or `width`.
+2. In `module.cmake`, set `VECMAT_MODULE_KIND` to `backend`, `width`,
+   `feature`, or `device`.
 3. Append the lists for that kind. Do not add an `#ifdef` to
    `test/test_main.c` or `test/bench_main.c`.
-4. For a backend: probe in the module, not in `src/features/cpu.c`. Build
+4. For a `feature`: put the public header at
+   `include/vecmat/feature/<name>.h` and append `VECMAT_MODULE_HOOKS`.
+   Do not append a backend or width register list.
+5. For a backend: probe in the module, not in `src/features/cpu.c`. Build
    the ops table from `vm_backend_builtin()` plus overrides. Pass
    `VM_CPU_BACKEND` unless the schedule is one of the existing ISA bits.
-5. Document the register call and any `VECMAT_FORCE_*` knobs in the
+   The public header stays `include/vecmat_*.h`.
+6. For a `device`: set `VECMAT_MODULE_KIND` to `device`, build a separate
+   library, and do not append `VECMAT_MODULE_HOOKS` or a backend register
+   list. Register with `vm_device_register`. Do not fill `vm_backend_ops`.
+   See `nvidia/ga10x`.
+7. Document the register call and any `VECMAT_FORCE_*` knobs in the
    module's own doc.

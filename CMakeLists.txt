@@ -70,8 +70,8 @@ option(VECMAT_ENABLE_BF16 "bfloat16 width" OFF)
 
 # Optional modules. Empty by default, so they are not part of the shipped
 # library. An entry is a path under vendors/ (recommended) or
-# VECMAT_MODULES_PATH, e.g. arm/fp16. A module is a backend, a width, or a
-# feature. vendors/ may be a submodule; it is optional. Public modules live
+# VECMAT_MODULES_PATH, e.g. arm/fp16. A module is a backend, a width, a feature,
+# or a device. vendors/ may be a submodule; it is optional. Public modules live
 # in the vecmat-vendors repository.
 set(VECMAT_MODULES "" CACHE STRING
     "Optional modules to build (e.g. arm/fp16). See doc/modules.md.")
@@ -131,11 +131,21 @@ foreach(_vecmat_mod IN LISTS VECMAT_MODULES)
                 "Feature module '${_vecmat_mod}' appended to a backend register list. "
                 "Feature modules do not register.")
         endif()
+    elseif(VECMAT_MODULE_KIND STREQUAL "device")
+        # Own library and vm_device_register(). Not a CPU backend.
+        if(NOT VECMAT_MODULE_HOOKS STREQUAL _vecmat_backend_hooks
+                OR NOT VECMAT_MODULE_REGISTER_INCLUDES STREQUAL _vecmat_backend_includes
+                OR NOT VECMAT_MODULE_REGISTER_CALLS STREQUAL _vecmat_backend_calls)
+            message(FATAL_ERROR
+                "Device module '${_vecmat_mod}' appended to VECMAT_MODULE_HOOKS "
+                "or a backend register list. "
+                "Build a separate library and call vm_device_register().")
+        endif()
     else()
         message(FATAL_ERROR
             "Unknown Vecmat module '${_vecmat_mod}' "
             "(module.cmake set VECMAT_MODULE_KIND='${VECMAT_MODULE_KIND}', "
-            "expected 'backend', 'width', or 'feature')")
+            "expected 'backend', 'width', 'feature', or 'device')")
     endif()
 endforeach()
 file(WRITE "${CMAKE_BINARY_DIR}/vecmat_module_register.c"
