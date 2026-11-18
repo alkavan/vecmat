@@ -3,12 +3,11 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include <stdlib.h>
-#include "features/abi_int_once.h"
 
 #include <vecmat.h>
 
-/* Integer-only: one copy (see features/abi_int_once.h). */
-#if VECMAT_INT_ONCE
+/* Integer-only: one copy. Skipped on the f64 replica when ABI 32 is built. */
+#ifndef VECMAT_ABI_REPLICA
 
 void vec4i_add_ptr(vector4i *res, const vector4i *a, const vector4i *b)
 {
@@ -201,7 +200,7 @@ void vec4i_wrap_ptr(vector4i *res, const vector4i *v, const vector4i *period)
     res->w = mod_floor4(v->w, period->w);
 }
 
-#endif /* VECMAT_INT_ONCE */
+#endif /* VECMAT_ABI_REPLICA */
 
 /* Uses vm_float_t: compiled per ABI width (name32 / name64). */
 

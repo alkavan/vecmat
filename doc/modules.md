@@ -225,8 +225,10 @@ A vendor float entry point uses `VECMAT_SYMBOL`. It pastes `32` or `64`
 with the same rule as `include/vecmat/abi.h`: `VECMAT_ABI_BITS` when the
 library object sets it, otherwise `VECMAT_USE_F64`, otherwise `32`.
 
-When ABI 32 is also built, the f64 object libraries define `VECMAT_ABI_REPLICA`
-so integer vendor sources can skip their unsuffixed symbols.
+When ABI 32 is also built, the f64 object libraries define `VECMAT_ABI_REPLICA`.
+Integer bodies compile when it is unset and are skipped on that replica.
+A function that takes or returns `vm_float_t` stays outside the guard and uses
+`VECMAT_SYMBOL`.
 
 ### The `cortex-a5x` module
 

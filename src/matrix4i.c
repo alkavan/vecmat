@@ -3,10 +3,8 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include <vecmat.h>
-#include "features/abi_int_once.h"
-
-/* Integer-only: one copy (see features/abi_int_once.h). */
-#if VECMAT_INT_ONCE
+/* Integer-only: one copy. Skipped on the f64 replica when ABI 32 is built. */
+#ifndef VECMAT_ABI_REPLICA
 
 matrix4i mat4i_identity(void)
 {
@@ -60,7 +58,7 @@ vector3i mat4i_mul_vec3i(const matrix4i m, const vector3i v, const vm_int_t w)
     return res;
 }
 
-#endif /* VECMAT_INT_ONCE */
+#endif /* VECMAT_ABI_REPLICA */
 
 /* Divides through vm_float_t: compiled per ABI width (name32 / name64). */
 
