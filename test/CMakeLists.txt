@@ -115,6 +115,9 @@ add_executable(vecmat_benchmarks
         bench_reduce.c
         ${VECMAT_MODULE_BENCH_SOURCES}
 )
+if(VECMAT_EXPERIMENTAL)
+    target_sources(vecmat_benchmarks PRIVATE bench_quat_hamilton.c)
+endif()
 if(VECMAT_USE_F64)
     target_compile_definitions(vecmat_benchmarks PRIVATE VECMAT_USE_F64)
 endif()
