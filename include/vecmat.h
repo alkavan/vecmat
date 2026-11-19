@@ -91,4 +91,8 @@
 #include "vecmat/sparse.h"
 #include "vecmat/ode.h"
 
+#ifdef VECMAT_EXPERIMENTAL
+#include "vecmat/x_quat_hamilton.h"
+#endif
+
 #endif //VECMAT_H

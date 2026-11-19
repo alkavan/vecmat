@@ -58,6 +58,10 @@ if(VECMAT_USE_F64)
     target_compile_definitions(vecmat_tests PRIVATE VECMAT_USE_F64)
 endif()
 
+if(VECMAT_EXPERIMENTAL)
+    target_sources(vecmat_tests PRIVATE test_quat_hamilton.c)
+endif()
+
 if(MSVC)
     target_link_libraries(vecmat_tests PRIVATE vecmat_static)
 else()

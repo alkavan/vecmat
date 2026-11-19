@@ -305,7 +305,9 @@ set(VECMAT_FLOAT_SOURCES
 )
 
 # Not part of VECMAT_FLOAT_SOURCES. Compiled only with VECMAT_EXPERIMENTAL=ON.
-set(VECMAT_EXPERIMENTAL_SOURCES)
+set(VECMAT_EXPERIMENTAL_SOURCES
+        src/features/x_quat_hamilton.c
+)
 
 add_library(vecmat_shared SHARED ${VECMAT_COMMON_SOURCES})
 add_library(vecmat_static STATIC ${VECMAT_COMMON_SOURCES})
