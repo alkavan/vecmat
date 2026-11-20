@@ -310,7 +310,7 @@ VEC_API void vm_mac_grad(vm_float_t *gu, vm_float_t *gv, vm_float_t *gw, const v
 VEC_API void vm_mac_curl_z(vm_float_t *cz, const vm_float_t *u, const vm_float_t *v, vm_grid3 g);
 
 /**
- * @brief Lumped acceleration scale \(a = f / m\).
+ * @brief Lumped acceleration scale \f$a = f / m\f$.
  *
  * Force and acceleration are interleaved, `n` nodes by `dim` components.
  * Mass is per node. `m[i] > 0` is required.
@@ -326,7 +326,7 @@ VEC_API bool vm_lumped_accel(vm_float_t *a, const vm_float_t *f,
                              const vm_float_t *m, int n, int dim);
 
 /**
- * @brief Rayleigh damping saxpy, \(f -= \alpha m v + \beta f_{int}\).
+ * @brief Rayleigh damping saxpy, \f$f -= \alpha m v + \beta f_{int}\f$.
  *
  * Component-wise over interleaved arrays. `f_int` may be NULL.
  *

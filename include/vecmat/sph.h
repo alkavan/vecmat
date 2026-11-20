@@ -10,7 +10,7 @@
  * @brief SPH kernels and per-particle discretizations.
  * @ingroup vecmat_extras
  *
- * Cubic spline and Wendland C2, both supported on \(r < 2h\) and normalized
+ * Cubic spline and Wendland C2, both supported on \f$r < 2h\f$ and normalized
  * so the integral is 1. Neighbor lists are arrays of indices. A uniform
  * linked-cell bin and a CSR neighbor build sit next to the kernels; the
  * caller owns every buffer.
@@ -28,7 +28,7 @@ typedef enum {
 } vm_sph_kernel_t;
 
 /**
- * @brief Kernel value \(W(r, h)\).
+ * @brief Kernel value \f$W(r, h)\f$.
  *
  * @param r Separation.
  * @param h Smoothing length.
@@ -39,18 +39,18 @@ typedef enum {
 VEC_API vm_float_t vm_sph_w(vm_float_t r, vm_float_t h, int dim, int kernel);
 
 /**
- * @brief Radial derivative \(dW/dr\).
+ * @brief Radial derivative \f$dW/dr\f$.
  *
  * @param r Separation.
  * @param h Smoothing length.
  * @param dim Dimension, 1, 2, or 3.
  * @param kernel `VM_SPH_CUBIC` or `VM_SPH_WENDLAND`.
- * @return Radial derivative. Zero at \(r = 0\).
+ * @return Radial derivative. Zero at \f$r = 0\f$.
  */
 VEC_API vm_float_t vm_sph_dw(vm_float_t r, vm_float_t h, int dim, int kernel);
 
 /**
- * @brief Density sum \(\rho_i = m_i W(0, h) + \sum_j m_j W_{ij}\).
+ * @brief Density sum \f$\rho_i = m_i W(0, h) + \sum_j m_j W_{ij}\f$.
  *
  * An empty neighbor list returns the self term only. `z` may be NULL in 1-D
  * and 2-D.
@@ -75,7 +75,7 @@ VEC_API vm_float_t vm_sph_density(const vm_float_t *x, const vm_float_t *y,
 /**
  * @brief Symmetric pressure gradient.
  *
- * \(\sum_j m_j (p_i/\rho_i^2 + p_j/\rho_j^2) \nabla W_{ij}\).
+ * \f$\sum_j m_j (p_i/\rho_i^2 + p_j/\rho_j^2) \nabla W_{ij}\f$.
  *
  * @param gx Output x component.
  * @param gy Output y component.
@@ -102,7 +102,7 @@ VEC_API bool vm_sph_pressure_grad(vm_float_t *gx, vm_float_t *gy, vm_float_t *gz
                                   vm_float_t h, int dim, int kernel);
 
 /**
- * @brief Continuity rate \(d\rho_i/dt = \sum_j m_j (v_i - v_j)\cdot\nabla W_{ij}\).
+ * @brief Continuity rate \f$d\rho_i/dt = \sum_j m_j (v_i - v_j)\cdot\nabla W_{ij}\f$.
  *
  * No self term. An empty neighbor list returns 0. This is the rate; the
  * caller integrates it.
@@ -119,9 +119,9 @@ VEC_API vm_float_t vm_sph_continuity(const vm_float_t *x, const vm_float_t *y,
 /**
  * @brief Laminar viscosity acceleration (Morris form).
  *
- * \(a_i = \sum_j m_j \frac{\mu_i+\mu_j}{\rho_i\rho_j}
- *        \frac{(v_i-v_j)\cdot r_{ij}}{r_{ij}^2+(\eta h)^2}\nabla_i W_{ij}\).
- * Add the result to \(dv/dt\). `eta` is the dimensionless floor; 0 is allowed.
+ * \f$a_i = \sum_j m_j \frac{\mu_i+\mu_j}{\rho_i\rho_j}
+ *        \frac{(v_i-v_j)\cdot r_{ij}}{r_{ij}^2+(\eta h)^2}\nabla_i W_{ij}\f$.
+ * Add the result to \f$dv/dt\f$. `eta` is the dimensionless floor; 0 is allowed.
  *
  * @return false if a required pointer is NULL, `h` is non-positive, or a
  * density is non-positive.
@@ -137,15 +137,23 @@ VEC_API bool vm_sph_viscosity(vm_float_t *ax, vm_float_t *ay, vm_float_t *az,
                               vm_float_t h, vm_float_t eta, int dim, int kernel);
 
 /**
- * @brief Monaghan pair artificial viscosity \(\Pi_{ij}\).
+ * @brief Monaghan pair artificial viscosity \f$\Pi_{ij}\f$.
  *
- * \(\mu_{ij} = h(v\cdot r)/(r^2+(\eta h)^2)\).
- * \(\Pi = (-\alpha \bar c\,\mu + \beta\mu^2)/\bar\rho\) when
- * \(v\cdot r < 0\), else 0. \(\bar c\) and \(\bar\rho\) are arithmetic
+ * \f$\mu_{ij} = h(v\cdot r)/(r^2+(\eta h)^2)\f$.
+ * \f$\Pi = (-\alpha \bar c\,\mu + \beta\mu^2)/\bar\rho\f$ when
+ * \f$v\cdot r < 0\f$, else 0. \f$\bar c\f$ and \f$\bar\rho\f$ are arithmetic
  * means. This is the pair term; `vm_hydro_q` is the grid form.
  *
  * @param r Separation, non-negative.
- * @param v_dot_r \((v_i-v_j)\cdot(x_i-x_j)\).
+ * @param v_dot_r \f$(v_i-v_j)\cdot(x_i-x_j)\f$.
+ * @param rho_i Density of particle `i`.
+ * @param rho_j Density of particle `j`.
+ * @param c_i Sound speed of particle `i`.
+ * @param c_j Sound speed of particle `j`.
+ * @param h Smoothing length.
+ * @param alpha Linear viscosity coefficient.
+ * @param beta Quadratic viscosity coefficient.
+ * @param eta Dimensionless floor on the separation; 0 is allowed.
  * @return The pair term. Zero in expansion or on invalid input.
  */
 VEC_API vm_float_t vm_sph_pi(vm_float_t r, vm_float_t v_dot_r,
@@ -155,9 +163,9 @@ VEC_API vm_float_t vm_sph_pi(vm_float_t r, vm_float_t v_dot_r,
                              vm_float_t eta);
 
 /**
- * @brief Artificial-viscosity acceleration \(a_i = -\sum_j m_j\Pi_{ij}\nabla_i W_{ij}\).
+ * @brief Artificial-viscosity acceleration \f$a_i = -\sum_j m_j\Pi_{ij}\nabla_i W_{ij}\f$.
  *
- * Add the result to \(dv/dt\). Uses `vm_sph_pi`.
+ * Add the result to \f$dv/dt\f$. Uses `vm_sph_pi`.
  *
  * @return false on invalid input or a non-positive density.
  */
@@ -193,7 +201,7 @@ VEC_API bool vm_sph_forces(vm_float_t *gx, vm_float_t *gy, vm_float_t *gz,
                            vm_float_t eta, int dim, int kernel);
 
 /**
- * @brief XSPH velocity correction \(\delta v_i = \varepsilon\sum_j (m_j/\rho_j)(v_j-v_i)W_{ij}\).
+ * @brief XSPH velocity correction \f$\delta v_i = \varepsilon\sum_j (m_j/\rho_j)(v_j-v_i)W_{ij}\f$.
  *
  * Add the result to the velocity. `epsilon` is the filter strength.
  *
@@ -211,10 +219,10 @@ VEC_API bool vm_sph_xsph(vm_float_t *dvx, vm_float_t *dvy, vm_float_t *dvz,
 /**
  * @brief Tensile-instability correction (Monaghan).
  *
- * \(f_{ij} = W(r_{ij})/W(\Delta)\), \(R = \varepsilon|p|/\rho^2\) when
- * \(p < 0\), else 0. Returns
- * \(a_i = -\sum_j m_j(R_i+R_j) f_{ij}^{n}\nabla_i W_{ij}\).
- * Add the result to \(dv/dt\). `delta` is the reference spacing; `nexp` is
+ * \f$f_{ij} = W(r_{ij})/W(\Delta)\f$, \f$R = \varepsilon|p|/\rho^2\f$ when
+ * \f$p < 0\f$, else 0. Returns
+ * \f$a_i = -\sum_j m_j(R_i+R_j) f_{ij}^{n}\nabla_i W_{ij}\f$.
+ * Add the result to \f$dv/dt\f$. `delta` is the reference spacing; `nexp` is
  * the exponent (4 is the usual choice).
  *
  * @return false on invalid input, a non-positive density, or `W(delta) == 0`.
@@ -233,7 +241,7 @@ VEC_API bool vm_sph_tensile(vm_float_t *ax, vm_float_t *ay, vm_float_t *az,
  *
  * `n` is a unit normal pointing into the fluid. `gap = (p - q) \cdot n`.
  * For `0 < gap < cutoff`,
- * \(a = s\big((c/g)^4 - (c/g)^2\big) n\); otherwise 0. One particle, one
+ * \f$a = s\big((c/g)^4 - (c/g)^2\big) n\f$; otherwise 0. One particle, one
  * plane; the caller loops.
  *
  * @return false if an output pointer is NULL or `cutoff` is non-positive.
@@ -247,11 +255,23 @@ VEC_API bool vm_sph_wall(vm_float_t *ax, vm_float_t *ay, vm_float_t *az,
 /**
  * @brief Repulsive acceleration from boundary particles.
  *
- * For each boundary index with \(r < r_0\),
- * \(a \mathrel{+}= m_j s\big((r_0/r)^4-(r_0/r)^2\big) r_{ij}/r^2\).
- * Add the result to \(dv/dt\).
+ * For each boundary index with \f$r < r_0\f$,
+ * \f$a \mathrel{+}= m_j s\big((r_0/r)^4-(r_0/r)^2\big) r_{ij}/r^2\f$.
+ * Add the result to \f$dv/dt\f$.
  *
+ * @param ax Output x acceleration.
+ * @param ay Output y acceleration.
+ * @param az Output z acceleration; may be NULL below 3-D.
+ * @param x Particle x coordinates.
+ * @param y Particle y coordinates, or NULL below 2-D.
+ * @param z Particle z coordinates, or NULL below 3-D.
+ * @param m Particle masses.
+ * @param i Index of the particle.
  * @param boundary Boundary-particle indices; length `nb`.
+ * @param nb Number of boundary indices.
+ * @param r0 Cutoff radius. Must be positive.
+ * @param strength Repulsion scale.
+ * @param dim Dimension, 1, 2, or 3.
  * @return false on invalid input.
  */
 VEC_API bool vm_sph_boundary(vm_float_t *ax, vm_float_t *ay, vm_float_t *az,
@@ -328,6 +348,12 @@ VEC_API int vm_sph_prefix(int *offsets, const int *counts, int n);
  * @param cell_of Output cell per particle; length `n`.
  * @param cell_offsets Output; length `vm_sph_ncells(g) + 1`.
  * @param cell_particles Output; length `n`.
+ * @param x Particle x coordinates; length `n`.
+ * @param y Particle y coordinates, or NULL below 2-D.
+ * @param z Particle z coordinates, or NULL below 3-D.
+ * @param n Number of particles.
+ * @param g Grid.
+ * @param dim Dimension, 1, 2, or 3.
  * @return false on invalid input.
  */
 VEC_API bool vm_sph_bin(int *cell_of, int *cell_offsets, int *cell_particles,
@@ -343,7 +369,15 @@ VEC_API bool vm_sph_bin(int *cell_of, int *cell_offsets, int *cell_particles,
  * a count of 0.
  *
  * @param nn Output counts; length `n`.
+ * @param x Particle x coordinates; length `n`.
+ * @param y Particle y coordinates, or NULL below 2-D.
+ * @param z Particle z coordinates, or NULL below 3-D.
+ * @param n Number of particles.
+ * @param g Grid.
+ * @param cell_offsets Cell prefix from `vm_sph_bin`; length `vm_sph_ncells(g) + 1`.
+ * @param cell_particles Particles per cell from `vm_sph_bin`.
  * @param support Kernel support, typically `2h`.
+ * @param dim Dimension, 1, 2, or 3.
  * @return Total neighbor count, or -1 on invalid input.
  */
 VEC_API int vm_sph_neighbor_count(int *nn,
@@ -364,6 +398,15 @@ VEC_API int vm_sph_neighbor_count(int *nn,
  *
  * @param neighbors Output indices; length `offsets[n]`.
  * @param offsets Exclusive prefix; length `n + 1`.
+ * @param x Particle x coordinates; length `n`.
+ * @param y Particle y coordinates, or NULL below 2-D.
+ * @param z Particle z coordinates, or NULL below 3-D.
+ * @param n Number of particles.
+ * @param g Grid.
+ * @param cell_offsets Cell prefix from `vm_sph_bin`; length `vm_sph_ncells(g) + 1`.
+ * @param cell_particles Particles per cell from `vm_sph_bin`.
+ * @param support Kernel support, typically `2h`.
+ * @param dim Dimension, 1, 2, or 3.
  * @return false on invalid input.
  */
 VEC_API bool vm_sph_neighbor_fill(int *neighbors, const int *offsets,

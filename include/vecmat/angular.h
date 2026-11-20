@@ -10,16 +10,16 @@
  * @brief Level-symmetric sphere quadrature and phase functions.
  * @ingroup vecmat_extras
  *
- * Static tables for \(S_2, S_4, S_6, S_8\). Weights sum to \(4\pi\).
- * Nodes lie on the unit sphere. The isotropic phase is \(1/(4\pi)\);
- * Henyey–Greenstein at \(g = 0\) matches it.
+ * Static tables for \f$S_2, S_4, S_6, S_8\f$. Weights sum to \f$4\pi\f$.
+ * Nodes lie on the unit sphere. The isotropic phase is \f$1/(4\pi)\f$;
+ * Henyey–Greenstein at \f$g = 0\f$ matches it.
  */
 
 #include "vecmat/types.h"
 #include "vecmat/abi.h"
 
 /**
- * @brief Number of directions in the \(S_N\) set.
+ * @brief Number of directions in the \f$S_N\f$ set.
  *
  * @param n Order; one of 2, 4, 6, 8.
  * @return Direction count, or 0 if `n` is not supported.
@@ -27,7 +27,7 @@
 VEC_API int vm_angular_count(int n);
 
 /**
- * @brief Fill caller-owned arrays with the \(S_N\) nodes and weights.
+ * @brief Fill caller-owned arrays with the \f$S_N\f$ nodes and weights.
  *
  * Each of `mu`, `eta`, `xi`, `w` has length at least `vm_angular_count(n)`.
  *
@@ -42,17 +42,17 @@ VEC_API int vm_angular_sn(int n, vm_float_t *mu, vm_float_t *eta,
                           vm_float_t *xi, vm_float_t *w);
 
 /**
- * @brief Isotropic phase function \(1/(4\pi)\).
+ * @brief Isotropic phase function \f$1/(4\pi)\f$.
  *
  * @return Phase value.
  */
 VEC_API vm_float_t vm_angular_isotropic(void);
 
 /**
- * @brief Henyey–Greenstein phase \(P(\mu; g)\).
+ * @brief Henyey–Greenstein phase \f$P(\mu; g)\f$.
  *
  * @param mu Cosine of the scattering angle.
- * @param g Asymmetry parameter in \([-1, 1]\).
+ * @param g Asymmetry parameter in \f$[-1, 1]\f$.
  * @return Phase value. `g = 0` matches the isotropic phase.
  */
 VEC_API vm_float_t vm_angular_hg(vm_float_t mu, vm_float_t g);
@@ -60,7 +60,7 @@ VEC_API vm_float_t vm_angular_hg(vm_float_t mu, vm_float_t g);
 /**
  * @brief Scattering source at one direction.
  *
- * \(\sum_m w_m P(\boldsymbol{\Omega}_m\cdot\boldsymbol{\Omega}) I_m\).
+ * \f$\sum_m w_m P(\boldsymbol{\Omega}_m\cdot\boldsymbol{\Omega}) I_m\f$.
  * `g = 0` uses the isotropic phase.
  *
  * @param mu Ordinate cosines in x; length `n`.

@@ -10,7 +10,7 @@
  * @brief Optical depth and Beer attenuation on one segment.
  * @ingroup vecmat_extras
  *
- * A segment, not a tracer. Transmission is \(e^{-\tau}\). Optical depth
+ * A segment, not a tracer. Transmission is \f$e^{-\tau}\f$. Optical depth
  * above the documented cutoff returns 0 transmission without a denormal.
  */
 
@@ -26,7 +26,7 @@
 #define VM_RAY_TAU_CUTOFF VM_F(80.0)
 
 /**
- * @brief Optical depth of a uniform segment, \(\tau = \kappa s\).
+ * @brief Optical depth of a uniform segment, \f$\tau = \kappa s\f$.
  *
  * @param kappa Opacity.
  * @param s Segment length.
@@ -35,7 +35,7 @@
 VEC_API vm_float_t vm_ray_tau(vm_float_t kappa, vm_float_t s);
 
 /**
- * @brief Piecewise optical depth, sum of \(\kappa_k s_k\).
+ * @brief Piecewise optical depth, sum of \f$\kappa_k s_k\f$.
  *
  * @param kappa Opacity of each piece; length `n`.
  * @param s Length of each piece; length `n`.
@@ -46,7 +46,7 @@ VEC_API vm_float_t vm_ray_tau_sum(const vm_float_t *kappa,
                                   const vm_float_t *s, int n);
 
 /**
- * @brief Beer transmission \(e^{-\tau}\).
+ * @brief Beer transmission \f$e^{-\tau}\f$.
  *
  * @param tau Optical depth.
  * @return Transmission. `tau <= 0` returns 1. `tau` above
@@ -55,7 +55,7 @@ VEC_API vm_float_t vm_ray_tau_sum(const vm_float_t *kappa,
 VEC_API vm_float_t vm_ray_transmit(vm_float_t tau);
 
 /**
- * @brief Emission integral along a uniform segment, \((1 - e^{-\tau}) B\).
+ * @brief Emission integral along a uniform segment, \f$(1 - e^{-\tau}) B\f$.
  *
  * @param tau Optical depth.
  * @param B Source radiance.

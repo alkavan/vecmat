@@ -23,7 +23,7 @@
 #include "vecmat/sparse.h"
 
 /**
- * @brief Projection residual \(r = \nabla\cdot v^\*\).
+ * @brief Projection residual \f$r = \nabla\cdot v^\*\f$.
  *
  * Cell-centered divergence of a MAC velocity. `w` may be NULL when
  * `g.nz <= 1`. `r` has length `vm_grid_ncells(g)`.
@@ -41,7 +41,7 @@ VEC_API void vm_project_residual(vm_float_t *r,
                                  vm_grid3 g);
 
 /**
- * @brief Fill a caller-owned CSR with \(-\nabla\cdot((1/\rho)\nabla)\).
+ * @brief Fill a caller-owned CSR with \f$-\nabla\cdot((1/\rho)\nabla)\f$.
  *
  * Same boundary treatment as `vm_grid_laplacian`: Dirichlet boundary cells
  * become identity rows, homogeneous Neumann drops the missing neighbour.

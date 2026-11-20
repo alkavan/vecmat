@@ -11,7 +11,7 @@
  * @ingroup vecmat_extras
  *
  * The integrated blackbody is the isotropic radiance
- * \(B(T) = \sigma T^4 / \pi\), which equals \(a c T^4 / 4\pi\).
+ * \f$B(T) = \sigma T^4 / \pi\f$, which equals \f$a c T^4 / 4\pi\f$.
  * A group with `nu_hi <= 0` spans the whole spectrum and returns that
  * integral. `T <= 0` returns `ok = false`.
  */
@@ -20,7 +20,7 @@
 #include "vecmat/abi.h"
 
 /**
- * @brief Integrated blackbody radiance \(B(T) = \sigma T^4 / \pi\).
+ * @brief Integrated blackbody radiance \f$B(T) = \sigma T^4 / \pi\f$.
  *
  * @param T Temperature.
  * @param ok Set false when `T <= 0`; may be NULL.
@@ -29,7 +29,7 @@
 VEC_API vm_float_t vm_planck_b(vm_float_t T, bool *ok);
 
 /**
- * @brief Spectral blackbody radiance \(B_\nu(T)\).
+ * @brief Spectral blackbody radiance \f$B_\nu(T)\f$.
  *
  * @param nu Frequency.
  * @param T Temperature.
@@ -39,7 +39,7 @@ VEC_API vm_float_t vm_planck_b(vm_float_t T, bool *ok);
 VEC_API vm_float_t vm_planck_bnu(vm_float_t nu, vm_float_t T, bool *ok);
 
 /**
- * @brief Group integral of \(B_\nu\) between two frequencies.
+ * @brief Group integral of \f$B_\nu\f$ between two frequencies.
  *
  * `nu_hi <= 0` means the upper limit is infinity and returns the analytic
  * integrated radiance. A finite band uses a fixed Gauss quadrature in the
@@ -55,7 +55,7 @@ VEC_API vm_float_t vm_planck_group(vm_float_t nu_lo, vm_float_t nu_hi,
                                    vm_float_t T, bool *ok);
 
 /**
- * @brief Temperature derivative \(dB/dT = 4 \sigma T^3 / \pi\).
+ * @brief Temperature derivative \f$dB/dT = 4 \sigma T^3 / \pi\f$.
  *
  * @param T Temperature.
  * @param ok Set false when `T <= 0`; may be NULL.

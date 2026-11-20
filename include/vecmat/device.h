@@ -44,7 +44,10 @@
 
 #include "vecmat/config.h"
 
-/** @name Status codes @{ */
+/**
+ * @name Status codes
+ * @{
+ */
 enum {
     VM_DEVICE_OK = 0,
     VM_DEVICE_ERR_INVAL = -1,       /**< Bad argument, range, or handle mix. */
@@ -89,7 +92,10 @@ typedef enum vm_device_op {
 /** Number of `vm_device_op` values; grows when ops are appended. */
 #define VM_DEVICE_OP_COUNT 4
 
-/** @name Device capability bits (`vm_device_info.caps`) @{ */
+/**
+ * @name Device capability bits (`vm_device_info.caps`)
+ * @{
+ */
 /** The host can address buffer memory directly (CPU, unified memory). */
 #define VM_DEVICE_CAP_HOST_MEMORY (1u << 0)
 /** Queued ops may still be running when the queue call returns. */

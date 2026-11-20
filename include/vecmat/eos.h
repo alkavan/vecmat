@@ -11,7 +11,7 @@
  * @ingroup vecmat_extras
  *
  * Each call returns `ok = false` on non-positive density or on a negative
- * \(c^2\). No clamping. f64 is the contract; f32 uses the same formula.
+ * \f$c^2\f$. No clamping. f64 is the contract; f32 uses the same formula.
  * The `_n` forms are strided batches: item `i` reads `rho[i * rho_stride]`
  * and writes `p[i]`, `c[i]`. A failure leaves that item and the rest unwritten.
  */
@@ -23,56 +23,56 @@
  * @brief Pressure and sound speed from an equation of state.
  */
 typedef struct {
-    bool ok;           /**< false on bad density or negative \(c^2\). */
+    bool ok;           /**< false on bad density or negative \f$c^2\f$. */
     vm_float_t p;      /**< Pressure. */
     vm_float_t c;      /**< Sound speed. */
 } vm_eos_state;
 
 /**
- * @brief Ideal gas: \(p = (\gamma - 1)\rho e\), \(c = \sqrt{\gamma p / \rho}\).
+ * @brief Ideal gas: \f$p = (\gamma - 1)\rho e\f$, \f$c = \sqrt{\gamma p / \rho}\f$.
  */
 typedef struct {
     vm_float_t gamma;  /**< Ratio of specific heats, must be > 1. */
 } vm_ideal_gas;
 
 /**
- * @brief Stiffened gas: \(p = (\gamma - 1)\rho e - \gamma p_\infty\).
+ * @brief Stiffened gas: \f$p = (\gamma - 1)\rho e - \gamma p_\infty\f$.
  *
- * Sound speed from the same derivative: \(c = \sqrt{\gamma (p + p_\infty) / \rho}\).
+ * Sound speed from the same derivative: \f$c = \sqrt{\gamma (p + p_\infty) / \rho}\f$.
  */
 typedef struct {
     vm_float_t gamma;  /**< Ratio of specific heats, must be > 1. */
-    vm_float_t p_inf;  /**< Stiffening pressure \(p_\infty\). */
+    vm_float_t p_inf;  /**< Stiffening pressure \f$p_\infty\f$. */
 } vm_stiff_gas;
 
 /**
- * @brief Mie–Grüneisen on a linear Hugoniot \(U_s = c_0 + s U_p\).
+ * @brief Mie–Grüneisen on a linear Hugoniot \f$U_s = c_0 + s U_p\f$.
  */
 typedef struct {
     vm_float_t rho0;    /**< Reference density. */
     vm_float_t c0;      /**< Bulk sound speed. */
     vm_float_t s;       /**< Hugoniot slope. */
-    vm_float_t gamma0;  /**< Grüneisen coefficient \(\Gamma_0\). */
+    vm_float_t gamma0;  /**< Grüneisen coefficient \f$\Gamma_0\f$. */
 } vm_mie;
 
 /**
- * @brief Jones–Wilkins–Lee. \(V = \rho_0 / \rho\).
+ * @brief Jones–Wilkins–Lee. \f$V = \rho_0 / \rho\f$.
  *
- * \(p = A(1 - \omega/(R_1 V))e^{-R_1 V} + B(1 - \omega/(R_2 V))e^{-R_2 V} + \omega \rho_0 e / V\).
+ * \f$p = A(1 - \omega/(R_1 V))e^{-R_1 V} + B(1 - \omega/(R_2 V))e^{-R_2 V} + \omega \rho_0 e / V\f$.
  */
 typedef struct {
     vm_float_t rho0;   /**< Reference density. */
-    vm_float_t a;      /**< \(A\). */
-    vm_float_t b;      /**< \(B\). */
-    vm_float_t r1;     /**< \(R_1\). */
-    vm_float_t r2;     /**< \(R_2\). */
-    vm_float_t omega;  /**< \(\omega\). */
+    vm_float_t a;      /**< \f$A\f$. */
+    vm_float_t b;      /**< \f$B\f$. */
+    vm_float_t r1;     /**< \f$R_1\f$. */
+    vm_float_t r2;     /**< \f$R_2\f$. */
+    vm_float_t omega;  /**< \f$\omega\f$. */
 } vm_jwl;
 
 /**
  * @brief Ideal-gas pressure and sound speed.
  *
- * @return false if density is non-positive, gamma is not > 1, or \(c^2 < 0\).
+ * @return false if density is non-positive, gamma is not > 1, or \f$c^2 < 0\f$.
  */
 VEC_API bool vm_eos_ideal(vm_eos_state *out, const vm_ideal_gas *eos,
                           vm_float_t rho, vm_float_t e);
@@ -80,7 +80,7 @@ VEC_API bool vm_eos_ideal(vm_eos_state *out, const vm_ideal_gas *eos,
 /**
  * @brief Stiffened-gas pressure and sound speed.
  *
- * @return false if density is non-positive, gamma is not > 1, or \(c^2 < 0\).
+ * @return false if density is non-positive, gamma is not > 1, or \f$c^2 < 0\f$.
  */
 VEC_API bool vm_eos_stiffened(vm_eos_state *out, const vm_stiff_gas *eos,
                               vm_float_t rho, vm_float_t e);
@@ -88,7 +88,7 @@ VEC_API bool vm_eos_stiffened(vm_eos_state *out, const vm_stiff_gas *eos,
 /**
  * @brief Mie–Grüneisen pressure and sound speed on a linear Hugoniot.
  *
- * @return false if density or reference density is non-positive, or \(c^2 < 0\).
+ * @return false if density or reference density is non-positive, or \f$c^2 < 0\f$.
  */
 VEC_API bool vm_eos_mie(vm_eos_state *out, const vm_mie *eos,
                         vm_float_t rho, vm_float_t e);
@@ -96,7 +96,7 @@ VEC_API bool vm_eos_mie(vm_eos_state *out, const vm_mie *eos,
 /**
  * @brief Jones–Wilkins–Lee pressure and sound speed.
  *
- * @return false if density or reference density is non-positive, or \(c^2 < 0\).
+ * @return false if density or reference density is non-positive, or \f$c^2 < 0\f$.
  */
 VEC_API bool vm_eos_jwl(vm_eos_state *out, const vm_jwl *eos,
                         vm_float_t rho, vm_float_t e);

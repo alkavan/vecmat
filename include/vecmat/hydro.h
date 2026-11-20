@@ -41,9 +41,9 @@ typedef struct {
 } vm_hydro_flux;
 
 /**
- * @brief Newtonian viscous stress \(\sigma = 2\mu D + \lambda (\operatorname{tr} D)\,I\).
+ * @brief Newtonian viscous stress \f$\sigma = 2\mu D + \lambda (\operatorname{tr} D)\,I\f$.
  *
- * A pure spin has \(D = 0\), so the stress is zero.
+ * A pure spin has \f$D = 0\f$, so the stress is zero.
  *
  * @param D Rate-of-deformation, Voigt-6.
  * @param mu Dynamic viscosity.
@@ -55,7 +55,7 @@ VEC_API vm_sym3 vm_hydro_viscous(const vm_sym3 *D, vm_float_t mu, vm_float_t lam
 /**
  * @brief von Neumann–Richtmyer artificial viscosity.
  *
- * \(q = c_0 \rho (\Delta v)^2\) in compression (\(\Delta v < 0\)), zero in
+ * \f$q = c_0 \rho (\Delta v)^2\f$ in compression (\f$\Delta v < 0\f$), zero in
  * expansion. No clamping.
  *
  * @param rho Density.
@@ -68,7 +68,7 @@ VEC_API vm_float_t vm_hydro_q(vm_float_t rho, vm_float_t delta_v, vm_float_t c0)
 /**
  * @brief Rusanov flux between two face states.
  *
- * Spectral radius is \(\max(|v_n| + c)\) of the two sides. A symmetric
+ * Spectral radius is \f$\max(|v_n| + c)\f$ of the two sides. A symmetric
  * pair (equal density, pressure, sound speed, opposite normal velocity)
  * has zero mass flux.
  *
@@ -84,8 +84,8 @@ VEC_API bool vm_hydro_rusanov(vm_hydro_flux *flux,
 /**
  * @brief Cell CFL time step.
  *
- * \(\Delta t = \kappa h / (|v| + c)\), clamped by the viscous scale
- * \(h^2 / \nu\) when \(\nu > 0\).
+ * \f$\Delta t = \kappa h / (|v| + c)\f$, clamped by the viscous scale
+ * \f$h^2 / \nu\f$ when \f$\nu > 0\f$.
  *
  * @param h Cell size.
  * @param v Velocity magnitude.
