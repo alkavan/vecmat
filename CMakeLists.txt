@@ -68,6 +68,9 @@ option(VECMAT_ENABLE_SVE2 "Compile SVE2 kernels (AArch64)" ${_vecmat_arm64})
 option(VECMAT_ENABLE_FP16 "IEEE binary16 width" OFF)
 option(VECMAT_ENABLE_BF16 "bfloat16 width" OFF)
 
+# Build experimental code
+option(VECMAT_EXPERIMENTAL "Build experimental vm_x_* features" OFF)
+
 # Optional modules. Empty by default, so they are not part of the shipped
 # library. An entry is a path under vendors/ (recommended) or
 # VECMAT_MODULES_PATH, e.g. arm/fp16. A module is a backend, a width, a feature,
@@ -301,6 +304,9 @@ set(VECMAT_FLOAT_SOURCES
         src/solvers/polar.c
 )
 
+# Not part of VECMAT_FLOAT_SOURCES. Compiled only with VECMAT_EXPERIMENTAL=ON.
+set(VECMAT_EXPERIMENTAL_SOURCES)
+
 add_library(vecmat_shared SHARED ${VECMAT_COMMON_SOURCES})
 add_library(vecmat_static STATIC ${VECMAT_COMMON_SOURCES})
 
@@ -408,6 +414,10 @@ function(vecmat_add_float_objects name bits extra_private_defs)
     endif()
     if(NOT MSVC)
         target_compile_options(${name} PRIVATE -fno-strict-aliasing)
+    endif()
+    if(VECMAT_EXPERIMENTAL)
+        target_sources(${name} PRIVATE ${VECMAT_EXPERIMENTAL_SOURCES})
+        target_compile_definitions(${name} PRIVATE VECMAT_EXPERIMENTAL)
     endif()
     if(VECMAT_RUNTIME_DISPATCH)
         target_sources(${name} PRIVATE src/features/dispatch.c src/features/backend_builtin.c)
@@ -625,6 +635,11 @@ if(VECMAT_ENABLE_BF16)
     target_compile_definitions(vecmat_static PUBLIC VECMAT_ENABLE_BF16)
 endif()
 
+if(VECMAT_EXPERIMENTAL)
+    target_compile_definitions(vecmat_shared PUBLIC VECMAT_EXPERIMENTAL)
+    target_compile_definitions(vecmat_static PUBLIC VECMAT_EXPERIMENTAL)
+endif()
+
 if(Threads_FOUND)
     foreach(_abi_t ${_vecmat_float_objs})
         target_compile_definitions(${_abi_t} PRIVATE VECMAT_HAS_THREADS)
@@ -688,6 +703,9 @@ if(VECMAT_INSTALL)
     endif()
     if(NOT VECMAT_ENABLE_BF16)
         list(APPEND _vecmat_install_excludes PATTERN "bf16.h" EXCLUDE)
+    endif()
+    if(NOT VECMAT_EXPERIMENTAL)
+        list(APPEND _vecmat_install_excludes PATTERN "x_*" EXCLUDE)
     endif()
     install(DIRECTORY include/
             DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}

@@ -36,6 +36,16 @@
  * @brief GEMM, heap `vm_mat`, factorizations, CSR/KSP, integrators.
  */
 
+/**
+ * @defgroup vecmat_experimental Experimental
+ * @brief Opt-in `vm_x_*` names. Not core, the fast path, or numerics extras.
+ *
+ * The umbrella header includes these declarations only when
+ * `VECMAT_EXPERIMENTAL` is defined. CMake `-DVECMAT_EXPERIMENTAL=ON` builds
+ * the sources and defines that macro. A header may also be included on its
+ * own. The names may change.
+ */
+
 // Version
 #define VECMAT_VERSION_MAJOR 0
 #define VECMAT_VERSION_MINOR 5

@@ -52,8 +52,10 @@ machine learning, physics, and science.
 
 ## Product contract
 
-Three layers. Anything that is not part/ready for one of these layers would use
-a `vm_x_*` prefix or `VECMAT_EXPERIMENTAL` — so far, we don't have such names.
+Three layers. A name that is not ready for one of them is experimental: it
+uses a `vm_x_*` prefix. `-DVECMAT_EXPERIMENTAL=ON` (off by default) builds
+those sources and defines `VECMAT_EXPERIMENTAL`, so `<vecmat.h>` declares
+them. The header can also be included on its own.
 
 | Layer               | What it is                                                                                             |
 |---------------------|--------------------------------------------------------------------------------------------------------|
@@ -350,6 +352,7 @@ Integer macros must match the linked library. `VECMAT_USE_F64` is per TU.
 | `VECMAT_MODULES_PATH`                    | empty                                   | Extra roots when modules are not under `vendors/`.                                |
 | `VECMAT_ENABLE_FP16`                     | OFF                                     | IEEE binary16 and `vm_gemm_fp16f32`. See `doc/fp16.md`. Not a `vm_float_t` width. |
 | `VECMAT_ENABLE_BF16`                     | OFF                                     | bfloat16 and `vm_gemm_bf16f32`. See `doc/bf16.md`. Not a `vm_float_t` width.      |
+| `VECMAT_EXPERIMENTAL`                    | OFF                                     | Build `vm_x_*` sources and define `VECMAT_EXPERIMENTAL`.                          |
 | `VECMAT_BUILD_TESTS`                     | ON when Vecmat is the top-level project | Build `vecmat_tests` and `vecmat_benchmarks`.                                     |
 | `VECMAT_INSTALL`                         | ON when Vecmat is the top-level project | Generate the install rules.                                                       |
 
