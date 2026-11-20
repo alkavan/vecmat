@@ -264,7 +264,11 @@ return vm_backend_register(&backend);
 
 ### Floats interfaces and ABI
 
-`vm_gemm_ukernel` is the 8×8 tile. Another shape uses `vm_gemm_tile_register`.
+`vm_gemm_ukernel` is the 8×8 tile, including when a backend is registered.
+`vm_gemm_tile_register` rejects `(8, 8)`. The core also has a scalar 4×4
+tile and, when those kernels are compiled, an AVX2 12×8 tile and an AVX-512
+16×14 tile. With no backend, AVX-512 selects 16×14 and AVX2 selects 12×8.
+Another shape uses `vm_gemm_tile_register`. See [Numerics extras](numerics.md).
 
 Float symbols are width-suffixed. Internal functions that both object libs
 define need the same treatment.

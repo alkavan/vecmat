@@ -13,11 +13,17 @@ Row-major and column-major layouts.
 - `vm_im2col` unfolds an NCHW image into a GEMM-ready panel
 
 Packed ukernel, TLS pack workspace `MC=NC=KC=128`, persistent thread
-pool. A KC slice of packed A that fits in 4 MiB is kept and reused across
-NC panels. Larger slices pack A again for each NC panel. Per-CPU `MC`/`NC`/`KC`
-stay a vendor backend. The default tile is 8×8. With no backend, AVX-512 uses 16×14 and
-AVX2 uses 12×8 when that is the selected ISA. `vm_gemm_tile_select` can force
-8×8, the scalar 4×4 tile, either built-in wide tile, or a registered shape.
+pool. When `N` spans more than one NC panel and one KC slice of packed A
+fits in 4 MiB, that slice is packed once and reused across those panels.
+One NC panel packs A with that panel. A larger slice is packed again for
+each NC panel.
+The 4 MiB ceiling is fixed. Per-CPU `MC`/`NC`/`KC` stay a vendor backend.
+The default tile is 8×8, and a registered backend keeps it. With no backend,
+AVX-512 uses 16×14 and AVX2 uses 12×8 when that kernel was compiled and that
+ISA is selected. `vm_gemm_tile_select` can force 8×8, the scalar 4×4 tile,
+a compiled wide tile, or a registered shape. `(0, 0)` restores the
+automatic choice. An unavailable shape is rejected and the previous choice
+stays.
 Cap threads with `vm_gemm_set_threads(n)` or
 `VECMAT_GEMM_THREADS`.
 fp16 and bf16 are optional widths, off by default. See [`doc/fp16.md`](fp16.md)

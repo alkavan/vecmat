@@ -3,7 +3,8 @@ A simple math and linear algebra library in C for 2D/3D graphics,
 machine learning, physics, and science.
 
 * Runtime SIMD dispatch
-* Modular backends, types, and features
+* Modular backends, widths, features, and devices
+* Device API (CPU, GPU, NPU, accelerator)
 * Unified precision (fp64/fp32)
 * Clip-space (OpenGL, Vulkan, D3D)
 * Dense algebra and GEMM
@@ -52,16 +53,17 @@ machine learning, physics, and science.
 
 ## Product contract
 
-Three layers. A name that is not ready for one of them is experimental: it
+Four layers. A name that is not ready for one of them is experimental: it
 uses a `vm_x_*` prefix. `-DVECMAT_EXPERIMENTAL=ON` (off by default) builds
 those sources and defines `VECMAT_EXPERIMENTAL`, so `<vecmat.h>` declares
 them. The header can also be included on its own.
 
-| Layer               | What it is                                                                                             |
-|---------------------|--------------------------------------------------------------------------------------------------------|
-| **Core**            | `vector2/3/4`, `matrix2/3/4`, `quaternion`, clip-space, transforms, easing. What called every frame.   |
-| **Fast path**       | `_ptr` kernels, `vm_cpu_*`, runtime dispatch, `vm_backend_register`. Out-of-tree backends attach here. |
-| **Numerics extras** | `vm_gemm`, heap `vm_mat`, LU / QR / SVD / Cholesky, CSR / KSP, integrators, grid primitives.           |
+| Layer               | What it is                                                                                                    |
+|---------------------|---------------------------------------------------------------------------------------------------------------|
+| **Core**            | `vector2/3/4`, `matrix2/3/4`, `quaternion`, clip-space, transforms, easing. What called every frame.          |
+| **Fast path**       | `_ptr` kernels, `vm_cpu_*`, runtime dispatch, `vm_backend_register`. Out-of-tree backends attach here.        |
+| **Device**          | Buffers, one in-order queue, and a few ops. Device 0 is the CPU. Other devices call `vm_device_register`.     |
+| **Numerics extras** | `vm_gemm`, heap `vm_mat`, LU / QR / SVD / Cholesky, CSR / KSP, integrators, grid primitives.                  |
 
 Include one header:
 
@@ -96,6 +98,11 @@ included in the headers.
   (`vec4_add32`, `vec4_add64`).
 - `-DVECMAT_FLOAT_ABI=32` or `64` omits the other set. Integer names and
   `vm_cpu_*` have no width suffix.
+- A vendor float entry point uses `VECMAT_SYMBOL`. It pastes `32` or `64`
+  with the same rule as `include/vecmat/abi.h`. When both widths are built,
+  the f64 objects define `VECMAT_ABI_REPLICA` and skip integer bodies, so
+  those unsuffixed symbols are emitted once. See
+  [Modules](doc/modules.md#floats-interfaces-and-abi).
 - Call sites keep `vec4_add` and `vector4`. Those names are the 32-bit symbols
   unless `VECMAT_USE_F64` is defined before the `#include`. `vector4` is that
   translation unit's width.
@@ -158,6 +165,11 @@ idempotent. Concurrent first-use of dispatched kernels is safe.
 | SVE          | `VECMAT_ENABLE_SVE`     | ON on AArch64 | same dispatched set; f64 walks `svcntd()` chunks                                         | **compile-tested only** (permanent; no native or qemu run job)                |
 | SVE2         | `VECMAT_ENABLE_SVE2`    | ON on AArch64 | same dispatched set; f64 walks `svcntd()` chunks                                         | **compile-tested only** (permanent; no native or qemu run job)                |
 
+The GEMM ukernel slot in that table stays 8×8. With no registered backend,
+the packer uses 12×8 on AVX2 and 16×14 on AVX-512 when that kernel was
+compiled. When `N` spans more than one NC panel, a packed A slice that fits
+in 4 MiB is reused across those panels. See [Numerics extras](doc/numerics.md).
+
 **x86 floor is AVX.** Pre-AVX x86 runs scalar kernels. There is no SSE
 backend, and none will be added for completeness.
 
@@ -197,18 +209,20 @@ still wins.
 * [Modules](doc/modules.md)
 
 **GPUs, NPUs, and accelerators use the device API.** Device 0 is the CPU.
-NVIDIA, AMD, Intel Arc, and Arm Mali register as vendor modules. They are
-not CPU feature bits. See [Devices](doc/device.md).
+A device module registers with `vm_device_register`. It is not a CPU feature
+bit and it does not fill `vm_backend_ops`. See [Devices](doc/device.md).
 
 **Public modules live in `vecmat-vendors`.** The recommended layout is a
 `vendors/` checkout under this tree (optional submodule). Then
 `-DVECMAT_MODULES=arm/fp16` is enough. If the repository is checked out beside
-the tree instead, pass `-DVECMAT_MODULES_PATH=../vecmat-vendors`. Public modules
-today are width modules (`arm/fp16`, `intel/fp16`). Private backends are loaded
-the same way from their own tree. The NEON row above is the in-tree Armv8-A
-schedule. Tests and benchmarks call `vm_backend_modules_register()` and do not
-include a backend header. A backend may append `VECMAT_MODULE_TEST_SOURCES` and
-`VECMAT_MODULE_BENCH_SOURCES`; those files live in the vendor tree.
+the tree instead, pass `-DVECMAT_MODULES_PATH=../vecmat-vendors`. Each entry
+is a `backend`, a `width`, a `feature`, or a `device`. Private modules are
+loaded the same way from their own tree. The NEON row above is the in-tree
+Armv8-A schedule. Tests and benchmarks call `vm_backend_modules_register()`
+and do not include a backend header. A backend may append
+`VECMAT_MODULE_TEST_SOURCES` and `VECMAT_MODULE_BENCH_SOURCES`; those files
+live in the vendor tree. A device module builds its own library. The example
+is `nvidia/ga10x` in [Modules](doc/modules.md).
 
 **Windows shared builds export with `VEC_API`.** Float exports are `name32` /
 `name64`. Integer names and `vm_cpu_*` stay unsuffixed.
@@ -216,7 +230,8 @@ include a backend header. A backend may append `VECMAT_MODULE_TEST_SOURCES` and
 ## Numerics extras
 
 Heap matrices, GEMM, sparse solvers, integrators, and the clip-space helpers
-are in [Numerics extras](doc/numerics.md).
+are in [Numerics extras](doc/numerics.md). That page is the contract for GEMM
+tiles and packed-A reuse.
 
 ## Documentation
 
@@ -272,7 +287,7 @@ target_link_libraries(my_app PRIVATE vecmat::vecmat)
 
 ### Installed Package
 ```cmake
-find_package(vecmat 0.5 CONFIG REQUIRED)
+find_package(vecmat 0.5.0 CONFIG REQUIRED)
 target_link_libraries(my_app PRIVATE vecmat::vecmat)
 ```
 
