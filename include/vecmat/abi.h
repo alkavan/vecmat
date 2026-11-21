@@ -579,6 +579,9 @@
 #define vm_nn_spacing_mean vm_nn_spacing_mean64
 #define vm_nn_spacing_hist vm_nn_spacing_hist64
 #define vm_pair_correlation vm_pair_correlation64
+#define vm_lanczos vm_lanczos64
+#define vm_lanczos_dense vm_lanczos_dense64
+#define vm_lanczos_sparse vm_lanczos_sparse64
 #define vm_sym3_from_mat3 vm_sym3_from_mat364
 #define vm_sym3_to_mat3 vm_sym3_to_mat364
 #define vm_sym3_add vm_sym3_add64
@@ -1715,6 +1718,9 @@
 #define vm_nn_spacing_mean vm_nn_spacing_mean32
 #define vm_nn_spacing_hist vm_nn_spacing_hist32
 #define vm_pair_correlation vm_pair_correlation32
+#define vm_lanczos vm_lanczos32
+#define vm_lanczos_dense vm_lanczos_dense32
+#define vm_lanczos_sparse vm_lanczos_sparse32
 #define vm_sym3_from_mat3 vm_sym3_from_mat332
 #define vm_sym3_to_mat3 vm_sym3_to_mat332
 #define vm_sym3_add vm_sym3_add32

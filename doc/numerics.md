@@ -186,6 +186,27 @@ const bool ok = vm_nn_spacing_hist(ev, 4, 0.0f, 2.0f, hist, 4);
 const vm_float_t pair = vm_pair_correlation(ev, 4, 1.0f);
 ```
 
+## Lanczos
+
+`include/vecmat/lanczos.h` is a real-symmetric eigensolver. No complex
+Hermitian path, no shift-invert, no block Lanczos, and no device op.
+
+- `vm_lanczos` — implicitly restarted Lanczos, full reorthogonalization.
+  `m` is the Krylov length, with `k <= m <= n`. The projected tridiagonal
+  is solved with `vm_syev`. `which` is `VM_LANCZOS_LARGEST` or
+  `VM_LANCZOS_SMALLEST`. Returned eigenvalues stay in `vm_syev`'s
+  descending order on that end. The start vector is deterministic.
+- `vm_lanczos_dense` calls `vm_symv`, so only the lower triangle is read.
+- `vm_lanczos_sparse` calls `vm_spmv`. The CSR matrix is the operator as stored.
+- `eigenvectors` NULL skips the vectors. Otherwise the matrix is `n × k`, columns.
+  Each column is unit length and its largest-magnitude entry is positive.
+- `info` may be NULL. It is a `vm_ksp_info`: `iters` is the restarts
+  performed, `rel_res` is the worst residual
+  `||Au − λu|| / max(|λ|, ||T||, ε)` of the returned pairs, and `ok`
+  matches the bool result. `||T||` is the max absolute row sum of the
+  projected tridiagonal.
+- A bad `k`, `m`, or `tol` (`tol <= 0` or NaN) returns false.
+
 ## Sparse systems
 
 - `vm_spmat` — square CSR from triplets

@@ -28,6 +28,7 @@ add_executable(vecmat_tests
         test_curve.c
         test_cpu.c
         test_extended.c
+        test_lanczos.c
         test_gemm_tile.c
         test_physics.c
         test_sym3.c

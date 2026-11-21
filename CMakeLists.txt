@@ -279,6 +279,7 @@ set(VECMAT_FLOAT_SOURCES
         src/features/curve.c
         src/features/gemm.c
         src/features/physics.c
+        src/features/lanczos.c
         src/features/sparse.c
         src/features/spectral.c
         src/features/random.c
