@@ -13,8 +13,8 @@ TEST_CASE(raddiff_limiter_zero_is_one_third, "[raddiff]") {
 }
 
 TEST_CASE(raddiff_limiter_bounded, "[raddiff]") {
-    const vm_float_t samples[] = { VM_F(0.0), VM_F(0.1), VM_F(1.0), VM_F(5.0), VM_F(50.0) };
     for (int i = 0; i < 5; ++i) {
+        const vm_float_t samples[] = { VM_F(0.0), VM_F(0.1), VM_F(1.0), VM_F(5.0), VM_F(50.0) };
         const vm_float_t lam = vm_raddiff_limiter(samples[i]);
         REQUIRE(lam > VM_F(0.0));
         REQUIRE(lam <= VM_F(1.0) / VM_F(3.0) + EPSILON);

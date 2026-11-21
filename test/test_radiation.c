@@ -46,8 +46,8 @@ TEST_CASE(planck_db_dt, "[planck]") {
 }
 
 TEST_CASE(angular_weights_sum_to_4pi, "[angular]") {
-    const int orders[] = { 2, 4, 6, 8 };
     for (int k = 0; k < 4; ++k) {
+        const int orders[] = { 2, 4, 6, 8 };
         const int n = orders[k];
         const int count = vm_angular_count(n);
         REQUIRE(count > 0);

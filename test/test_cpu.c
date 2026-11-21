@@ -104,13 +104,16 @@ TEST_CASE(cpu_has_needs_every_bit, "[cpu]") {
 }
 
 TEST_CASE(cpu_bits_sit_in_family_ranges, "[cpu]") {
-    const vm_cpu_features_t families[4] = {
-        VM_CPU_GENERIC_MASK, VM_CPU_X86_MASK, VM_CPU_ARM_MASK, VM_CPU_RISCV_MASK
-    };
     vm_cpu_features_t all = 0;
     for (int i = 0; i < 4; ++i) {
-        for (int j = i + 1; j < 4; ++j)
+        const vm_cpu_features_t families[4] = {
+            VM_CPU_GENERIC_MASK, VM_CPU_X86_MASK, VM_CPU_ARM_MASK, VM_CPU_RISCV_MASK
+        };
+
+        for (int j = i + 1; j < 4; ++j) {
             REQUIRE((families[i] & families[j]) == 0);
+        }
+
         all |= families[i];
     }
     /* The families cover bits 0..30; bit 31 is unused (int enum limit). */

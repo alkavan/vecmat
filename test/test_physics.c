@@ -176,8 +176,8 @@ static void ode_decay(const vm_float_t *y, vm_float_t *ydot, void *ctx)
 
 TEST_CASE(vm_rk4_exponential_decay, "[integrate]") {
     vm_float_t y = VM_F(1.0);
-    const vm_float_t dt = VM_F(0.1);
     for (int i = 0; i < 10; ++i) {
+        const vm_float_t dt = VM_F(0.1);
         vm_rk4(ode_decay, &y, 1, dt, NULL);
     }
     const vm_float_t expect = VECMAT_POW(M_E, VM_F(-1.0));
@@ -186,8 +186,8 @@ TEST_CASE(vm_rk4_exponential_decay, "[integrate]") {
 
 TEST_CASE(vm_rk2_exponential_decay, "[integrate]") {
     vm_float_t y = VM_F(1.0);
-    const vm_float_t dt = VM_F(0.05);
     for (int i = 0; i < 20; ++i) {
+        const vm_float_t dt = VM_F(0.05);
         vm_rk2(ode_decay, &y, 1, dt, NULL);
     }
     const vm_float_t expect = VECMAT_POW(M_E, VM_F(-1.0));
@@ -204,10 +204,10 @@ TEST_CASE(vm_verlet_harmonic_bounded, "[integrate]") {
     vm_float_t x = VM_F(1.0);
     vm_float_t v = VM_F(0.0);
     vm_float_t a = -x;
-    const vm_float_t dt = VM_F(0.05);
     vm_float_t max_e = VM_F(0.0);
     const vm_float_t e0 = VM_F(0.5) * v * v + VM_F(0.5) * x * x;
     for (int i = 0; i < 200; ++i) {
+        const vm_float_t dt = VM_F(0.05);
         vm_verlet(hooke, &x, &v, &a, 1, dt, NULL);
         const vm_float_t e = VM_F(0.5) * v * v + VM_F(0.5) * x * x;
         const vm_float_t de = VECMAT_FABS(e - e0);

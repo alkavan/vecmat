@@ -49,20 +49,20 @@ static void fake_info(void *ctx, vm_device_info *out)
     out->mem_bytes = 1u << 20;
 }
 
-static int fake_supports(void *ctx, vm_device_op op, vm_dtype dt)
+static int fake_supports(void *ctx, const vm_device_op op, const vm_dtype dt)
 {
     (void)ctx;
     return op == VM_DEVICE_OP_ARRAY_ADD && dt == VM_DTYPE_F32;
 }
 
-static int fake_buffer_create(void *ctx, size_t bytes, void **native)
+static int fake_buffer_create(void *ctx, const size_t bytes, void **native)
 {
     (void)ctx;
     *native = calloc(1, bytes);
     return *native ? VM_DEVICE_OK : VM_DEVICE_ERR_NOMEM;
 }
 
-static void fake_buffer_destroy(void *ctx, void *native, int wrapped)
+static void fake_buffer_destroy(void *ctx, void *native, const int wrapped)
 {
     (void)ctx;
     if (!wrapped)
@@ -82,7 +82,7 @@ static void fake_queue_destroy(void *ctx, void *q)
     --((fake_ctx *)ctx)->queues;
 }
 
-static int fake_write(void *ctx, void *q, void *dst, size_t offset, const void *src, size_t bytes)
+static int fake_write(void *ctx, void *q, void *dst, const size_t offset, const void *src, const size_t bytes)
 {
     (void)ctx;
     (void)q;
@@ -90,7 +90,7 @@ static int fake_write(void *ctx, void *q, void *dst, size_t offset, const void *
     return VM_DEVICE_OK;
 }
 
-static int fake_read(void *ctx, void *q, const void *src, size_t offset, void *dst, size_t bytes)
+static int fake_read(void *ctx, void *q, const void *src, const size_t offset, void *dst, const size_t bytes)
 {
     (void)ctx;
     (void)q;

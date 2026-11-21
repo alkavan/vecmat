@@ -65,8 +65,8 @@ TEST_CASE(batch3_polar_matches_scalar, "[batch3]") {
 }
 
 TEST_CASE(batch3_ddot_matches_scalar, "[batch3]") {
-    vm_float_t a[6] = { VM_F(1.0), VM_F(2.0), VM_F(3.0), VM_F(0.5), VM_F(0.0), VM_F(0.0) };
-    vm_float_t b[6] = { VM_F(1.0), VM_F(0.0), VM_F(1.0), VM_F(1.0), VM_F(0.0), VM_F(0.0) };
+    const vm_float_t a[6] = { VM_F(1.0), VM_F(2.0), VM_F(3.0), VM_F(0.5), VM_F(0.0), VM_F(0.0) };
+    const vm_float_t b[6] = { VM_F(1.0), VM_F(0.0), VM_F(1.0), VM_F(1.0), VM_F(0.0), VM_F(0.0) };
     vm_float_t d;
     REQUIRE(vm_batch3_ddot(&d, a, 6, b, 6, 1));
 

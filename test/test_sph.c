@@ -88,9 +88,9 @@ static vm_float_t expected_density(const vm_float_t *x, const vm_float_t *y,
 }
 
 TEST_CASE(sph_density_multi_neighbor, "[sph]") {
-    const vm_float_t h = VM_F(1.0);
     const int kernels[] = { VM_SPH_CUBIC, VM_SPH_WENDLAND };
     for (int ki = 0; ki < 2; ++ki) {
+        const vm_float_t h = VM_F(1.0);
         const int kernel = kernels[ki];
         /* 1-D, nn = 5 (remainder) and 9 (lanes + rem for f32) */
         const vm_float_t x1[] = { VM_F(0.0), VM_F(0.3), VM_F(0.6), VM_F(0.9), VM_F(1.2),
@@ -153,9 +153,9 @@ static void expected_pressure(vm_float_t *gx, vm_float_t *gy, vm_float_t *gz,
 }
 
 TEST_CASE(sph_pressure_grad_multi_neighbor, "[sph]") {
-    const vm_float_t h = VM_F(1.0);
     const int kernels[] = { VM_SPH_CUBIC, VM_SPH_WENDLAND };
     for (int ki = 0; ki < 2; ++ki) {
+        const vm_float_t h = VM_F(1.0);
         const int kernel = kernels[ki];
         const vm_float_t x[] = { VM_F(0.0), VM_F(0.5), VM_F(-0.4), VM_F(0.3), VM_F(-0.6),
                                  VM_F(0.2), VM_F(-0.1), VM_F(0.7), VM_F(-0.3) };
@@ -272,17 +272,17 @@ TEST_CASE(sph_neighbor_lists_match_brute, "[sph]") {
     const vm_float_t x[] = { VM_F(0.0), VM_F(0.5), VM_F(1.5), VM_F(3.5), VM_F(0.2) };
     const vm_float_t y[] = { VM_F(0.0), VM_F(0.1), VM_F(-0.4), VM_F(0.0), VM_F(0.3) };
     const vm_float_t z[] = { VM_F(0.0), VM_F(0.2), VM_F(0.1), VM_F(-0.2), VM_F(-0.1) };
-    const int n = 5;
-    const int dims[] = { 1, 2, 3 };
     for (int di = 0; di < 3; ++di) {
+        const int dims[] = { 1, 2, 3 };
+        const int n = 5;
         const int dim = dims[di];
         vm_sph_grid g;
         REQUIRE(vm_sph_grid_fit(&g, x, y, z, n, support, dim));
-        const int ncells = vm_sph_ncells(&g);
+        const int n_cells = vm_sph_ncells(&g);
         int cell_of[5];
         int cell_offsets[128];
         int cell_particles[5];
-        REQUIRE(ncells + 1 <= 128);
+        REQUIRE(n_cells + 1 <= 128);
         REQUIRE(vm_sph_bin(cell_of, cell_offsets, cell_particles, x, y, z, n, &g, dim));
 
         int nn[5];

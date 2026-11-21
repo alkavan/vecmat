@@ -124,8 +124,8 @@ TEST_CASE(eos_stiffened_n_matches_scalar, "[eos]") {
 
 TEST_CASE(eos_mie_jwl_n_match_scalar, "[eos]") {
     const vm_mie mie = { .rho0 = VM_F(1.0), .c0 = VM_F(1.0), .s = VM_F(1.5), .gamma0 = VM_F(2.0) };
-    vm_float_t rho[2] = { VM_F(1.0), VM_F(1.2) };
-    vm_float_t e[2] = { VM_F(0.0), VM_F(0.1) };
+    const vm_float_t rho[2] = { VM_F(1.0), VM_F(1.2) };
+    const vm_float_t e[2] = { VM_F(0.0), VM_F(0.1) };
     vm_float_t p[2], c[2];
     REQUIRE(vm_eos_mie_n(p, c, &mie, rho, 1, e, 1, 2));
     for (int i = 0; i < 2; ++i) {
