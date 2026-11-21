@@ -89,6 +89,7 @@ VEC_API void vm_symv(vm_float_t *y, const vm_mat *A, const vm_float_t *x);
  * @param A Symmetric matrix, overwritten on success.
  * @param eigenvalues Output eigenvalues (length `n`), descending.
  * @param V Optional `n × n` eigenvector matrix (columns).
+ *
  * @return true on success.
  */
 VEC_API bool vm_syev(vm_mat *A, vm_float_t *eigenvalues, vm_mat *V);
@@ -101,6 +102,7 @@ VEC_API bool vm_syev(vm_mat *A, vm_float_t *eigenvalues, vm_mat *V);
  *
  * @param L Output Laplacian.
  * @param A Symmetric adjacency (non-negative entries expected).
+ *
  * @return true on success.
  */
 VEC_API bool vm_laplacian(vm_mat *L, const vm_mat *A);
@@ -115,6 +117,7 @@ VEC_API bool vm_laplacian(vm_mat *L, const vm_mat *A);
  * @param k Number of leading eigenpairs (`1 ≤ k ≤ n`).
  * @param eigenvalues Output eigenvalues (length `k`).
  * @param eigenvectors Output `n × k` eigenvectors (columns).
+ *
  * @return true on success.
  */
 VEC_API bool vm_syev_topk(const vm_mat *A, int k,

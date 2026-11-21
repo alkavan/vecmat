@@ -956,7 +956,7 @@ TEST_CASE(vm_gemv_alpha_beta_trans_alias, "[spectral]") {
     REQUIRE(VECMAT_EQ(alias[1], VM_F(7.0), EPSILON));
 
     vm_float_t kept = VM_F(42.0);
-    vm_mat empty = { 0 };
+    const vm_mat empty = { 0 };
     vm_gemv(&kept, VM_F(1.0), &empty, x, VM_F(0.0), false);
     REQUIRE(VECMAT_EQ(kept, VM_F(42.0), EPSILON));
 
@@ -985,7 +985,7 @@ TEST_CASE(vm_ger_outer_and_alpha_zero, "[spectral]") {
     REQUIRE(VECMAT_EQ(vm_mat_get(&A, 1, 1), VM_F(8.0), EPSILON));
 
     vm_mat B = vm_mat_alloc(2, 2);
-    vm_float_t v[2] = { VM_F(1.0), VM_F(2.0) };
+    const vm_float_t v[2] = { VM_F(1.0), VM_F(2.0) };
     vm_ger(&B, VM_F(1.0), v, v);
     REQUIRE(VECMAT_EQ(vm_mat_get(&B, 0, 0), VM_F(1.0), EPSILON));
     REQUIRE(VECMAT_EQ(vm_mat_get(&B, 1, 0), VM_F(2.0), EPSILON));

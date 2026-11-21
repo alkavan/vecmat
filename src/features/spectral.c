@@ -13,6 +13,7 @@ void vm_matvec(vm_float_t *y, const vm_mat *A, const vm_float_t *x)
     if (!y || !A || !A->data || !x || A->rows <= 0 || A->cols <= 0) {
         return;
     }
+
     const int m = A->rows;
     const int n = A->cols;
     for (int i = 0; i < m; ++i) {
@@ -30,32 +31,33 @@ void vm_gemv(vm_float_t *y, const vm_float_t alpha, const vm_mat *A, const vm_fl
     if (!y || !A || !A->data || A->rows <= 0 || A->cols <= 0) {
         return;
     }
+
     if (alpha != VM_F(0.0) && !x) {
         return;
     }
 
     const int m = A->rows;
     const int n = A->cols;
-    const int xlen = trans ? m : n;
-    const int ylen = trans ? n : m;
+    const int x_len = trans ? m : n;
+    const int y_len = trans ? n : m;
 
     const vm_float_t *x_use = x;
     vm_float_t *scratch = NULL;
     if (alpha != VM_F(0.0) && y == x) {
-        scratch = (vm_float_t *)malloc((size_t)xlen * sizeof(vm_float_t));
+        scratch = (vm_float_t *)malloc((size_t)x_len * sizeof(vm_float_t));
         if (!scratch) {
             return;
         }
-        memcpy(scratch, x, (size_t)xlen * sizeof(vm_float_t));
+        memcpy(scratch, x, (size_t)x_len * sizeof(vm_float_t));
         x_use = scratch;
     }
 
     if (beta == VM_F(0.0)) {
-        for (int i = 0; i < ylen; ++i) {
+        for (int i = 0; i < y_len; ++i) {
             y[i] = VM_F(0.0);
         }
     } else if (beta != VM_F(1.0)) {
-        for (int i = 0; i < ylen; ++i) {
+        for (int i = 0; i < y_len; ++i) {
             y[i] *= beta;
         }
     }
@@ -106,10 +108,12 @@ void vm_symv(vm_float_t *y, const vm_mat *A, const vm_float_t *x)
     if (!y || !A || !A->data || !x || A->rows <= 0 || A->rows != A->cols) {
         return;
     }
+
     const int n = A->rows;
     for (int i = 0; i < n; ++i) {
         y[i] = VM_F(0.0);
     }
+
     /* Lower triangle only. */
     for (int j = 0; j < n; ++j) {
         const vm_float_t xj = x[j];
@@ -149,15 +153,18 @@ static void syev_jacobi_rotate(vm_mat *A, vm_mat *V, const int p, const int q, c
         if (i == p || i == q) {
             continue;
         }
+
         const vm_float_t aip = vm_mat_get(A, i, p);
         const vm_float_t aiq = vm_mat_get(A, i, q);
         const vm_float_t np = c * aip - s * aiq;
         const vm_float_t nq = s * aip + c * aiq;
+
         vm_mat_set(A, i, p, np);
         vm_mat_set(A, p, i, np);
         vm_mat_set(A, i, q, nq);
         vm_mat_set(A, q, i, nq);
     }
+
     vm_mat_set(A, p, p, c * c * app - VM_F(2.0) * s * c * apq + s * s * aqq);
     vm_mat_set(A, q, q, s * s * app + VM_F(2.0) * s * c * apq + c * c * aqq);
     vm_mat_set(A, p, q, VM_F(0.0));
@@ -263,6 +270,7 @@ bool vm_syev(vm_mat *A, vm_float_t *eigenvalues, vm_mat *V)
             }
         }
     }
+
     return true;
 }
 
@@ -286,7 +294,6 @@ bool vm_laplacian(vm_mat *L, const vm_mat *A)
         for (int j = 0; j < n; ++j) {
             const vm_float_t a = vm_mat_get(A, i, j);
             d += a;
-
             if (i != j) {
                 vm_mat_set(L, i, j, -a);
             }
@@ -297,13 +304,14 @@ bool vm_laplacian(vm_mat *L, const vm_mat *A)
     return true;
 }
 
-bool vm_syev_topk(const vm_mat *A, int k,
+bool vm_syev_topk(const vm_mat *A, const int k,
                   vm_float_t *eigenvalues, vm_mat *eigenvectors)
 {
     if (!A || !A->data || !eigenvalues || !eigenvectors ||
         A->rows <= 0 || A->rows != A->cols || k <= 0 || k > A->rows) {
         return false;
     }
+
     const int n = A->rows;
     if (eigenvectors->rows != n || eigenvectors->cols != k || !eigenvectors->data) {
         return false;
@@ -348,7 +356,6 @@ bool vm_syev_topk(const vm_mat *A, int k,
  * The mean is the average of consecutive gaps. Histogram and pair
  * correlation divide by that mean. The pair window is fixed at 0.25.
  */
-
 static vm_float_t spacing_nan(void)
 {
 #ifdef VECMAT_USE_F64
@@ -364,6 +371,7 @@ static int gaps_mean(const vm_float_t *ev, const int n, vm_float_t *mean)
     if (!ev || n < 2) {
         return 0;
     }
+
     vm_float_t sum = VM_F(0.0);
     for (int i = 0; i < n - 1; ++i) {
         const vm_float_t left = ev[i];
@@ -377,11 +385,13 @@ static int gaps_mean(const vm_float_t *ev, const int n, vm_float_t *mean)
         }
         sum += gap;
     }
+
     const vm_float_t m = sum / (vm_float_t)(n - 1);
     if (!isfinite(m)) {
         return 0;
     }
     *mean = m;
+
     return 1;
 }
 
@@ -401,10 +411,12 @@ bool vm_nn_spacing_hist(const vm_float_t *eigenvalues, const int n,
     if (!hist || bins <= 0 || !isfinite(s_min) || !isfinite(s_max) || !(s_min < s_max)) {
         return false;
     }
+
     vm_float_t mean = VM_F(0.0);
     if (!gaps_mean(eigenvalues, n, &mean) || !(mean > VM_F(0.0))) {
         return false;
     }
+
     const vm_float_t width = (s_max - s_min) / (vm_float_t)bins;
     if (!(width > VM_F(0.0)) || !isfinite(width)) {
         return false;
@@ -435,6 +447,7 @@ bool vm_nn_spacing_hist(const vm_float_t *eigenvalues, const int n,
         }
         hist[bin] += VM_F(1.0);
     }
+
     return true;
 }
 
@@ -444,6 +457,7 @@ vm_float_t vm_pair_correlation(const vm_float_t *eigenvalues, const int n,
     if (!isfinite(s) || !(s >= VM_F(0.0))) {
         return spacing_nan();
     }
+
     vm_float_t mean = VM_F(0.0);
     if (!gaps_mean(eigenvalues, n, &mean) || !(mean > VM_F(0.0))) {
         return spacing_nan();
@@ -464,5 +478,6 @@ vm_float_t vm_pair_correlation(const vm_float_t *eigenvalues, const int n,
             }
         }
     }
+
     return (vm_float_t)count / ((vm_float_t)n * VM_F(0.5));
 }
