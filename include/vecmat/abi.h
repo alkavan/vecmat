@@ -573,6 +573,9 @@
 #define vm_syev vm_syev64
 #define vm_laplacian vm_laplacian64
 #define vm_syev_topk vm_syev_topk64
+#define vm_rng_seed vm_rng_seed64
+#define vm_goe vm_goe64
+#define vm_gue vm_gue64
 #define vm_sym3_from_mat3 vm_sym3_from_mat364
 #define vm_sym3_to_mat3 vm_sym3_to_mat364
 #define vm_sym3_add vm_sym3_add64
@@ -1703,6 +1706,9 @@
 #define vm_syev vm_syev32
 #define vm_laplacian vm_laplacian32
 #define vm_syev_topk vm_syev_topk32
+#define vm_rng_seed vm_rng_seed32
+#define vm_goe vm_goe32
+#define vm_gue vm_gue32
 #define vm_sym3_from_mat3 vm_sym3_from_mat332
 #define vm_sym3_to_mat3 vm_sym3_to_mat332
 #define vm_sym3_add vm_sym3_add32

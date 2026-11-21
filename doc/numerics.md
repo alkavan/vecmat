@@ -116,6 +116,42 @@ decomposition `F = R U` (Newton on `C = Fᵀ F`). A reflection is a failure.
 - `vm_laplacian` — unnormalized graph Laplacian `L = D − A`
 - `vm_syev_topk` — thin wrapper for the leading k eigenpairs
 
+## Gaussian ensembles
+
+`include/vecmat/random.h`. `vm_goe` and `vm_gue` overwrite caller-owned
+column-major matrices. Real and imaginary parts of a GUE matrix are two
+`vm_mat` values. The entry variances below are fixed.
+
+`vm_rng` is one `uint64_t` counter. `vm_rng_seed` stores the seed and advances
+splitmix64 once (state becomes `seed + 0x9E3779B97F4A7C15`), so seed 0 is
+valid. A null pointer is ignored. Draws use that generator. Each Box–Muller
+pair consumes two splitmix64 outputs. The uniform is the top 53 bits with the
+low bit set, times 2⁻⁵³, an exact value in (0, 1). The pair is evaluated in
+IEEE-754 double and rounded into `vm_float_t`. `frexp`, `ldexp`, and `sqrt`
+are the libm calls. The logarithm and the sine/cosine are power series.
+The same seed yields the same bits on every IEEE-754 platform.
+
+Entries are drawn across the upper triangle, including the diagonal, one row
+at a time. The lower triangle is written from those draws. A partner left
+over at the end of a call is discarded.
+
+- `vm_goe` — one square matrix. Diagonal N(0, 2). Off-diagonal N(0, 1).
+- `vm_gue` — two square matrices of equal order. Diagonal real N(0, 1).
+  Diagonal imag 0. Off-diagonal real and imag each N(0, 1/2). Real part
+  symmetric, imaginary part skew.
+
+A null `rng`, a null matrix, a null `data` pointer, a non-square, `rows < 1`,
+or two GUE orders that differ returns false and leaves the buffers and the
+generator unchanged.
+
+```c
+vm_rng rng;
+vm_rng_seed(&rng, 1);
+vm_mat A = vm_mat_alloc(4, 4);
+bool ok = vm_goe(&A, &rng);
+vm_mat_free(&A);
+```
+
 ## Sparse systems
 
 - `vm_spmat` — square CSR from triplets

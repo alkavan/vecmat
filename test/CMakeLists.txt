@@ -46,6 +46,7 @@ add_executable(vecmat_tests
         test_soa3.c
         test_device.c
         test_abi.c
+        test_random.c
         ${VECMAT_MODULE_TEST_SOURCES}
 )
 if(VECMAT_ENABLE_FP16)

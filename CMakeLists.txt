@@ -281,6 +281,7 @@ set(VECMAT_FLOAT_SOURCES
         src/features/physics.c
         src/features/sparse.c
         src/features/spectral.c
+        src/features/random.c
         src/features/sym3.c
         src/features/strain.c
         src/features/geom3.c

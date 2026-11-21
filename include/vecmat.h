@@ -72,6 +72,7 @@
 #include "vecmat/gemm.h"
 #include "vecmat/dense.h"
 #include "vecmat/spectral.h"
+#include "vecmat/random.h"
 #include "vecmat/sym3.h"
 #include "vecmat/strain.h"
 #include "vecmat/geom3.h"
