@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include <vecmat.h>
+
 #include "unitest.h"
 
 TEST_CASE(test_poly_ease_powers, "[easing][poly]") {

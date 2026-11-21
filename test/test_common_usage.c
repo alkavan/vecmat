@@ -2,10 +2,10 @@
 // SPDX-FileCopyrightText: 2026 ALKONTEK <git@alkontek.com>
 // SPDX-License-Identifier: BSD-3-Clause
 
+#include <string.h>
 #include <vecmat.h>
 
 #include "unitest.h"
-#include <string.h>
 
 // Test individual element access using v[] and named members
 TEST_CASE(test_matrix_individual_element_access, "[common][matrix3][access]") {

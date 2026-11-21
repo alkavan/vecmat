@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include <vecmat.h>
+
 #include "unitest.h"
 
 static vector3 v3(const vm_float_t x, const vm_float_t y, const vm_float_t z)

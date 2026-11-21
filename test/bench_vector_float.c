@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include <vecmat.h>
+
 #include "unitest.h"
 
 BENCHMARK(vec2_mul_scalar, "iterations: 1000000 [vec2_add,vec2_sub,vec2_dot,vec2_mul_scalar]")

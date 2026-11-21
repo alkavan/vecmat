@@ -4,6 +4,7 @@
 
 #include <stdlib.h>
 #include <vecmat.h>
+
 #include "unitest.h"
 
 static void vm_bench_gemm_fill(vm_float_t *M, const int n, const int seed)

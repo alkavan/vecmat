@@ -4,6 +4,7 @@
 
 #include <stdlib.h>
 #include <vecmat.h>
+
 #include "unitest.h"
 
 TEST_CASE(planck_integrated_matches_sigma, "[planck]") {

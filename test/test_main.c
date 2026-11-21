@@ -4,6 +4,7 @@
 
 #include "unitest.h"
 #include "module_register.h"
+
 #include <vecmat.h>
 
 // Epsilon

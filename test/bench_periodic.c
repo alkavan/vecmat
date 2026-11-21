@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <vecmat.h>
+
 #include "unitest.h"
 
 static const vector3 bench_box = {.x = VM_F(10.0), .y = VM_F(12.5), .z = VM_F(7.25)};

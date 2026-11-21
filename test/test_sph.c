@@ -2,8 +2,8 @@
 // SPDX-FileCopyrightText: 2026 ALKONTEK <git@alkontek.com>
 // SPDX-License-Identifier: BSD-3-Clause
 
-#include <stdlib.h>
 #include <vecmat.h>
+
 #include "unitest.h"
 
 static vm_float_t integrate_1d(const int kernel)

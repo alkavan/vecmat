@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include <vecmat.h>
+
 #include "unitest.h"
 
 TEST_CASE(abi_float_bits_contain_this_tu, "[abi]") {

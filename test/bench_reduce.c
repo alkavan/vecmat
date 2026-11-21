@@ -13,6 +13,7 @@
 
 #include <stdlib.h>
 #include <vecmat.h>
+
 #include "unitest.h"
 
 static vm_float_t *alloc_fill(const int n, const int seed)

@@ -4,6 +4,7 @@
 
 #include <stdlib.h>
 #include <vecmat.h>
+
 #include "unitest.h"
 
 TEST_CASE(raddiff_limiter_zero_is_one_third, "[raddiff]") {

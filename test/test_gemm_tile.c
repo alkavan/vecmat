@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <vecmat.h>
+
 #include "unitest.h"
 
 static void tile_fill(vm_float_t *m, const int n, const int stride, const int seed)

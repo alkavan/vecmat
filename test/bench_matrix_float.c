@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include <vecmat.h>
+
 #include "unitest.h"
 
 BENCHMARK(mat2_mul, "iterations: 1000000 [mat2_mul_3x,mat2_inverse]")

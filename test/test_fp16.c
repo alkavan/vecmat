@@ -4,9 +4,9 @@
 
 #include <math.h>
 #include <string.h>
+#include <vecmat/fp16.h>
 
 #include "unitest.h"
-#include "vecmat/fp16.h"
 
 static int near(const float got, const float ref, const float tol)
 {

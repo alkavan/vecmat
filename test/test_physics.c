@@ -3,8 +3,8 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include <stdlib.h>
-#include <string.h>
 #include <vecmat.h>
+
 #include "unitest.h"
 
 TEST_CASE(vm_spmat_from_triplets_sums_duplicates, "[sparse]") {

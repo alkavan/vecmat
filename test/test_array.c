@@ -5,6 +5,7 @@
 #include <float.h>
 #include <math.h>
 #include <vecmat.h>
+
 #include "unitest.h"
 
 #ifdef VECMAT_USE_F64

@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include <vecmat.h>
+
 #include "unitest.h"
 
 TEST_CASE(curve_bezier_endpoints_and_midpoint, "[curve]") {

@@ -6,6 +6,7 @@
 #include <math.h>
 #include <string.h>
 #include <vecmat.h>
+
 #include "unitest.h"
 
 /* The local reference uses the library's unfused order. */

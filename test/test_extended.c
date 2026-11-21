@@ -5,6 +5,7 @@
 #include <math.h>
 #include <string.h>
 #include <vecmat.h>
+
 #include "unitest.h"
 
 TEST_CASE(mat4_perspective_rh_no_matches_legacy, "[clip]") {

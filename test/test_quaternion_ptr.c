@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include <vecmat.h>
+
 #include "unitest.h"
 
 TEST_CASE(quat_identity_ptr_test, "[quaternion_ptr]") {

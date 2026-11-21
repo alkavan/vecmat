@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include <vecmat.h>
+
 #include "unitest.h"
 
 static matrix3 make_sym(const vm_float_t xx, const vm_float_t yy, const vm_float_t zz,

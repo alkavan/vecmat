@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <vecmat.h>
+
 #include "unitest.h"
 
 #if defined(VECMAT_TEST_THREADS)

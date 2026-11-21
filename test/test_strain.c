@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include <vecmat.h>
+
 #include "unitest.h"
 
 static matrix3 diag3(const vm_float_t a, const vm_float_t b, const vm_float_t c)

@@ -12,6 +12,7 @@
 
 #include <stdlib.h>
 #include <vecmat.h>
+
 #include "unitest.h"
 
 static void fill(vm_float_t *p, const int n, const int seed)

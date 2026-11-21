@@ -4,6 +4,7 @@
 
 #include <stdlib.h>
 #include <vecmat.h>
+
 #include "unitest.h"
 
 TEST_CASE(project_residual_constant_is_zero, "[project]") {

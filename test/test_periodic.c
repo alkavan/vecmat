@@ -4,6 +4,7 @@
 
 #include <math.h>
 #include <vecmat.h>
+
 #include "unitest.h"
 
 static vm_float_t neg_zero(void)

@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <vecmat.h>
+
 #include "unitest.h"
 
 #ifdef VECMAT_USE_F64

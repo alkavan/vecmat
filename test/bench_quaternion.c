@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include <vecmat.h>
+
 #include "unitest.h"
 
 BENCHMARK(quat_normalize_ptr_simd, "iterations: 1000000 [simd,normalize_ptr,mul_ptr]")
