@@ -2,6 +2,7 @@
 // SPDX-FileCopyrightText: 2026 ALKONTEK <git@alkontek.com>
 // SPDX-License-Identifier: BSD-3-Clause
 
+#include <math.h>
 #include <string.h>
 #include <vecmat.h>
 #include "unitest.h"
@@ -993,4 +994,212 @@ TEST_CASE(vm_ger_outer_and_alpha_zero, "[spectral]") {
 
     vm_mat_free(&A);
     vm_mat_free(&B);
+}
+
+/*
+ * Hand spectrum λ = {0, 1, 3, 6}.
+ * Gaps 1, 2, 3. Mean 2.
+ * Normalized gaps 0.5, 1, 1.5.
+ * Unfolded ξ = λ / 2 = {0, 0.5, 1.5, 3}.
+ * Unordered distances: 0.5, 1.5, 3, 1, 2.5, 1.5.
+ */
+
+static int hist_untouched(const vm_float_t *hist, const int n, const vm_float_t sentinel)
+{
+    for (int i = 0; i < n; ++i) {
+        if (hist[i] != sentinel) {
+            return 0;
+        }
+    }
+    return 1;
+}
+
+TEST_CASE(spacing_mean_hand_spectrum, "[spectral]") {
+    const vm_float_t ev[] = {VM_F(0.0), VM_F(1.0), VM_F(3.0), VM_F(6.0)};
+    REQUIRE(vm_nn_spacing_mean(ev, 4) == VM_F(2.0));
+
+    const vm_float_t tied[] = {VM_F(1.0), VM_F(1.0), VM_F(2.0)};
+    REQUIRE(vm_nn_spacing_mean(tied, 3) == VM_F(0.5));
+
+    const vm_float_t shifted[] = {VM_F(10.0), VM_F(12.0), VM_F(14.0)};
+    REQUIRE(vm_nn_spacing_mean(shifted, 3) == VM_F(2.0));
+}
+
+TEST_CASE(spacing_hist_hand_spectrum, "[spectral]") {
+    const vm_float_t ev[] = {VM_F(0.0), VM_F(1.0), VM_F(3.0), VM_F(6.0)};
+    vm_float_t hist[4];
+    REQUIRE(vm_nn_spacing_hist(ev, 4, VM_F(0.0), VM_F(2.0), hist, 4));
+    /* width 0.5: [0, 0.5), [0.5, 1), [1, 1.5), [1.5, 2]. */
+    REQUIRE(hist[0] == VM_F(0.0));
+    REQUIRE(hist[1] == VM_F(1.0));
+    REQUIRE(hist[2] == VM_F(1.0));
+    REQUIRE(hist[3] == VM_F(1.0));
+
+    vm_float_t edge[3];
+    REQUIRE(vm_nn_spacing_hist(ev, 4, VM_F(0.0), VM_F(1.5), edge, 3));
+    /* 0.5 in bin 1, 1 and the included right edge 1.5 in bin 2. */
+    REQUIRE(edge[0] == VM_F(0.0));
+    REQUIRE(edge[1] == VM_F(1.0));
+    REQUIRE(edge[2] == VM_F(2.0));
+
+    vm_float_t clipped[5];
+    REQUIRE(vm_nn_spacing_hist(ev, 4, VM_F(0.0), VM_F(1.25), clipped, 5));
+    /* 1.5 lies past s_max and is not counted. */
+    REQUIRE(clipped[0] == VM_F(0.0));
+    REQUIRE(clipped[1] == VM_F(0.0));
+    REQUIRE(clipped[2] == VM_F(1.0));
+    REQUIRE(clipped[3] == VM_F(0.0));
+    REQUIRE(clipped[4] == VM_F(1.0));
+}
+
+TEST_CASE(pair_correlation_hand_spectrum, "[spectral]") {
+    const vm_float_t ev[] = {VM_F(0.0), VM_F(1.0), VM_F(3.0), VM_F(6.0)};
+
+    /* s = 1, window [0.75, 1.25): only distance 1. count 1. 1 / 2 = 0.5. */
+    REQUIRE(vm_pair_correlation(ev, 4, VM_F(1.0)) == VM_F(0.5));
+    /* s = 1.5, window [1.25, 1.75): two distances of 1.5. 2 / 2 = 1. */
+    REQUIRE(vm_pair_correlation(ev, 4, VM_F(1.5)) == VM_F(1.0));
+    /* s = 0.75, window [0.5, 1): distance 0.5 included, 1 excluded. */
+    REQUIRE(vm_pair_correlation(ev, 4, VM_F(0.75)) == VM_F(0.5));
+    /* s = 0.25, window [0, 0.5): distance 0.5 sits on the open end. */
+    REQUIRE(vm_pair_correlation(ev, 4, VM_F(0.25)) == VM_F(0.0));
+    REQUIRE(vm_pair_correlation(ev, 4, VM_F(0.0)) == VM_F(0.0));
+
+    const vm_float_t shifted[] = {VM_F(10.0), VM_F(11.0), VM_F(13.0), VM_F(16.0)};
+    REQUIRE(vm_pair_correlation(shifted, 4, VM_F(1.0)) == VM_F(0.5));
+
+    /* A shift of the whole spectrum does not change unfolded distances. */
+    const vm_float_t negative[] = {VM_F(-2.0), VM_F(0.0), VM_F(2.0)};
+    const vm_float_t positive[] = {VM_F(0.0), VM_F(2.0), VM_F(4.0)};
+    const vm_float_t shifted_pair = vm_pair_correlation(negative, 3, VM_F(1.0));
+    REQUIRE(shifted_pair == vm_pair_correlation(positive, 3, VM_F(1.0)));
+    REQUIRE(shifted_pair == VM_F(2.0) / (VM_F(3.0) * VM_F(0.5)));
+}
+
+TEST_CASE(spacing_equally_spaced, "[spectral]") {
+    const vm_float_t ev[] = {
+        VM_F(0.0), VM_F(2.0), VM_F(4.0), VM_F(6.0), VM_F(8.0)
+    };
+    REQUIRE(vm_nn_spacing_mean(ev, 5) == VM_F(2.0));
+
+    vm_float_t hist[4];
+    REQUIRE(vm_nn_spacing_hist(ev, 5, VM_F(0.0), VM_F(2.0), hist, 4));
+    /* Every normalized gap is 1, the left edge of [1, 1.5). */
+    REQUIRE(hist[0] == VM_F(0.0));
+    REQUIRE(hist[1] == VM_F(0.0));
+    REQUIRE(hist[2] == VM_F(4.0));
+    REQUIRE(hist[3] == VM_F(0.0));
+
+    /*
+     * ξ = {0, 1, 2, 3, 4}. At s = 1 the window holds the four neighbor
+     * pairs and nothing else. 4 / (5 * 0.5) = 1.6.
+     * 1.6 is not a binary dyadic; compare the rounded quotient.
+     */
+    const vm_float_t at_one = vm_pair_correlation(ev, 5, VM_F(1.0));
+    REQUIRE(at_one == VM_F(4.0) / (VM_F(5.0) * VM_F(0.5)));
+    REQUIRE(vm_pair_correlation(ev, 5, VM_F(0.0)) == VM_F(0.0));
+
+    const vm_float_t unit[] = {VM_F(0.0), VM_F(1.0), VM_F(2.0), VM_F(3.0)};
+    REQUIRE(vm_nn_spacing_mean(unit, 4) == VM_F(1.0));
+    REQUIRE(vm_pair_correlation(unit, 4, VM_F(1.0)) == VM_F(1.5));
+    REQUIRE(vm_pair_correlation(unit, 4, VM_F(2.0)) == VM_F(1.0));
+}
+
+TEST_CASE(spacing_rejects_bad_input, "[spectral]") {
+    const vm_float_t good[] = {VM_F(0.0), VM_F(1.0), VM_F(3.0)};
+    const vm_float_t unsorted[] = {VM_F(0.0), VM_F(2.0), VM_F(1.0)};
+    const vm_float_t flat[] = {VM_F(4.0), VM_F(4.0), VM_F(4.0)};
+    const vm_float_t with_nan[] = {VM_F(0.0), NAN, VM_F(2.0)};
+    const vm_float_t with_inf[] = {VM_F(0.0), VM_F(1.0), INFINITY};
+    const vm_float_t one[] = {VM_F(1.0)};
+
+    REQUIRE(isnan(vm_nn_spacing_mean(NULL, 4)));
+    REQUIRE(isnan(vm_nn_spacing_mean(good, 1)));
+    REQUIRE(isnan(vm_nn_spacing_mean(good, 0)));
+    REQUIRE(isnan(vm_nn_spacing_mean(good, -3)));
+    REQUIRE(isnan(vm_nn_spacing_mean(unsorted, 3)));
+    REQUIRE(isnan(vm_nn_spacing_mean(with_nan, 3)));
+    REQUIRE(isnan(vm_nn_spacing_mean(with_inf, 3)));
+    REQUIRE(isnan(vm_nn_spacing_mean(flat, 3)));
+
+    vm_float_t hist[4];
+    for (int i = 0; i < 4; ++i) {
+        hist[i] = VM_F(7.0);
+    }
+    REQUIRE(!vm_nn_spacing_hist(NULL, 3, VM_F(0.0), VM_F(2.0), hist, 4));
+    REQUIRE(!vm_nn_spacing_hist(good, 1, VM_F(0.0), VM_F(2.0), hist, 4));
+    REQUIRE(!vm_nn_spacing_hist(good, 0, VM_F(0.0), VM_F(2.0), hist, 4));
+    REQUIRE(!vm_nn_spacing_hist(unsorted, 3, VM_F(0.0), VM_F(2.0), hist, 4));
+    REQUIRE(!vm_nn_spacing_hist(with_nan, 3, VM_F(0.0), VM_F(2.0), hist, 4));
+    REQUIRE(!vm_nn_spacing_hist(with_inf, 3, VM_F(0.0), VM_F(2.0), hist, 4));
+    REQUIRE(!vm_nn_spacing_hist(flat, 3, VM_F(0.0), VM_F(2.0), hist, 4));
+    REQUIRE(!vm_nn_spacing_hist(good, 3, VM_F(0.0), VM_F(2.0), NULL, 4));
+    REQUIRE(!vm_nn_spacing_hist(good, 3, VM_F(0.0), VM_F(2.0), hist, 0));
+    REQUIRE(!vm_nn_spacing_hist(good, 3, VM_F(0.0), VM_F(2.0), hist, -2));
+    REQUIRE(!vm_nn_spacing_hist(good, 3, VM_F(1.0), VM_F(1.0), hist, 4));
+    REQUIRE(!vm_nn_spacing_hist(good, 3, VM_F(2.0), VM_F(1.0), hist, 4));
+    REQUIRE(!vm_nn_spacing_hist(good, 3, NAN, VM_F(1.0), hist, 4));
+    REQUIRE(!vm_nn_spacing_hist(one, 1, VM_F(0.0), VM_F(2.0), hist, 4));
+    REQUIRE(hist_untouched(hist, 4, VM_F(7.0)));
+
+    REQUIRE(vm_nn_spacing_hist(good, 3, VM_F(0.0), VM_F(2.0), hist, 4));
+    /* Gaps 1 and 2, mean 1.5, normalized 2/3 and 4/3. */
+    REQUIRE(hist[0] == VM_F(0.0));
+    REQUIRE(hist[1] == VM_F(1.0));
+    REQUIRE(hist[2] == VM_F(1.0));
+    REQUIRE(hist[3] == VM_F(0.0));
+
+    REQUIRE(isnan(vm_pair_correlation(NULL, 3, VM_F(1.0))));
+    REQUIRE(isnan(vm_pair_correlation(good, 1, VM_F(1.0))));
+    REQUIRE(isnan(vm_pair_correlation(good, -1, VM_F(1.0))));
+    REQUIRE(isnan(vm_pair_correlation(unsorted, 3, VM_F(1.0))));
+    REQUIRE(isnan(vm_pair_correlation(with_nan, 3, VM_F(1.0))));
+    REQUIRE(isnan(vm_pair_correlation(with_inf, 3, VM_F(1.0))));
+    REQUIRE(isnan(vm_pair_correlation(flat, 3, VM_F(1.0))));
+    REQUIRE(isnan(vm_pair_correlation(good, 3, VM_F(-0.1))));
+    REQUIRE(isnan(vm_pair_correlation(good, 3, -INFINITY)));
+    REQUIRE(isnan(vm_pair_correlation(good, 3, INFINITY)));
+    REQUIRE(isnan(vm_pair_correlation(good, 3, NAN)));
+    REQUIRE(vm_pair_correlation(good, 3, VM_F(0.0)) == VM_F(0.0));
+}
+
+/*
+ * Seed 11, order 48. vm_goe, then vm_syev, reversed to ascending.
+ * Global-mean unfolding, not a literature R_2. At s = 0.25 the window is
+ * [0, 0.5). This sample is 0.5 there (12 pairs) and 17/24 at s = 1
+ * (17 pairs). A Poisson spectrum is near 1, outside both bands.
+ * Absolute tolerance 0.2 covers one matrix and the separate f32 and f64 draws.
+ */
+TEST_CASE(goe_pair_correlation_versus_poisson, "[spectral]") {
+    const int n = 48;
+    vm_rng rng;
+    vm_rng_seed(&rng, 11);
+    vm_mat A = vm_mat_alloc(n, n);
+    REQUIRE(A.data != NULL);
+    REQUIRE(vm_goe(&A, &rng));
+
+    vm_float_t ev[48];
+    REQUIRE(vm_syev(&A, ev, NULL));
+    for (int i = 0; i < n; ++i) {
+        REQUIRE(isfinite((double)ev[i]));
+    }
+    for (int i = 0; i < n / 2; ++i) {
+        const vm_float_t tmp = ev[i];
+        ev[i] = ev[n - 1 - i];
+        ev[n - 1 - i] = tmp;
+    }
+    for (int i = 0; i < n - 1; ++i) {
+        REQUIRE(ev[i + 1] >= ev[i]);
+    }
+
+    const vm_float_t mean = vm_nn_spacing_mean(ev, n);
+    REQUIRE(isfinite((double)mean));
+    REQUIRE(mean > VM_F(0.0));
+
+    const double at_quarter = (double)vm_pair_correlation(ev, n, VM_F(0.25));
+    const double at_one = (double)vm_pair_correlation(ev, n, VM_F(1.0));
+    REQUIRE(fabs(at_quarter - 0.5) < 0.2);
+    REQUIRE(fabs(at_one - (17.0 / 24.0)) < 0.2);
+
+    vm_mat_free(&A);
 }

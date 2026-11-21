@@ -152,6 +152,40 @@ bool ok = vm_goe(&A, &rng);
 vm_mat_free(&A);
 ```
 
+## Spectral spacing
+
+`include/vecmat/spectral.h`. Nearest-neighbor spacing and a coarse pair
+correlation on an ascending eigenvalue buffer. These functions do not sort
+and do not allocate. The caller owns every buffer.
+
+The mean spacing is the mean of `λ[i+1] − λ[i]`. Unfolding divides by that
+one number, `ξ_i = λ_i / mean`. Local unfolding is not done.
+
+- `vm_nn_spacing_mean` — that mean. A null pointer, `n < 2`, a non-finite
+  value, a descent, a non-finite sum, or a zero mean returns NaN.
+- `vm_nn_spacing_hist` — divide each spacing by the mean and count into a
+  caller buffer of `bins` floats. Bin `i` is
+  `[s_min + i w, s_min + (i+1) w)` with `w = (s_max − s_min) / bins`, and
+  the last bin includes `s_max`. Counts are raw, not a density. A spacing
+  outside `[s_min, s_max]` is skipped. Requires `s_min < s_max` and
+  `bins > 0`. Failure returns false and does not write the buffer.
+- `vm_pair_correlation` — counts unordered pairs whose unfolded distance
+  lies in `[s − 0.25, s + 0.25)` and returns `count / (n * 0.5)`. The
+  window is fixed. A Poisson spectrum is near 1. `s < 0` returns NaN.
+  This is a coarse check, not a literature `R_2` estimator.
+
+A zero or non-finite mean spacing makes the histogram fail and the pair
+correlation return NaN. The same is true of a descent: the buffer is not
+sorted into order.
+
+```c
+const vm_float_t ev[] = {0.0f, 1.0f, 3.0f, 6.0f};
+const vm_float_t mean = vm_nn_spacing_mean(ev, 4);
+vm_float_t hist[4];
+const bool ok = vm_nn_spacing_hist(ev, 4, 0.0f, 2.0f, hist, 4);
+const vm_float_t pair = vm_pair_correlation(ev, 4, 1.0f);
+```
+
 ## Sparse systems
 
 - `vm_spmat` — square CSR from triplets

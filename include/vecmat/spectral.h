@@ -7,7 +7,13 @@
 
 /**
  * @file
- * @brief Dense spectral primitives: matvec, gemv, ger, symmetric eigensolve, graph Laplacian.
+ * @brief Dense spectral primitives.
+ *
+ * Matrix-vector products (`vm_matvec`, `vm_gemv`, `vm_symv`), rank-1 update
+ * (`vm_ger`), Jacobi eigensolve (`vm_syev`, `vm_syev_topk`), unnormalized
+ * graph Laplacian, and nearest-neighbor spacing (`vm_nn_spacing_mean`,
+ * `vm_nn_spacing_hist`, `vm_pair_correlation`).
+ *
  * @ingroup vecmat_extras
  */
 
@@ -113,5 +119,68 @@ VEC_API bool vm_laplacian(vm_mat *L, const vm_mat *A);
  */
 VEC_API bool vm_syev_topk(const vm_mat *A, int k,
                           vm_float_t *eigenvalues, vm_mat *eigenvectors);
+
+/**
+ * @brief Mean nearest-neighbor spacing of an ascending spectrum.
+ *
+ * Returns the mean of `eigenvalues[i + 1] - eigenvalues[i]`. The buffer is
+ * not sorted and nothing is allocated. A null pointer, `n < 2`, a non-finite
+ * value, a descent, a non-finite sum, or zero mean returns NaN.
+ *
+ * @param eigenvalues Ascending eigenvalues, length `n`.
+ * @param n Number of eigenvalues.
+ *
+ * @return Mean spacing, or NaN on bad input.
+ */
+VEC_API vm_float_t vm_nn_spacing_mean(const vm_float_t *eigenvalues, int n);
+
+/**
+ * @brief Raw histogram of nearest-neighbor spacings divided by their mean.
+ *
+ * Each gap is divided by `vm_nn_spacing_mean`. Bin `i` covers
+ * `[s_min + i w, s_min + (i + 1) w)` with `w = (s_max - s_min) / bins`.
+ * The last bin also includes `s_max`. Counts are raw, not a density.
+ * A spacing outside `[s_min, s_max]` is skipped. The caller owns `hist`.
+ * Nothing is allocated and the spectrum is not sorted.
+ *
+ * A null pointer, `n < 2`, a non-finite eigenvalue, a descent, a mean that
+ * is not finite and positive, `bins <= 0`, or `s_min >= s_max` returns false
+ * and does not write `hist`.
+ *
+ * @param eigenvalues Ascending eigenvalues, length `n`.
+ * @param n Number of eigenvalues.
+ * @param s_min Inclusive left edge of the first bin. Must be less than `s_max`.
+ * @param s_max Inclusive right edge of the last bin.
+ * @param hist Output counts, length `bins`. Overwritten on success.
+ * @param bins Number of bins. Must be positive.
+ *
+ * @return true when `hist` holds counts.
+ */
+VEC_API bool vm_nn_spacing_hist(const vm_float_t *eigenvalues, int n,
+                                vm_float_t s_min, vm_float_t s_max,
+                                vm_float_t *hist, int bins);
+
+/**
+ * @brief Coarse pair correlation at unfolded distance `s`.
+ *
+ * Positions are unfolded by the global mean spacing, `ξ_i = λ_i / mean`.
+ * Counts unordered pairs whose unfolded distance lies in
+ * `[s - 0.25, s + 0.25)` and returns `count / (n * 0.5)`. The window is
+ * fixed. A Poisson spectrum is near 1. This is not a literature `R_2`
+ * estimator. Local unfolding is not done. Nothing is allocated and the
+ * spectrum is not sorted.
+ *
+ * A null pointer, `n < 2`, a non-finite eigenvalue, a descent, a mean that
+ * is not finite and positive, or `s < 0` returns NaN. A non-finite `s`
+ * returns NaN.
+ *
+ * @param eigenvalues Ascending eigenvalues, length `n`.
+ * @param n Number of eigenvalues.
+ * @param s Center of the unfolded window. Negative is rejected.
+ *
+ * @return `count / (n * 0.5)`, or NaN on bad input.
+ */
+VEC_API vm_float_t vm_pair_correlation(const vm_float_t *eigenvalues, int n,
+                                       vm_float_t s);
 
 #endif //VECMAT_SPECTRAL_H

@@ -2,6 +2,8 @@
 // SPDX-FileCopyrightText: 2026 ALKONTEK <git@alkontek.com>
 // SPDX-License-Identifier: BSD-3-Clause
 
+#include <math.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <vecmat.h>
@@ -86,6 +88,7 @@ void vm_ger(vm_mat *A, const vm_float_t alpha, const vm_float_t *x, const vm_flo
     if (!A || !A->data || A->rows <= 0 || A->cols <= 0 || alpha == VM_F(0.0)) {
         return;
     }
+
     if (!x || !y) {
         return;
     }
@@ -338,4 +341,128 @@ bool vm_syev_topk(const vm_mat *A, int k,
     vm_mat_free(&Ac);
     vm_mat_free(&V);
     return ok;
+}
+
+/*
+ * Nearest-neighbor spacing on an ascending buffer. No sort, no allocation.
+ * The mean is the average of consecutive gaps. Histogram and pair
+ * correlation divide by that mean. The pair window is fixed at 0.25.
+ */
+
+static vm_float_t spacing_nan(void)
+{
+#ifdef VECMAT_USE_F64
+    return nan("");
+#else
+    return nanf("");
+#endif
+}
+
+/* 1 when every value is finite and each gap is >= 0. Writes the mean of the gaps. */
+static int gaps_mean(const vm_float_t *ev, const int n, vm_float_t *mean)
+{
+    if (!ev || n < 2) {
+        return 0;
+    }
+    vm_float_t sum = VM_F(0.0);
+    for (int i = 0; i < n - 1; ++i) {
+        const vm_float_t left = ev[i];
+        const vm_float_t right = ev[i + 1];
+        if (!isfinite(left) || !isfinite(right)) {
+            return 0;
+        }
+        const vm_float_t gap = right - left;
+        if (!(gap >= VM_F(0.0))) {
+            return 0;
+        }
+        sum += gap;
+    }
+    const vm_float_t m = sum / (vm_float_t)(n - 1);
+    if (!isfinite(m)) {
+        return 0;
+    }
+    *mean = m;
+    return 1;
+}
+
+vm_float_t vm_nn_spacing_mean(const vm_float_t *eigenvalues, const int n)
+{
+    vm_float_t mean = VM_F(0.0);
+    if (!gaps_mean(eigenvalues, n, &mean) || !(mean > VM_F(0.0))) {
+        return spacing_nan();
+    }
+    return mean;
+}
+
+bool vm_nn_spacing_hist(const vm_float_t *eigenvalues, const int n,
+                        const vm_float_t s_min, const vm_float_t s_max,
+                        vm_float_t *hist, const int bins)
+{
+    if (!hist || bins <= 0 || !isfinite(s_min) || !isfinite(s_max) || !(s_min < s_max)) {
+        return false;
+    }
+    vm_float_t mean = VM_F(0.0);
+    if (!gaps_mean(eigenvalues, n, &mean) || !(mean > VM_F(0.0))) {
+        return false;
+    }
+    const vm_float_t width = (s_max - s_min) / (vm_float_t)bins;
+    if (!(width > VM_F(0.0)) || !isfinite(width)) {
+        return false;
+    }
+
+    for (int b = 0; b < bins; ++b) {
+        hist[b] = VM_F(0.0);
+    }
+
+    const vm_float_t bin_count = (vm_float_t)bins;
+    for (int i = 0; i < n - 1; ++i) {
+        const vm_float_t s = (eigenvalues[i + 1] - eigenvalues[i]) / mean;
+        if (!(s >= s_min) || !(s <= s_max)) {
+            continue;
+        }
+        const vm_float_t scaled = (s - s_min) / width;
+        int bin;
+        if (!(scaled >= VM_F(0.0))) {
+            continue;
+        }
+        if (!(scaled < bin_count)) {
+            bin = bins - 1;
+        } else {
+            bin = (int)scaled;
+            if (bin < 0 || bin >= bins) {
+                bin = bins - 1;
+            }
+        }
+        hist[bin] += VM_F(1.0);
+    }
+    return true;
+}
+
+vm_float_t vm_pair_correlation(const vm_float_t *eigenvalues, const int n,
+                               const vm_float_t s)
+{
+    if (!isfinite(s) || !(s >= VM_F(0.0))) {
+        return spacing_nan();
+    }
+    vm_float_t mean = VM_F(0.0);
+    if (!gaps_mean(eigenvalues, n, &mean) || !(mean > VM_F(0.0))) {
+        return spacing_nan();
+    }
+
+    const vm_float_t lo = s - VM_F(0.25);
+    const vm_float_t hi = s + VM_F(0.25);
+    uint64_t count = 0;
+    for (int i = 0; i < n; ++i) {
+        const vm_float_t origin = eigenvalues[i];
+        for (int j = i + 1; j < n; ++j) {
+            const vm_float_t dist = (eigenvalues[j] - origin) / mean;
+            if (dist >= hi) {
+                break;
+            }
+            if (dist >= lo) {
+                count += 1u;
+            }
+        }
+    }
+    return (vm_float_t)count / ((vm_float_t)n * VM_F(0.5));
 }
