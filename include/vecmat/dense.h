@@ -205,4 +205,4 @@ VEC_API bool vm_chol_factor(vm_mat *A);
  */
 VEC_API bool vm_chol_solve(const vm_mat *L, const vm_float_t *b, vm_float_t *x);
 
-#endif //VECMAT_DENSE_H
+#endif /* VECMAT_DENSE_H */

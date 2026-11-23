@@ -186,4 +186,4 @@ VEC_API bool vm_nn_spacing_hist(const vm_float_t *eigenvalues, int n,
 VEC_API vm_float_t vm_pair_correlation(const vm_float_t *eigenvalues, int n,
                                        vm_float_t s);
 
-#endif //VECMAT_SPECTRAL_H
+#endif /* VECMAT_SPECTRAL_H */

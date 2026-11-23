@@ -97,4 +97,4 @@ VEC_API bool vm_hydro_rusanov(vm_hydro_flux *flux,
 VEC_API vm_float_t vm_hydro_cfl(vm_float_t h, vm_float_t v, vm_float_t c,
                                 vm_float_t kappa, vm_float_t nu);
 
-#endif //VECMAT_HYDRO_H
+#endif /* VECMAT_HYDRO_H */

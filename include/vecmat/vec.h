@@ -5887,4 +5887,4 @@ static inline bool vec4i_eq_ptr(const vector4i *a, const vector4i *b)
 
 /** @} */
 
-#endif //VECMAT_VEC_H
+#endif /* VECMAT_VEC_H */

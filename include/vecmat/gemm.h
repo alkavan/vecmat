@@ -247,4 +247,4 @@ VEC_API void vm_im2col(vm_float_t *col, int ld_col, const vm_float_t *img,
     int n, int c, int h, int w, int kh, int kw, int pad_h, int pad_w,
     int stride_h, int stride_w, vm_layout_t layout);
 
-#endif //VECMAT_GEMM_H
+#endif /* VECMAT_GEMM_H */

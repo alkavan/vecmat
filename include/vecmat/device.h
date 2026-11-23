@@ -294,4 +294,4 @@ VEC_API int vm_device_register(const vm_device_ops *ops, void *ctx);
 
 /** @} */
 
-#endif //VECMAT_DEVICE_H
+#endif /* VECMAT_DEVICE_H */

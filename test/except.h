@@ -20,4 +20,4 @@ extern jmp_buf _except_buf;
 
 #define THROW longjmp(_except_buf, 1)
 
-#endif //EXCEPT_H
+#endif /* EXCEPT_H */

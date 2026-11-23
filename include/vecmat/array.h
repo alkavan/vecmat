@@ -140,4 +140,4 @@ VEC_API vm_float_t vm_asum(const vm_float_t *x, int n);
  */
 VEC_API void vm_rsqrt_array(vm_float_t *res, const vm_float_t *x, int n);
 
-#endif //VECMAT_ARRAY_H
+#endif /* VECMAT_ARRAY_H */

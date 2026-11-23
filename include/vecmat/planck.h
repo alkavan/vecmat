@@ -63,4 +63,4 @@ VEC_API vm_float_t vm_planck_group(vm_float_t nu_lo, vm_float_t nu_hi,
  */
 VEC_API vm_float_t vm_planck_db_dt(vm_float_t T, bool *ok);
 
-#endif //VECMAT_PLANCK_H
+#endif /* VECMAT_PLANCK_H */

@@ -80,4 +80,4 @@ VEC_API bool vm_strain_logarithmic_from_grad(matrix3 *log_e, const matrix3 *F);
  */
 VEC_API bool vm_strain_rotation_to_quat(quaternion *q, const matrix3 *R);
 
-#endif //VECMAT_STRAIN_H
+#endif /* VECMAT_STRAIN_H */

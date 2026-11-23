@@ -509,4 +509,4 @@ typedef void (*vm_acc_fn)(const vm_float_t *x, vm_float_t *a, void *ctx);
 #define VECMAT_REMAINDER(x, y)  remainderf((x), (y))
 #endif
 
-#endif //VECMAT_TYPES_H
+#endif /* VECMAT_TYPES_H */

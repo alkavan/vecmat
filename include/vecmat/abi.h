@@ -2323,4 +2323,4 @@
 #define vec4_eq vec4_eq32
 #endif
 
-#endif //VECMAT_ABI_H
+#endif /* VECMAT_ABI_H */

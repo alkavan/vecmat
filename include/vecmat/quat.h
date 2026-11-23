@@ -595,4 +595,4 @@ static inline bool quat_eq_ptr(const quaternion *a, const quaternion *b)
 
 /** @} */
 
-#endif //VECMAT_QUAT_H
+#endif /* VECMAT_QUAT_H */

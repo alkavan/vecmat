@@ -89,4 +89,4 @@ VEC_API vm_float64_t vm_dot_f32f64(const vm_float32_t *a, const vm_float32_t *b,
 VEC_API bool vm_array_minmax(vm_float_t *min_value, vm_float_t *max_value,
                              const vm_float_t *x, int n);
 
-#endif //VECMAT_REDUCE_H
+#endif /* VECMAT_REDUCE_H */

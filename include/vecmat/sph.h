@@ -417,4 +417,4 @@ VEC_API bool vm_sph_neighbor_fill(int *neighbors, const int *offsets,
                                   const int *cell_particles,
                                   vm_float_t support, int dim);
 
-#endif //VECMAT_SPH_H
+#endif /* VECMAT_SPH_H */

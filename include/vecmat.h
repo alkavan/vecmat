@@ -93,4 +93,4 @@
 #include "vecmat/sparse.h"
 #include "vecmat/ode.h"
 
-#endif //VECMAT_H
+#endif /* VECMAT_H */

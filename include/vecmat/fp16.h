@@ -107,4 +107,4 @@ VEC_API void vm_gemm_fp16f32(
     int m, int n, int k,
     float alpha, float beta);
 
-#endif //VECMAT_FP16_H
+#endif /* VECMAT_FP16_H */

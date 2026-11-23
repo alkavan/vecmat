@@ -104,4 +104,4 @@ VEC_API void vm_soa3_length_squared(vm_float_t *res, vm_csoa3 a, int n);
  */
 VEC_API void vm_soa3_distance_squared(vm_float_t *res, vm_csoa3 a, vm_csoa3 b, int n);
 
-#endif //VECMAT_SOA3_H
+#endif /* VECMAT_SOA3_H */

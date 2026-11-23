@@ -69,4 +69,4 @@ VEC_API vector3 vec3_hermite(vector3 p0, vector3 p1, vector3 m0, vector3 m1, vm_
 /** @brief Uniform Catmull-Rom on `vector3`. */
 VEC_API vector3 vec3_catmull_rom(vector3 p0, vector3 p1, vector3 p2, vector3 p3, vm_float_t t);
 
-#endif //VECMAT_CURVE_H
+#endif /* VECMAT_CURVE_H */

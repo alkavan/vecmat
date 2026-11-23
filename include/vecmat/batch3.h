@@ -82,4 +82,4 @@ VEC_API bool vm_batch3_ddot(vm_float_t *d,
                             const vm_float_t *b, int b_stride,
                             int n);
 
-#endif //VECMAT_BATCH3_H
+#endif /* VECMAT_BATCH3_H */

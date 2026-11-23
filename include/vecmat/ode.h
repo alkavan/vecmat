@@ -344,4 +344,4 @@ VEC_API bool vm_rayleigh(vm_float_t *f, const vm_float_t *m, const vm_float_t *v
                          const vm_float_t *f_int, int n, int dim,
                          vm_float_t alpha, vm_float_t beta);
 
-#endif //VECMAT_ODE_H
+#endif /* VECMAT_ODE_H */

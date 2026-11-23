@@ -110,4 +110,4 @@ VEC_API bool vm_cg(const vm_spmat *A, const vm_float_t *b, vm_float_t *x,
 VEC_API bool vm_bicgstab(const vm_spmat *A, const vm_float_t *b, vm_float_t *x,
     vm_float_t tol, int max_iter, vm_ksp_prec_t pre_cond, vm_ksp_info *info);
 
-#endif //VECMAT_SPARSE_H
+#endif /* VECMAT_SPARSE_H */

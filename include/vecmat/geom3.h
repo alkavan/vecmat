@@ -287,4 +287,4 @@ VEC_API vm_aabb vm_geom3_aabb_union(const vm_aabb *a, const vm_aabb *b);
  */
 VEC_API vm_aabb vm_geom3_aabb_expand(const vm_aabb *box, const vector3 *p);
 
-#endif //VECMAT_GEOM3_H
+#endif /* VECMAT_GEOM3_H */

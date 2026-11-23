@@ -1681,4 +1681,4 @@ static inline bool mat4i_eq_ptr(const matrix4i *a, const matrix4i *b)
 
 /** @} */
 
-#endif //VECMAT_MAT_H
+#endif /* VECMAT_MAT_H */

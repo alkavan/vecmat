@@ -145,4 +145,4 @@ VEC_API bool vm_eos_jwl_n(vm_float_t *p, vm_float_t *c,
                           const vm_float_t *e, int e_stride,
                           int n);
 
-#endif //VECMAT_EOS_H
+#endif /* VECMAT_EOS_H */

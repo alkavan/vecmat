@@ -174,4 +174,4 @@ typedef int32_t vm_int_t;
 #define VEC_INT_MIN INT32_MIN
 #endif
 
-#endif //VECMAT_CONFIG_H
+#endif /* VECMAT_CONFIG_H */

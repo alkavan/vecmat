@@ -202,4 +202,4 @@ static inline double run_benchmarks(void) {
     return total_time;
 }
 
-#endif // UNITEST_H
+#endif /* UNITEST_H */

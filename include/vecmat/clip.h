@@ -1018,4 +1018,4 @@ VEC_API bool vm_frustum_contains(const vm_frustum *frustum, vector3 point);
  */
 VEC_API vm_frustum_overlap vm_frustum_aabb(const vm_frustum *frustum, vector3 b_min, vector3 b_max);
 
-#endif //VECMAT_CLIP_H
+#endif /* VECMAT_CLIP_H */

@@ -84,4 +84,4 @@ VEC_API vm_float_t vm_angular_scatter(const vm_float_t *mu,
                                       vm_float_t ox, vm_float_t oy, vm_float_t oz,
                                       vm_float_t g);
 
-#endif //VECMAT_ANGULAR_H
+#endif /* VECMAT_ANGULAR_H */

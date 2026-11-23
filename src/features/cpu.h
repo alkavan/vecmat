@@ -75,4 +75,4 @@ void vm_dispatch_init(void);
 
 #endif /* VECMAT_RUNTIME_DISPATCH */
 
-#endif //VECMAT_FEATURES_CPU_H
+#endif /* VECMAT_FEATURES_CPU_H */

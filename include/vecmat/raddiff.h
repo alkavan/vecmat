@@ -93,4 +93,4 @@ VEC_API bool vm_raddiff_laplacian(vm_spmat *A,
                                   vm_grid3 g,
                                   vm_bc_t bc);
 
-#endif //VECMAT_RADDIFF_H
+#endif /* VECMAT_RADDIFF_H */

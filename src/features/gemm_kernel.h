@@ -20,4 +20,4 @@ enum {
     VM_GEMM_PACK_CACHE = 4 * 1024 * 1024
 };
 
-#endif // VECMAT_GEMM_KERNEL_H
+#endif /* VECMAT_GEMM_KERNEL_H */

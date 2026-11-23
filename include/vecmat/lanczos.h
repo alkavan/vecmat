@@ -123,4 +123,4 @@ VEC_API bool vm_lanczos_sparse(const vm_spmat *A, int k, vm_lanczos_which which,
                                vm_float_t *eigenvalues, vm_mat *eigenvectors,
                                vm_ksp_info *info);
 
-#endif //VECMAT_LANCZOS_H
+#endif /* VECMAT_LANCZOS_H */

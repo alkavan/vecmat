@@ -216,4 +216,4 @@ static inline int vm_abi_mismatch(void)
     return (vm_compiled_float_bits() & (unsigned)VECMAT_FLOAT_BITS) == 0u;
 }
 
-#endif //VECMAT_CPU_H
+#endif /* VECMAT_CPU_H */

@@ -81,4 +81,4 @@ VEC_API bool vm_goe(const vm_mat *A, vm_rng *rng);
  */
 VEC_API bool vm_gue(const vm_mat *Ar, const vm_mat *Ai, vm_rng *rng);
 
-#endif //VECMAT_RANDOM_H
+#endif /* VECMAT_RANDOM_H */

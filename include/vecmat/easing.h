@@ -462,4 +462,4 @@ VEC_API vm_float_t vm_smootherstep(vm_float_t edge0, vm_float_t edge1, vm_float_
 /** @brief Deprecated. Use `vm_smootherstep`. */
 VEC_API VM_DEPRECATED("use vm_smootherstep") vm_float_t smootherstep(vm_float_t edge0, vm_float_t edge1, vm_float_t x);
 
-#endif //VECMAT_EASING_H
+#endif /* VECMAT_EASING_H */

@@ -63,4 +63,4 @@ VEC_API vm_float_t vm_ray_transmit(vm_float_t tau);
  */
 VEC_API vm_float_t vm_ray_emit(vm_float_t tau, vm_float_t B);
 
-#endif //VECMAT_RAY_H
+#endif /* VECMAT_RAY_H */

@@ -131,4 +131,4 @@ VEC_API void vm_sym3_dw_split(const matrix3 *L, vm_sym3 *D, matrix3 *W);
  */
 VEC_API vm_float_t vm_sym3_ddot(const vm_sym3 *a, const vm_sym3 *b);
 
-#endif //VECMAT_SYM3_H
+#endif /* VECMAT_SYM3_H */

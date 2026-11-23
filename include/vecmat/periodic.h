@@ -62,4 +62,4 @@ VEC_API bool vm_periodic_delta_ortho(vector3 *res, const vector3 *a,
  */
 VEC_API bool vm_wrap_ortho(vector3 *x, vector3 box, int n);
 
-#endif //VECMAT_PERIODIC_H
+#endif /* VECMAT_PERIODIC_H */

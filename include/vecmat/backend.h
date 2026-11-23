@@ -137,4 +137,4 @@ VEC_API int vm_backend_register(const vm_backend *backend);
  */
 VEC_API const vm_backend_ops *vm_backend_builtin(vm_cpu_features_t isa);
 
-#endif //VECMAT_BACKEND_H
+#endif /* VECMAT_BACKEND_H */
